@@ -1,21 +1,27 @@
-import type { Metadata } from 'next';
-import '@/src/app/globals.css'; // Certifique-se de que o caminho do seu CSS global está correto
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/src/lib/auth"; // Ajuste o caminho
+import { redirect } from "next/navigation";
+import AdminShell from "@/src/components/AdminShell"; // Importe o novo componente
 
-export const metadata: Metadata = {
-  title: 'Grupo Escoteiro Amizade | Em Manutenção',
-  description: 'Site do Grupo Escoteiro Amizade em construção. Sempre Alerta!',
-};
-
-export default function RootLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Busca a sessão no servidor de forma ultra-rápida
+  const session = await getServerSession(authOptions);
+
+  // Segurança extra de rota
+  if (!session) {
+    redirect("/login");
+  }
+
   return (
-    <html lang="pt-BR">
-      <body className="bg-stone-50 text-stone-800 antialiased min-h-screen flex flex-col">
-        {children}
-      </body>
-    </html>
+    <AdminShell 
+      userName={session.user?.name} 
+      userRole={(session.user as any)?.role}
+    >
+      {children}
+    </AdminShell>
   );
 }
