@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import '../globals.css'; // Certifique-se de que o caminho do seu CSS global está correto
+import '@/src/app/globals.css'; // Certifique-se de que o caminho do seu CSS global está correto
 
 export const metadata: Metadata = {
   title: 'Grupo Escoteiro Amizade | Em Manutenção',
@@ -12,8 +12,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
-      <body className="bg-stone-50 text-stone-800 antialiased min-h-screen flex flex-col" suppressHydrationWarning>
+    <html lang="pt-BR">
+      <body className="bg-stone-50 text-stone-800 antialiased min-h-screen flex flex-col">
         {children}
       </body>
     </html>

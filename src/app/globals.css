@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
-  --foreground: #ffffff;
+  /* Fundo claro (equivalente ao bg-stone-50) */
+  --background: #fafaf9;
+  /* Texto escuro (equivalente ao text-stone-800) */
+  --foreground: #292524;
 }
 
 body {
@@ -10,22 +12,22 @@ body {
   color: var(--foreground);
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Tema Claro */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000;
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #d6d3d1; /* stone-300 para um visual neutro e limpo */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #059669; /* emerald-600: um detalhe verde escoteiro ao passar o mouse! */
 }
 
 /* Animations */

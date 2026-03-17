@@ -13,40 +13,42 @@ datasource db {
 
 enum Role {
   ADMIN
-  CLIENT
+  DEVELOPER
+  FINANCEIRO
+  CHEFE
+  RESPONSAVEL
+  MEMBER 
 }
 
-enum TimelineStatus {
+enum Branch {
+  LOBINHO
+  ESCOTEIRO
+  SENIOR
+  PIONEIRO
+  DIRETORIA // Para membros que não estão em tropas ativas
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionStatus {
   PENDING
-  IN_PROGRESS
-  COMPLETED
+  PAID
+  CANCELLED
+}
+
+enum ItemCondition {
+  NEW
+  GOOD
+  FAIR
+  DAMAGED
 }
 
 // ==========================================
 // MODELS DO NEXTAUTH (OBRIGATÓRIOS)
 // ==========================================
-
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?   // Foto de perfil
-  password      String?   // Senha (essencial para login por credenciais)
-  phone         String?   // Telefone
-  role          Role      @default(CLIENT)
-
-  // Relação com a Empresa (Organização)
-  companyId     String?
-  company       Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
-
-  // Relações do NextAuth
-  accounts      Account[]
-  sessions      Session[]
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
 
 model Account {
   id                 String  @id @default(cuid())
@@ -84,101 +86,223 @@ model VerificationToken {
 }
 
 // ==========================================
-// MODELS DA SUA REGRA DE NEGÓCIO
+// MODELO DE USUÁRIO (EXPANDIDO)
 // ==========================================
 
-model Company {
-  id          String   @id @default(cuid())
-  name        String
-  documentId  String?  // CNPJ ou CPF
-  address     String?
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?   // Foto de perfil
+  password      String?   // Senha (essencial para login por credenciais)
+  phone         String?   // Telefone
+  role          Role      @default(MEMBER)
+  branch        Branch?   // Ramo atual do escoteiro/chefe
 
+  // NextAuth
+  accounts      Account[]
+  sessions      Session[]
+
+  // Vínculo Responsável <-> Jovem (Self-relation)
+  guardianId    String?
+  guardian      User?     @relation("GuardianDependents", fields: [guardianId], references: [id])
+  dependents    User[]    @relation("GuardianDependents")
+
+  // Vínculos de Tropa
+  troopId       String?
+  troop         Troop?    @relation("TroopMembers", fields: [troopId], references: [id])
+  managedTroops Troop[]   @relation("TroopManager") // Tropas que este usuário (Chefe) gerencia
+
+  // Relações com Módulos
+  medicalRecord MedicalRecord?
+  progressions  Progression[]
+  financials    FinancialTransaction[] @relation("UserTransactions")
+  eventRSVPs    EventRSVP[]
+  notifications Notification[]
+  blogPosts     BlogPost[]
+  checkedOut    InventoryItem[]        @relation("ItemCheckout")
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ==========================================
+// MÓDULO OPERACIONAL ESCOTEIRO
+// ==========================================
+
+model Troop {
+  id          String   @id @default(cuid())
+  name        String   // Ex: Tropa Escoteira Xavante, Alcatéia Seeonee
+  branch      Branch   // Ramo da tropa
+  description String?  @db.Text
+  
   // Relações
-  users       User[]
-  credentials ProjectCredential[]
-  envVars     EnvironmentVariable[]
-  documents   ProjectDocument[]
-  timeline    TimelineEvent[]
-  links       UsefulLink[]
-  invoices    Invoice[]
+  managerId   String?  // Chefe responsável
+  manager     User?    @relation("TroopManager", fields: [managerId], references: [id])
+  members     User[]   @relation("TroopMembers")
+  events      Event[]
+  blogPosts   BlogPost[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-// Senhas e logins de serviços terceiros do cliente (ex: Vercel, Supabase, Hostinger)
-model ProjectCredential {
-  id          String   @id @default(cuid())
-  serviceName String   // Ex: "Painel da Vercel", "Hospedagem"
-  link        String?
-  login       String?
-  password    String?  // Opcional, como você pediu
+model MedicalRecord {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  bloodType           String?  // Ex: O+, AB-
+  allergies           String?  @db.Text
+  continuousMeds      String?  @db.Text
+  dietaryRestrictions String?  @db.Text
+  emergencyContact    String?  // Nome e telefone
+  healthInsurance     String?  // Plano de saúde
+  notes               String?  @db.Text
+
+  updatedAt           DateTime @updatedAt
+}
+
+model Progression {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String   // Nome do distintivo/especialidade (Ex: Cordão de Eficiência, Fogo de Conselho)
+  category    String   // Ex: Especialidade, Insígnia de Interesse Especial, Progressão Máxima
+  level       String?  // Ex: Nível 1, 2, 3 (para especialidades)
+  earnedDate  DateTime? // Se nulo, está "em progresso"
+  notes       String?  @db.Text
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-// Variáveis de ambiente (Tokens, Keys)
-model EnvironmentVariable {
+// ==========================================
+// MÓDULO DE EVENTOS E CALENDÁRIO
+// ==========================================
+
+model Event {
   id          String   @id @default(cuid())
-  key         String   // Ex: "BLOB_READ_WRITE_TOKEN"
-  value       String
-  description String?  // Pra que serve essa variável
-
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-}
-
-// Contratos, Recibos e afins
-model ProjectDocument {
-  id          String   @id @default(cuid())
-  name        String   // Ex: "Contrato de Prestação de Serviços"
-  type        String   // Ex: "Contrato", "Recibo", "Apresentação"
-  fileUrl     String   // O link onde o PDF/Arquivo está salvo (ex: Vercel Blob)
-
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title       String
+  description String   @db.Text
+  startDate   DateTime
+  endDate     DateTime
+  location    String?
+  isGlobal    Boolean  @default(false) // Se true, é para todo o grupo. Se false, é para uma tropa específica.
+  
+  troopId     String?
+  troop       Troop?   @relation(fields: [troopId], references: [id])
+  
+  attendees   EventRSVP[]
 
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
-// Linha do tempo do que está sendo feito
-model TimelineEvent {
-  id          String         @id @default(cuid())
-  title       String         // Ex: "Design do Figma aprovado"
-  description String?        @db.Text
-  date        DateTime       @default(now())
-  status      TimelineStatus @default(COMPLETED)
-
-  companyId   String
-  company     Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
-}
-
-// Minha Sugestão: Links Rápidos
-model UsefulLink {
-  id          String   @id @default(cuid())
-  title       String   // Ex: "Figma do Projeto" ou "Site no Ar"
-  url         String
+model EventRSVP {
+  id        String   @id @default(cuid())
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  status    Boolean  @default(true) // True = Confirmado, False = Ausente justificado
+
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId]) // Um usuário só pode confirmar presença uma vez por evento
 }
 
-// Minha Sugestão: Financeiro
-model Invoice {
-  id          String   @id @default(cuid())
-  title       String   // Ex: "Parcela 1/3 - Desenvolvimento"
-  amount      Float
+// ==========================================
+// MÓDULO FINANCEIRO
+// ==========================================
+
+model FinancialTransaction {
+  id          String            @id @default(cuid())
+  title       String            // Ex: Mensalidade Março/2026, Compra de Lampião
+  amount      Decimal           @db.Decimal(10, 2)
+  type        TransactionType
+  status      TransactionStatus @default(PENDING)
   dueDate     DateTime
-  isPaid      Boolean  @default(false)
-  receiptUrl  String?  // Link do recibo após o pagamento
+  paidDate    DateTime?
+  
+  userId      String?           // Quem está pagando/recebendo (geralmente o Responsável)
+  user        User?             @relation("UserTransactions", fields: [userId], references: [id])
+  
+  receiptUrl  String?           // Link do comprovante no AWS S3 / Vercel Blob
 
-  companyId   String
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+// ==========================================
+// MÓDULO DE PATRIMÔNIO (ALMOXARIFADO)
+// ==========================================
+
+model InventoryItem {
+  id              String        @id @default(cuid())
+  name            String        // Ex: Barraca Canadense 4 Pessoas
+  category        String        // Ex: Camping, Cozinha, Ferramentas
+  quantity        Int           @default(1)
+  condition       ItemCondition @default(GOOD)
+  notes           String?       @db.Text
+  
+  // Controle de quem retirou o material
+  checkedOutToId  String?
+  checkedOutTo    User?         @relation("ItemCheckout", fields: [checkedOutToId], references: [id])
+  expectedReturn  DateTime?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+// ==========================================
+// MÓDULO DE CMS E TRANSPARÊNCIA
+// ==========================================
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String   // Ex: Ata de Reunião Fev/2026
+  folder      String   // Diretório virtual (Ex: "Atas/2026", "Balanços")
+  fileUrl     String   // Link do PDF
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text // Pode armazenar HTML ou Markdown do Rich Text Editor
+  imageUrl    String?  // Capa da postagem
+  published   Boolean  @default(false)
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  
+  troopId     String?  // Se nulo, é uma notícia global do Grupo
+  troop       Troop?   @relation(fields: [troopId], references: [id])
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ==========================================
+// MÓDULO DE COMUNICAÇÃO
+// ==========================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  linkUrl   String?  // Link opcional (Ex: levar para a página do evento)
+
+  createdAt DateTime @default(now())
 }
