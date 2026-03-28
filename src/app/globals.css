@@ -45,3 +45,9 @@ body {
 .animate-fade-in-down {
   animation: fade-in-down 0.3s ease-out forwards;
 }
+
+@layer base {
+  button {
+    @apply cursor-pointer;
+  }
+}

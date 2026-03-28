@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '4.5mb', // Libera o limite até o teto do servidor Vercel
+    },
+  },
   images: {
     remotePatterns: [
       {

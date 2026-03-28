@@ -1,125 +1,91 @@
 import prisma from "@/src/lib/prisma";
-import Link from "next/link";
-import { deleteDocument } from "./actions";
-
-const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit", month: "2-digit", year: "numeric",
-  }).format(date);
-};
+import ExplorerTree from "./_components/ExplorerTree";
 
 export default async function TransparenciaDashboardPage() {
-  const documents = await prisma.document.findMany({
-    orderBy: { createdAt: "desc" },
+  const allFolders = await prisma.folder.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      allowedViewers: { select: { id: true } },
+      allowedEditors: { select: { id: true } },
+    }
   });
 
+  const allDocuments = await prisma.document.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      allowedViewers: { select: { id: true } },
+      allowedEditors: { select: { id: true } },
+    }
+  });
+  
+  // Busca administradores para o modal de novo arquivo
+  const adminUsers = await prisma.user.findMany({
+    where: { role: { in: ["ADMIN", "CHEFE"] } },
+    select: { id: true, name: true, role: true },
+    orderBy: { name: "asc" },
+  });
+
+  // ==========================================
+  // CÁLCULO DE ARMAZENAMENTO
+  // ==========================================
+  // O código abaixo soma a propriedade "size" (em bytes) dos documentos.
+  // Nota: Se a sua tabela 'Document' ainda não tiver a coluna 'size', isso retornará 0.
+  const totalBytes = allDocuments.reduce((acc, doc) => acc + doc.size, 0);
+  const usedMB = (totalBytes / (1024 * 1024)).toFixed(2);
+  const limitGB = 1;
+  const limitMB = limitGB * 1024;
+  const percentage = Math.min((Number(usedMB) / limitMB) * 100, 100).toFixed(1);
+
   return (
-    <div className="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto w-full animate-fade-in-down">
+    // Transformamos o pai em um flex-col com gap-4 para acomodar os dois blocos
+    <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto w-full animate-fade-in-down h-[calc(100vh-100px)] flex flex-col gap-4">
       
-      {/* Cabeçalho */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-emerald-800 tracking-tight">Portal da Transparência</h1>
-          <p className="text-stone-500 mt-1 text-sm md:text-base">Gerencie atas de reunião, balanços financeiros e documentos do Grupo.</p>
+      {/* BARRA DE PROGRESSO DE ARMAZENAMENTO */}
+      <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4 shrink-0">
+        <div className="flex justify-between items-end mb-2.5">
+          <div>
+            <h2 className="text-sm font-bold text-stone-800">Armazenamento em Nuvem</h2>
+            <p className="text-xs text-stone-500">Uso do Armazenamento</p>
+          </div>
+          <div className="text-right">
+            <span className="text-sm font-black text-emerald-700">{usedMB} MB</span>
+            <span className="text-xs font-bold text-stone-400"> / {limitGB} GB</span>
+          </div>
         </div>
-        <Link 
-          href="/admin/transparencia/novo" 
-          className="w-full sm:w-auto justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 md:py-3 rounded-xl font-semibold shadow-md transition-all flex items-center gap-2 hover:-translate-y-0.5"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        
+        {/* Barra Visual */}
+        <div className="w-full bg-stone-100 rounded-full h-2.5 mb-3.5 border border-stone-200 overflow-hidden">
+          <div 
+            className={`h-full rounded-full transition-all duration-1000 ${Number(percentage) > 90 ? 'bg-red-500' : 'bg-emerald-500'}`} 
+            style={{ width: `${percentage}%` }}
+          ></div>
+        </div>
+        
+        {/* Aviso de Limites */}
+        <div className="flex items-start gap-2.5 text-xs text-stone-600 bg-amber-50/50 p-3 rounded-lg border border-amber-100/50">
+          <svg className="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          Novo Documento
-        </Link>
+          <p className="leading-relaxed">
+            O tamanho máximo permitido para envios é de <strong className="text-stone-800">4,5 MB por arquivo</strong>. 
+            Para solicitar o aumento de tamanho individual de arquivo ou expandir o limite total do acervo, entre em contato com o administrador do sistema.
+          </p>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-        {documents.length === 0 ? (
-          <div className="p-10 md:p-16 flex flex-col items-center justify-center text-center">
-            {/* Ícone de estado vazio simplificado para o exemplo */}
-            <svg className="w-16 h-16 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            <h3 className="text-lg md:text-xl font-bold text-stone-700 mt-4">O arquivo está vazio</h3>
-            <p className="text-stone-500 max-w-sm mt-2 text-sm md:text-base">Nenhum documento foi enviado ainda.</p>
-          </div>
-        ) : (
-          <div className="w-full">
-            {/* Cabeçalho da Tabela - Oculto no Mobile, Visível a partir do tablet (md) */}
-            <div className="hidden md:grid grid-cols-12 gap-4 bg-stone-50 border-b border-stone-200 text-xs font-bold text-stone-500 uppercase tracking-wider p-4 pl-6">
-              <div className="col-span-5">Título do Documento</div>
-              <div className="col-span-3">Pasta</div>
-              <div className="col-span-2">Data de Envio</div>
-              <div className="col-span-2 text-right pr-2">Ações</div>
-            </div>
-
-            {/* Lista de Documentos */}
-            <div className="divide-y divide-stone-100">
-              {documents.map((doc) => (
-                <div 
-                  key={doc.id} 
-                  className="flex flex-col md:grid md:grid-cols-12 md:gap-4 md:items-center p-4 md:pl-6 hover:bg-stone-50/80 transition-colors group"
-                >
-                  
-                  {/* Informações Principais (Título e Pasta no mobile) */}
-                  <div className="col-span-5 flex items-start md:items-center gap-3 mb-3 md:mb-0">
-                    <svg className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5 md:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    <div className="flex flex-col">
-                      <span className="text-stone-800 font-medium text-sm md:text-base leading-tight">
-                        {doc.title}
-                      </span>
-                      {/* Badge da Pasta visível junto ao título no mobile, oculto no desktop */}
-                      <span className="md:hidden inline-block bg-stone-100 border border-stone-200 text-stone-600 px-2 py-0.5 rounded-md text-[10px] font-semibold mt-1 w-max">
-                        {doc.folder}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Pasta (Visível apenas no Desktop) */}
-                  <div className="hidden md:block col-span-3">
-                    <span className="bg-stone-100 border border-stone-200 text-stone-600 px-3 py-1 rounded-full text-xs font-semibold">
-                      {doc.folder}
-                    </span>
-                  </div>
-
-                  {/* Data e Ações no Mobile / Apenas Data no Desktop */}
-                  <div className="flex items-center justify-between md:col-span-4 w-full">
-                    
-                    {/* Data */}
-                    <div className="text-stone-500 text-xs md:text-sm md:w-1/2">
-                      {formatDate(doc.createdAt)}
-                    </div>
-
-                    {/* Botões de Ação */}
-                    <div className="flex justify-end gap-1 md:gap-2 md:w-1/2 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                      
-                      {/* Botão Visualizar */}
-                      <a href={`/portal-da-transparencia/arquivo/${doc.id}`} target="_blank" rel="noopener noreferrer" className="p-2 text-stone-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Visualizar">
-                        <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                      </a>
-
-                      {/* Botão Editar */}
-                      <Link href={`/admin/transparencia/${doc.id}/editar`} className="p-2 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Editar">
-                        <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                      </Link>
-
-                      {/* Botão Excluir */}
-                      <form action={deleteDocument.bind(null, doc.id, doc.fileUrl)}>
-                        <button type="submit" className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
-                          <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                      </form>
-
-                    </div>
-                  </div>
-
-                </div>
-              ))}
-            </div>
-
-          </div>
-        )}
+      {/* ÁREA DO EXPLORER TREE */}
+      {/* flex-1 e min-h-0 garantem que ele preencha o espaço que sobrou e ative a barra de rolagem interna */}
+      <div className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden flex-1 flex flex-col min-h-0">
+        <div className="bg-stone-50 border-b border-stone-200 px-4 py-2.5 flex items-center gap-2 shrink-0">
+          <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
+          <span className="text-xs font-bold text-stone-600 uppercase tracking-wider">Acervo do Grupo</span>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-2">
+          <ExplorerTree folders={allFolders} documents={allDocuments} adminUsers={adminUsers} />
+        </div>
       </div>
+      
     </div>
   );
 }

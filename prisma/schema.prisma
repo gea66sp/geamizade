@@ -123,6 +123,12 @@ model User {
   blogPosts     BlogPost[]
   checkedOut    InventoryItem[]        @relation("ItemCheckout")
 
+  // Controle de Acesso - Transparência (Pastas e Documentos)
+  viewableFolders   Folder[]   @relation("FolderViewers")
+  editableFolders   Folder[]   @relation("FolderEditors")
+  viewableDocuments Document[] @relation("DocumentViewers")
+  editableDocuments Document[] @relation("DocumentEditors")
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -169,9 +175,9 @@ model Progression {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  title       String   // Nome do distintivo/especialidade (Ex: Cordão de Eficiência, Fogo de Conselho)
-  category    String   // Ex: Especialidade, Insígnia de Interesse Especial, Progressão Máxima
-  level       String?  // Ex: Nível 1, 2, 3 (para especialidades)
+  title       String   // Nome do distintivo/especialidade
+  category    String   // Ex: Especialidade, Insígnia, Progressão Máxima
+  level       String?  // Ex: Nível 1, 2, 3
   earnedDate  DateTime? // Se nulo, está "em progresso"
   notes       String?  @db.Text
 
@@ -190,7 +196,7 @@ model Event {
   startDate   DateTime
   endDate     DateTime
   location    String?
-  isGlobal    Boolean  @default(false) // Se true, é para todo o grupo. Se false, é para uma tropa específica.
+  isGlobal    Boolean  @default(false)
   
   troopId     String?
   troop       Troop?   @relation(fields: [troopId], references: [id])
@@ -212,7 +218,7 @@ model EventRSVP {
 
   createdAt DateTime @default(now())
 
-  @@unique([eventId, userId]) // Um usuário só pode confirmar presença uma vez por evento
+  @@unique([eventId, userId])
 }
 
 // ==========================================
@@ -221,17 +227,17 @@ model EventRSVP {
 
 model FinancialTransaction {
   id          String            @id @default(cuid())
-  title       String            // Ex: Mensalidade Março/2026, Compra de Lampião
+  title       String            // Ex: Mensalidade Março/2026
   amount      Decimal           @db.Decimal(10, 2)
   type        TransactionType
   status      TransactionStatus @default(PENDING)
   dueDate     DateTime
   paidDate    DateTime?
   
-  userId      String?           // Quem está pagando/recebendo (geralmente o Responsável)
+  userId      String?           // Quem está pagando/recebendo
   user        User?             @relation("UserTransactions", fields: [userId], references: [id])
   
-  receiptUrl  String?           // Link do comprovante no AWS S3 / Vercel Blob
+  receiptUrl  String?           // Link do comprovante
 
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
@@ -243,13 +249,12 @@ model FinancialTransaction {
 
 model InventoryItem {
   id              String        @id @default(cuid())
-  name            String        // Ex: Barraca Canadense 4 Pessoas
-  category        String        // Ex: Camping, Cozinha, Ferramentas
+  name            String        
+  category        String        
   quantity        Int           @default(1)
   condition       ItemCondition @default(GOOD)
   notes           String?       @db.Text
   
-  // Controle de quem retirou o material
   checkedOutToId  String?
   checkedOutTo    User?         @relation("ItemCheckout", fields: [checkedOutToId], references: [id])
   expectedReturn  DateTime?
@@ -259,31 +264,68 @@ model InventoryItem {
 }
 
 // ==========================================
-// MÓDULO DE CMS E TRANSPARÊNCIA
+// MÓDULO DE CMS E TRANSPARÊNCIA (NOVO EXPLORER)
 // ==========================================
 
-model Document {
-  id          String   @id @default(cuid())
-  title       String   // Ex: Ata de Reunião Fev/2026
-  folder      String   // Diretório virtual (Ex: "Atas/2026", "Balanços")
-  fileUrl     String   // Link do PDF
+model Folder {
+  id                String   @id @default(cuid())
+  name              String
+  description       String?  @db.Text
   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  // Auto-relacionamento para subpastas (Estilo Windows Explorer)
+  parentId          String?
+  parent            Folder?  @relation("SubFolders", fields: [parentId], references: [id], onDelete: Cascade)
+  subFolders        Folder[] @relation("SubFolders")
+  
+  documents         Document[]
+
+  // Visibilidade e Controle de Acesso
+  isPublic          Boolean  @default(true)  // Visível no site público?
+  isRestrictedView  Boolean  @default(false) // Se true, apenas admins específicos veem
+  isRestrictedEdit  Boolean  @default(false) // Se true, apenas admins específicos editam
+
+  allowedViewers    User[]   @relation("FolderViewers")
+  allowedEditors    User[]   @relation("FolderEditors")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Document {
+  id                String   @id @default(cuid())
+  title             String   // Ex: Ata de Reunião Fev/2026
+  description       String?  @db.Text
+  fileUrl           String   // Link do PDF/Arquivo
+  size             Int       @default(0)
+  
+  // Relação com a pasta (Se nulo, o arquivo está na "raiz")
+  folderId          String?
+  folder            Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  
+  // Visibilidade e Controle de Acesso (Override específico do arquivo)
+  isPublic          Boolean  @default(true)  // Visível no site público?
+  isRestrictedView  Boolean  @default(false)
+  isRestrictedEdit  Boolean  @default(false)
+
+  allowedViewers    User[]   @relation("DocumentViewers")
+  allowedEditors    User[]   @relation("DocumentEditors")
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model BlogPost {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  content     String   @db.Text // Pode armazenar HTML ou Markdown do Rich Text Editor
+  content     String   @db.Text // HTML ou Markdown do Rich Text
   imageUrl    String?  // Capa da postagem
   published   Boolean  @default(false)
   
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
   
-  troopId     String?  // Se nulo, é uma notícia global do Grupo
+  troopId     String?  // Se nulo, é notícia global
   troop       Troop?   @relation(fields: [troopId], references: [id])
 
   createdAt   DateTime @default(now())
@@ -302,7 +344,7 @@ model Notification {
   title     String
   message   String   @db.Text
   isRead    Boolean  @default(false)
-  linkUrl   String?  // Link opcional (Ex: levar para a página do evento)
+  linkUrl   String?  // Link opcional
 
   createdAt DateTime @default(now())
 }
