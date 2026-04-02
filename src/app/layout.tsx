@@ -1,26 +1,28 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-montserrat",
   display: "swap",
 });
 
-const BASE_URL = 'https://www.geamizade.org.br/'; 
+const openSans = Open_Sans({
+  subsets: ["latin"],
+  variable: "--font-open-sans",
+  display: "swap",
+});
+
+const BASE_URL = 'https://www.geamizade.org.br'; 
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
-
   title: {
-    template: '%s | GE AMIZADE',
-    default: 'GE AMIZADE | Grupo Escoteiro Amizade 66SP',
+    template: '%s',
+    default: 'GE AMIZADE | Grupo Escoteiro Amizade 66/SP',
   },
-
-  description:
-    'Grupo Escoteiro Amizade 66SP - Promovendo valores, aventuras e amizades duradouras. Junte-se a nós para explorar, aprender e crescer juntos!',
-
+  description: 'Grupo Escoteiro Amizade 66/SP - Promovendo valores, aventuras e amizades duradouras. Junte-se a nós para explorar, aprender e crescer juntos em Taubaté!',
   keywords: [
     'GE AMIZADE',
     'Grupo Escoteiro Amizade',
@@ -32,102 +34,84 @@ export const metadata: Metadata = {
     'Desenvolvimento de jovens',
     'Atividades escoteiras',
     'Valores escoteiros',
-    'Grupo Escoteiro',
     'Acampamento',
   ],
-
+  authors: [{ name: 'Grupo Escoteiro Amizade 66/SP' }],
+  category: 'Non-profit Organization',
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   openGraph: {
-    title: 'GE AMIZADE | Grupo Escoteiro Amizade 66SP',
-    description:
-      'Promovendo valores, aventuras e amizades duradouras. Junte-se a nós para explorar, aprender e crescer juntos!',
+    title: 'GE AMIZADE | Grupo Escoteiro Amizade 66/SP',
+    description: 'Promovendo valores, aventuras e amizades duradouras. Junte-se a nós para explorar, aprender e crescer juntos!',
     url: '/',
     siteName: 'GE AMIZADE',
     images: [
       {
-        url: '/og-image.png', 
+        url: '/hero-image.jpg', 
         width: 1200,
         height: 630,
-        alt: 'GE AMIZADE - Grupo Escoteiro Amizade 66SP',
+        alt: 'GE AMIZADE - Grupo Escoteiro Amizade 66/SP',
       },
     ],
     locale: 'pt_BR',
     type: 'website',
   },
-
   twitter: {
     card: 'summary_large_image',
-    title: 'GE AMIZADE | Grupo Escoteiro Amizade 66SP',
-    description:
-      'Promovendo valores, aventuras e amizades duradouras. Junte-se a nós para explorar, aprender e crescer juntos!',
+    title: 'GE AMIZADE | Grupo Escoteiro Amizade 66/SP',
+    description: 'Promovendo valores, aventuras e amizades duradouras. Junte-se a nós para explorar, aprender e crescer juntos!',
     images: ['/og-image.png'],
   },
-
   icons: {
     icon: '/favicon.ico', 
-    apple: '/apple-icon.png',
+    apple: '/flor-de-lis.jpg',
   },
 };
 
-// Estrutura de Dados Estruturados (Schema.org) para Negócio Local
-const schema = {
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness", 
-  "@id": `${BASE_URL}/#localbusiness`,
-  "name": "GE AMIZADE",
-  "url": BASE_URL,
-  "logo": `${BASE_URL}/logo.png`,
-  "image": `${BASE_URL}/og-image.png`,
-  "description":
-    "Grupo Escoteiro Amizade 66SP - Promovendo valores, aventuras e amizades duradouras. Junte-se a nós para explorar, aprender e crescer juntos!",
-  "telephone": "+55 12 3622-7084", 
-  "priceRange": "Gratuito", 
-
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "Rua Kenzo Kajita, 272", 
-    "addressLocality": "Taubaté",
-    "addressRegion": "SP",
-    "postalCode": "12062-240", 
-    "addressCountry": "BR"
-  },
-
-  "areaServed": [
-    {
+// Estrutura de Dados Estruturados (Schema.org) - Usando array para LocalBusiness e NGO
+const schema = [
+  {
+    "@context": "https://schema.org",
+    "@type": ["LocalBusiness", "NGO"], 
+    "@id": `${BASE_URL}/institucional`,
+    "name": "GE AMIZADE - Grupo Escoteiro Amizade 66/SP",
+    "url": BASE_URL,
+    "logo": `${BASE_URL}/flor-de-lis.jpg`,
+    "image": `${BASE_URL}/hero-image.jpg`,
+    "description": "Grupo Escoteiro em Taubaté focado no desenvolvimento de jovens através do Método Escoteiro.",
+    "telephone": "+55 12 3622-7084", 
+    "priceRange": "$", 
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Rua Kenzo Kajita, 272", 
+      "addressLocality": "Taubaté",
+      "addressRegion": "SP",
+      "postalCode": "12062-240", 
+      "addressCountry": "BR"
+    },
+    "areaServed": {
       "@type": "City",
       "name": "Taubaté",
-    }
-  ],
-  
-  // Redes Sociais (Preencha quando tiver)
-  "sameAs": [
-    "https://www.instagram.com/amizade66sp/",
-    "https://www.facebook.com/GEAmizade/",
-    "https://www.youtube.com/channel/UC58vnMAkyeTN7ATE_SwfkrQ"
-    
-  ],
-
-  // Ofertas de Serviço Específicas para Taubaté 
-  "makesOffer": [
-    {
-      "@type": "Offer",
-      "itemOffered": {
-        "@type": "Service",
-        "@id": `${BASE_URL}/institucional`,
-        "name": "Grupo Escoteiro em Taubaté",
-        "description": "Grupo Escoteiro Amizade 66SP - Promovendo valores, aventuras e amizades duradouras. Junte-se a nós para explorar, aprender e crescer juntos!",
-        "areaServed": {
-          "@type": "City",
-          "name": "Taubaté",
-        },
-        "provider": {
-          "@type": "ProfessionalService",
-          "name": "GE AMIZADE",
-          "image": `${BASE_URL}/logo.png`
-        }
-      }
     },
-  ]
-};
+    "sameAs": [
+      "https://www.instagram.com/amizade66sp/",
+      "https://www.facebook.com/GEAmizade/",
+      
+    ]
+  }
+];
 
 export default function RootLayout({
   children,
@@ -137,15 +121,19 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="scroll-smooth">
       <head>
-        {/* Injeção do Schema JSON-LD para o Google */}
+        <link 
+          rel="stylesheet" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
         />
       </head>
-      
-      <body className={`${inter.variable} antialiased bg-black text-white font-sans`}>
-        {children}
+      <body className={`${openSans.variable} ${montserrat.variable} font-sans text-gray-800 bg-gray-50 flex flex-col min-h-screen antialiased`}>
+        <main className="grow">
+          {children}
+        </main>
       </body>
     </html>
   );

@@ -1,11 +1,11 @@
-import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions, getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "../lib/prisma";
+import prisma from "./prisma"; // Ajuste o caminho se necessário (ex: ../lib/prisma)
 import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
-  // Conecta o NextAuth ao Prisma (útil se for adicionar Google/Facebook depois)
+  // Conecta o NextAuth ao Prisma
   adapter: PrismaAdapter(prisma),
   
   // Obrigatório ser 'jwt' ao usar CredentialsProvider
@@ -55,32 +55,28 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email }
         });
 
-        // Verifica se o usuário existe e possui senha
         if (!user || !user.password) {
           throw new Error("E-mail não cadastrado ou credenciais inválidas.");
         }
 
-        // Compara a senha digitada com o hash salvo
         const isValidPassword = await bcrypt.compare(credentials.password, user.password);
 
         if (!isValidPassword) {
           throw new Error("Senha incorreta.");
         }
 
-        // Retorna o objeto alinhado com o seu Schema Prisma
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,     // Ex: ADMIN, CHEFE, MEMBER
-          branch: user.branch, // Ex: LOBINHO, ESCOTEIRO, SENIOR
+          role: user.role,
+          branch: user.branch,
         };
       }
     })
   ],
   
   callbacks: {
-    // 1. O retorno do authorize passa por aqui para gerar o Token JWT
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -90,10 +86,8 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     
-    // 2. O Token passa por aqui para gerar a Sessão visível no Client/Server
     async session({ session, token }) {
       if (session.user) {
-        // Colocamos o (session.user as any) no ID também para o TypeScript não chorar
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
         (session.user as any).branch = token.branch;
@@ -101,7 +95,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    // 3. Controla para onde o usuário vai após ações de login/logout
     async redirect({ url, baseUrl }) {
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
@@ -116,3 +109,21 @@ export const authOptions: NextAuthOptions = {
   
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+/**
+ * Função utilitária para obter o usuário logado com dados atualizados do banco.
+ * Ideal para uso em Server Components e Server Actions.
+ */
+export async function getAuthUser() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    return null;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+  });
+
+  return user;
+}

@@ -28,7 +28,6 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
   // Atualiza o destino se o modal for aberto a partir do botão "+" de uma pasta específica
   useEffect(() => {
     setSelectedTargetId(targetFolderId);
-    // Se veio com uma pasta de destino, expande a raiz para mostrá-la
     if (targetFolderId) {
       setExpandedTargetFolders(prev => new Set(prev).add("root"));
     }
@@ -55,17 +54,14 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
       await createDocument(formData);
       onClose(); // Fecha o modal após salvar
     } catch (err: any) {
-      // Se por acaso sobrar algum redirect do Next.js, a gente ignora ele
       if (err.message === "NEXT_REDIRECT") return; 
-      
-      // Mostra o erro real que veio do backend
       alert(err.message || "Erro inesperado ao enviar o documento.");
     } finally {
       setIsUploading(false);
     }
   }
 
-  // Função recursiva para renderizar a árvore de destino no formulário
+  // --- ÁRVORE DE DESTINO NO FORMULÁRIO ---
   const renderTargetTree = (parentId: string | null = null, depth: number = 0) => {
     const childFolders = folders
       .filter(f => f.parentId === parentId)
@@ -82,13 +78,13 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
           return (
             <div key={folder.id} className="w-full">
               <div 
-                className={`flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors mt-0.5 ${isSelected ? 'bg-emerald-100 text-emerald-800 font-bold' : 'hover:bg-stone-200/50 text-stone-700'}`}
+                className={`flex items-center gap-2 py-2 px-2 rounded-lg cursor-pointer transition-colors mt-1 ${isSelected ? 'bg-blue-50 text-blue-800 font-bold border border-blue-200' : 'hover:bg-gray-100 text-gray-700'}`}
                 style={{ paddingLeft: `${(depth * 1.2) + 0.5}rem` }}
                 onClick={() => setSelectedTargetId(folder.id)}
               >
                 <button 
                   type="button"
-                  className="p-1 text-stone-400 hover:text-stone-700 rounded transition-colors"
+                  className="p-1 text-gray-400 hover:text-gray-700 rounded transition-colors flex items-center justify-center w-6 h-6 shrink-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     setExpandedTargetFolders(prev => {
@@ -99,9 +95,9 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
                     });
                   }}
                 >
-                  <svg className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-90" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                  <i className={`fa-solid fa-chevron-right text-xs transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}></i>
                 </button>
-                <svg className="w-4 h-4 text-amber-400 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" /></svg>
+                <i className={`fa-solid ${isExpanded ? "fa-folder-open" : "fa-folder"} text-scout-yellow text-sm shrink-0`}></i>
                 <span className="truncate select-none text-sm">{folder.name}</span>
               </div>
               
@@ -114,111 +110,155 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
   };
 
   return (
-    // Modal voltou para 'fixed' para ocupar a tela toda com fundo embaçado
-    <div className="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto">
-        <h3 className="text-xl font-bold text-stone-800 mb-1">Finalizar Upload</h3>
+    <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar relative">
         
-        <div className="text-stone-500 text-sm mb-5 flex items-center gap-2 max-w-full overflow-hidden">
-          <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span className="shrink-0">Arquivo:</span> 
-          <span className="font-bold text-stone-700 truncate">{file.name}</span>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* O campo oculto para enviar o ID da pasta de destino com o formulário */}
-          <input type="hidden" name="folderId" value={selectedTargetId || ""} />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1.5 md:col-span-2">
-              <label className="block text-sm font-bold text-stone-700">Título do Documento *</label>
-              {/* Nome do arquivo já chega limpo no input */}
-              <input type="text" name="title" required defaultValue={formatFileName(file.name)} className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-stone-800" />
+        {/* Header do Modal com botão de Fechar nativo */}
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-scout-green/10 text-scout-green rounded-xl flex items-center justify-center shrink-0">
+              <i className="fa-solid fa-cloud-arrow-up text-xl"></i>
             </div>
-
-            <div className="space-y-1.5 md:col-span-2">
-              <label className="block text-sm font-bold text-stone-700">Descrição (Opcional)</label>
-              <textarea name="description" rows={2} className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-stone-800 resize-none"></textarea>
-            </div>
-
-            {/* SELEÇÃO DE DESTINO EM ÁRVORE (Substituindo o Select antigo) */}
-            <div className="space-y-1.5 md:col-span-2">
-              <label className="block text-sm font-bold text-stone-700">Pasta de Destino</label>
-              <div className="border border-stone-200 rounded-xl bg-stone-50 p-2 h-44 overflow-y-auto">
-                
-                <div 
-                  className={`flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-colors ${selectedTargetId === null ? 'bg-emerald-100 text-emerald-800 font-bold' : 'hover:bg-stone-200/50 text-stone-700'}`}
-                  onClick={() => setSelectedTargetId(null)}
-                >
-                  <button 
-                    type="button"
-                    className="p-1 text-stone-400 hover:text-stone-700 rounded transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setExpandedTargetFolders(prev => {
-                        const next = new Set(prev);
-                        if (next.has("root")) next.delete("root");
-                        else next.add("root");
-                        return next;
-                      });
-                    }}
-                  >
-                    <svg className={`w-3.5 h-3.5 transition-transform ${expandedTargetFolders.has("root") ? "rotate-90" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-                  </button>
-                  <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
-                  <span className="truncate select-none text-sm">Raiz (Portal da Transparência)</span>
-                </div>
-                
-                {expandedTargetFolders.has("root") && (
-                  <div className="mt-1">
-                    {renderTargetTree(null, 0)}
-                  </div>
-                )}
+            <div>
+              <h3 className="font-heading text-xl md:text-2xl font-bold text-gray-800 leading-tight">Finalizar Upload</h3>
+              <div className="flex items-center gap-2 mt-1">
+                <i className="fa-solid fa-file-pdf text-red-500 text-xs"></i>
+                <p className="text-gray-500 text-xs md:text-sm font-medium truncate max-w-50 sm:max-w-xs">{file.name}</p>
               </div>
             </div>
           </div>
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 p-2.5 rounded-full transition-colors flex items-center justify-center shrink-0"
+            aria-label="Fechar modal"
+          >
+            <i className="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
 
-          <hr className="border-stone-100" />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* O campo oculto para enviar o ID da pasta de destino com o formulário */}
+          <input type="hidden" name="folderId" value={selectedTargetId || ""} />
+
+          {/* Dados Principais */}
+          <div className="space-y-1.5">
+            <label htmlFor="title" className="block text-sm font-bold text-gray-700">Título do Documento <span className="text-red-500">*</span></label>
+            <input 
+              id="title"
+              type="text" 
+              name="title" 
+              required 
+              defaultValue={formatFileName(file.name)} 
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:border-scout-green focus:ring-2 focus:ring-scout-green/20 text-gray-800 transition-all" 
+              placeholder="Ex: Ata de Reunião Março"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="description" className="block text-sm font-bold text-gray-700">Descrição (Opcional)</label>
+            <textarea 
+              id="description"
+              name="description" 
+              rows={2} 
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:border-scout-green focus:ring-2 focus:ring-scout-green/20 text-gray-800 resize-none custom-scrollbar transition-all"
+              placeholder="Breve resumo sobre o arquivo..."
+            ></textarea>
+          </div>
+
+          {/* SELEÇÃO DE DESTINO EM ÁRVORE */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-bold text-gray-700">Pasta de Destino</label>
+            <div className="border border-gray-200 rounded-xl bg-gray-50 p-2.5 h-44 overflow-y-auto custom-scrollbar">
+              
+              <div 
+                className={`flex items-center gap-2 py-2 px-2 rounded-lg cursor-pointer transition-colors ${selectedTargetId === null ? 'bg-blue-50 text-blue-800 font-bold border border-blue-200' : 'hover:bg-gray-200/50 text-gray-700'}`}
+                onClick={() => setSelectedTargetId(null)}
+              >
+                <button 
+                  type="button"
+                  className="p-1 text-gray-400 hover:text-gray-700 rounded transition-colors flex items-center justify-center w-6 h-6 shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedTargetFolders(prev => {
+                      const next = new Set(prev);
+                      if (next.has("root")) next.delete("root");
+                      else next.add("root");
+                      return next;
+                    });
+                  }}
+                >
+                  <i className={`fa-solid fa-chevron-right text-xs transition-transform duration-200 ${expandedTargetFolders.has("root") ? "rotate-90" : ""}`}></i>
+                </button>
+                <i className={`fa-solid ${expandedTargetFolders.has("root") ? "fa-folder-open" : "fa-folder"} text-scout-green text-sm shrink-0`}></i>
+                <span className="truncate select-none text-sm">Raiz (Portal da Transparência)</span>
+              </div>
+              
+              {expandedTargetFolders.has("root") && (
+                <div className="mt-1">
+                  {renderTargetTree(null, 0)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="h-px bg-gray-100 my-6"></div>
 
           {/* Permissões */}
-          <div className="space-y-4">
-            <label className="flex items-center gap-3 cursor-pointer w-max">
-              <input type="checkbox" name="isPublic" value="true" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="w-5 h-5 text-emerald-600 rounded border-stone-300 focus:ring-emerald-500 cursor-pointer" />
-              <div><p className="font-bold text-stone-700 text-sm">Público (Visível no site)</p></div>
+          <div className="space-y-5 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+            <h4 className="font-bold text-gray-800 text-base mb-2">Permissões Iniciais</h4>
+            
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div className="flex items-center h-5 mt-0.5">
+                <input type="checkbox" name="isPublic" value="true" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} className="w-5 h-5 text-scout-green rounded border-gray-300 focus:ring-scout-green cursor-pointer transition-colors" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-700 text-sm group-hover:text-scout-green transition-colors">Público (Visível no site)</p>
+                <p className="text-xs text-gray-500 mt-0.5">Qualquer visitante poderá ver e baixar este arquivo.</p>
+              </div>
             </label>
             
-            <div className="space-y-2">
-              <label className="flex items-center gap-3 cursor-pointer w-max">
-                <input type="checkbox" name="isRestrictedView" value="true" checked={isRestrictedView} onChange={(e) => setIsRestrictedView(e.target.checked)} className="w-5 h-5 text-amber-600 rounded border-stone-300 focus:ring-amber-500 cursor-pointer" />
-                <div><p className="font-bold text-stone-700 text-sm">Restringir Visualização Interna</p></div>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="flex items-center h-5 mt-0.5">
+                  <input type="checkbox" name="isRestrictedView" value="true" checked={isRestrictedView} onChange={(e) => setIsRestrictedView(e.target.checked)} className="w-5 h-5 text-amber-500 rounded border-gray-300 focus:ring-amber-500 cursor-pointer transition-colors" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-700 text-sm group-hover:text-amber-600 transition-colors">Restringir Visualização Interna</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Apenas administradores selecionados poderão ver este arquivo.</p>
+                </div>
               </label>
               
               {isRestrictedView && (
-                <div className="ml-8 max-h-36 overflow-y-auto border border-stone-200 rounded-xl bg-stone-50 p-2 space-y-1 animate-fade-in">
-                  <p className="text-xs font-bold text-stone-500 mb-2 px-1">Selecione quem pode visualizar:</p>
+                <div className="ml-8 max-h-40 overflow-y-auto border border-gray-200 rounded-xl bg-white p-2 space-y-1 animate-fade-in custom-scrollbar">
+                  <p className="text-xs font-bold text-gray-500 mb-2 px-2 pt-1">Selecione quem pode visualizar:</p>
                   {adminUsers.map(u => (
-                    <label key={u.id} className="flex items-center gap-3 p-1.5 hover:bg-stone-200/50 rounded-lg cursor-pointer transition-colors w-full">
-                      <input type="checkbox" name="allowedViewers" value={u.id} className="w-4 h-4 text-amber-600 rounded border-stone-300 focus:ring-amber-500 cursor-pointer" />
-                      <span className="text-sm text-stone-700">{u.name} <span className="text-xs text-stone-400">({u.role})</span></span>
+                    <label key={`view-${u.id}`} className="flex items-center gap-3 py-2.5 px-3 hover:bg-amber-50/50 rounded-lg cursor-pointer transition-colors w-full border border-transparent hover:border-amber-100">
+                      <input type="checkbox" name="allowedViewers" value={u.id} className="w-4 h-4 text-amber-500 rounded border-gray-300 focus:ring-amber-500 cursor-pointer" />
+                      <span className="text-sm font-medium text-gray-700 flex-1 truncate">{u.name} <span className="text-xs text-gray-400 font-normal ml-1">({u.role})</span></span>
                     </label>
                   ))}
                 </div>
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-3 cursor-pointer w-max">
-                <input type="checkbox" name="isRestrictedEdit" value="true" checked={isRestrictedEdit} onChange={(e) => setIsRestrictedEdit(e.target.checked)} className="w-5 h-5 text-red-600 rounded border-stone-300 focus:ring-red-500 cursor-pointer" />
-                <div><p className="font-bold text-stone-700 text-sm">Restringir Edição/Exclusão</p></div>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="flex items-center h-5 mt-0.5">
+                  <input type="checkbox" name="isRestrictedEdit" value="true" checked={isRestrictedEdit} onChange={(e) => setIsRestrictedEdit(e.target.checked)} className="w-5 h-5 text-red-500 rounded border-gray-300 focus:ring-red-500 cursor-pointer transition-colors" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-700 text-sm group-hover:text-red-600 transition-colors">Restringir Edição/Exclusão</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Apenas os usuários selecionados poderão apagar este arquivo.</p>
+                </div>
               </label>
 
               {isRestrictedEdit && (
-                <div className="ml-8 max-h-36 overflow-y-auto border border-stone-200 rounded-xl bg-stone-50 p-2 space-y-1 animate-fade-in">
-                  <p className="text-xs font-bold text-stone-500 mb-2 px-1">Selecione quem pode editar:</p>
+                <div className="ml-8 max-h-40 overflow-y-auto border border-gray-200 rounded-xl bg-white p-2 space-y-1 animate-fade-in custom-scrollbar">
+                  <p className="text-xs font-bold text-gray-500 mb-2 px-2 pt-1">Selecione quem pode editar/excluir:</p>
                   {adminUsers.map(u => (
-                    <label key={u.id} className="flex items-center gap-3 p-1.5 hover:bg-stone-200/50 rounded-lg cursor-pointer transition-colors w-full">
-                      <input type="checkbox" name="allowedEditors" value={u.id} className="w-4 h-4 text-red-600 rounded border-stone-300 focus:ring-red-500 cursor-pointer" />
-                      <span className="text-sm text-stone-700">{u.name} <span className="text-xs text-stone-400">({u.role})</span></span>
+                    <label key={`edit-${u.id}`} className="flex items-center gap-3 py-2.5 px-3 hover:bg-red-50/50 rounded-lg cursor-pointer transition-colors w-full border border-transparent hover:border-red-100">
+                      <input type="checkbox" name="allowedEditors" value={u.id} className="w-4 h-4 text-red-500 rounded border-gray-300 focus:ring-red-500 cursor-pointer" />
+                      <span className="text-sm font-medium text-gray-700 flex-1 truncate">{u.name} <span className="text-xs text-gray-400 font-normal ml-1">({u.role})</span></span>
                     </label>
                   ))}
                 </div>
@@ -226,21 +266,24 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
             </div>
           </div>
 
-          <div className="flex gap-3 justify-end pt-4 border-t border-stone-100">
-            <button type="button" onClick={onClose} disabled={isUploading} className="px-5 py-2.5 text-stone-600 font-bold hover:bg-stone-100 rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-6 border-t border-gray-100">
+            <button 
+              type="button" 
+              onClick={onClose} 
+              disabled={isUploading} 
+              className="w-full sm:w-auto px-6 py-3 text-sm text-gray-600 font-bold hover:bg-gray-100 rounded-xl cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Cancelar
             </button>
-            <button type="submit" disabled={isUploading} className="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed shadow-sm">
+            <button 
+              type="submit" 
+              disabled={isUploading} 
+              className="w-full sm:w-auto px-6 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
+            >
               {isUploading ? (
-                <>
-                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Salvando...
-                </>
+                <><i className="fa-solid fa-circle-notch fa-spin"></i> Enviando...</>
               ) : (
-                "Salvar Documento"
+                <><i className="fa-solid fa-cloud-arrow-up"></i> Salvar e Enviar Arquivo</>
               )}
             </button>
           </div>

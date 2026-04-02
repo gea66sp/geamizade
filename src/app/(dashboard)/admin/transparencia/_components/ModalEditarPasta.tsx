@@ -57,65 +57,101 @@ export default function ModalEditarPasta({ isOpen, onClose, folder, adminUsers }
   }
 
   return (
-    <div className="fixed inset-0 bg-stone-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar">
         
-        <div className="flex items-center gap-3 mb-6">
-          <svg className="w-8 h-8 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" /></svg>
-          <div>
-            <h3 className="text-xl font-bold text-stone-800 leading-tight">Configurações da Pasta</h3>
-            <p className="text-stone-500 text-sm">Editando permissões de: <span className="font-bold text-stone-700">{folder.name}</span></p>
+        {/* Header do Modal com botão de Fechar nativo */}
+        <div className="flex justify-between items-start mb-6 md:mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-scout-yellow/20 text-scout-yellow rounded-xl flex items-center justify-center shrink-0">
+              <i className="fa-solid fa-folder-gear text-xl"></i>
+            </div>
+            <div>
+              <h3 className="font-heading text-xl md:text-2xl font-bold text-gray-800 leading-tight">Configurar Pasta</h3>
+              <p className="text-gray-500 text-xs md:text-sm mt-0.5">Editando propriedades de: <span className="font-semibold text-gray-700">{folder.name}</span></p>
+            </div>
           </div>
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 p-2.5 rounded-full transition-colors flex items-center justify-center shrink-0"
+            aria-label="Fechar modal"
+          >
+            <i className="fa-solid fa-xmark text-lg"></i>
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Dados ocultos que a Server Action exige, mas que o usuário não precisa mudar aqui (já que ele renomeia na árvore) */}
+          {/* Dados ocultos que a Server Action exige */}
           <input type="hidden" name="name" value={folder.name} />
           
           <div className="space-y-1.5">
-            <label className="block text-sm font-bold text-stone-700">Descrição (Opcional)</label>
-            <textarea name="description" defaultValue={folder.description || ""} rows={2} className="w-full px-4 py-2.5 rounded-xl border border-stone-200 bg-stone-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-stone-800 resize-none"></textarea>
+            <label htmlFor="folder-description" className="block text-sm font-bold text-gray-700">Descrição da Pasta (Opcional)</label>
+            <textarea 
+              id="folder-description"
+              name="description" 
+              defaultValue={folder.description || ""} 
+              rows={2} 
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:border-scout-green focus:ring-2 focus:ring-scout-green/20 text-gray-800 resize-none custom-scrollbar transition-all"
+              placeholder="Breve resumo sobre os arquivos desta pasta..."
+            ></textarea>
           </div>
 
-          <hr className="border-stone-100" />
+          <div className="h-px bg-gray-100 my-6"></div>
 
-          {/* Permissões */}
-          <div className="space-y-4">
-            <label className="flex items-center gap-3 cursor-pointer w-max">
-              <input type="checkbox" name="isPublic" value="true" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="w-5 h-5 text-emerald-600 rounded border-stone-300 focus:ring-emerald-500 cursor-pointer" />
-              <div><p className="font-bold text-stone-700 text-sm">Pública (Visível no site)</p></div>
+          {/* Permissões - Usando o mesmo container padronizado do Modal de Arquivos */}
+          <div className="space-y-5 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+            <h4 className="font-bold text-gray-800 text-base mb-2">Permissões e Acesso</h4>
+            
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <div className="flex items-center h-5 mt-0.5">
+                <input type="checkbox" name="isPublic" value="true" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="w-5 h-5 text-scout-green rounded border-gray-300 focus:ring-scout-green cursor-pointer transition-colors" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-700 text-sm group-hover:text-scout-green transition-colors">Pública (Visível no site)</p>
+                <p className="text-xs text-gray-500 mt-0.5">Todos os visitantes do site poderão ver os arquivos desta pasta.</p>
+              </div>
             </label>
             
-            <div className="space-y-2">
-              <label className="flex items-center gap-3 cursor-pointer w-max">
-                <input type="checkbox" name="isRestrictedView" value="true" checked={isRestrictedView} onChange={e => setIsRestrictedView(e.target.checked)} className="w-5 h-5 text-amber-600 rounded border-stone-300 focus:ring-amber-500 cursor-pointer" />
-                <div><p className="font-bold text-stone-700 text-sm">Restringir Visualização Interna</p></div>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="flex items-center h-5 mt-0.5">
+                  <input type="checkbox" name="isRestrictedView" value="true" checked={isRestrictedView} onChange={e => setIsRestrictedView(e.target.checked)} className="w-5 h-5 text-amber-500 rounded border-gray-300 focus:ring-amber-500 cursor-pointer transition-colors" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-700 text-sm group-hover:text-amber-600 transition-colors">Restringir Visualização Interna</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Apenas administradores selecionados poderão ver esta pasta no painel.</p>
+                </div>
               </label>
               
               {isRestrictedView && (
-                <div className="ml-8 max-h-36 overflow-y-auto border border-stone-200 rounded-xl bg-stone-50 p-2 space-y-1 animate-fade-in">
+                <div className="ml-8 max-h-40 overflow-y-auto border border-gray-200 rounded-xl bg-white p-2 space-y-1 animate-fade-in custom-scrollbar">
                   {adminUsers.map(u => (
-                    <label key={u.id} className="flex items-center gap-3 p-1.5 hover:bg-stone-200/50 rounded-lg cursor-pointer transition-colors w-full">
-                      <input type="checkbox" name="allowedViewers" value={u.id} defaultChecked={initialViewers.includes(u.id)} className="w-4 h-4 text-amber-600 rounded border-stone-300 focus:ring-amber-500 cursor-pointer" />
-                      <span className="text-sm text-stone-700">{u.name} <span className="text-xs text-stone-400">({u.role})</span></span>
+                    <label key={`view-${u.id}`} className="flex items-center gap-3 py-2.5 px-3 hover:bg-amber-50/50 rounded-lg cursor-pointer transition-colors w-full border border-transparent hover:border-amber-100">
+                      <input type="checkbox" name="allowedViewers" value={u.id} defaultChecked={initialViewers.includes(u.id)} className="w-4 h-4 text-amber-500 rounded border-gray-300 focus:ring-amber-500 cursor-pointer" />
+                      <span className="text-sm font-medium text-gray-700 flex-1 truncate">{u.name} <span className="text-xs text-gray-400 font-normal ml-1">({u.role})</span></span>
                     </label>
                   ))}
                 </div>
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="flex items-center gap-3 cursor-pointer w-max">
-                <input type="checkbox" name="isRestrictedEdit" value="true" checked={isRestrictedEdit} onChange={e => setIsRestrictedEdit(e.target.checked)} className="w-5 h-5 text-red-600 rounded border-stone-300 focus:ring-red-500 cursor-pointer" />
-                <div><p className="font-bold text-stone-700 text-sm">Restringir Edição/Exclusão</p></div>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="flex items-center h-5 mt-0.5">
+                  <input type="checkbox" name="isRestrictedEdit" value="true" checked={isRestrictedEdit} onChange={e => setIsRestrictedEdit(e.target.checked)} className="w-5 h-5 text-red-500 rounded border-gray-300 focus:ring-red-500 cursor-pointer transition-colors" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-700 text-sm group-hover:text-red-600 transition-colors">Restringir Edição/Exclusão</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Apenas os usuários abaixo poderão editar, mover ou apagar esta pasta.</p>
+                </div>
               </label>
 
               {isRestrictedEdit && (
-                <div className="ml-8 max-h-36 overflow-y-auto border border-stone-200 rounded-xl bg-stone-50 p-2 space-y-1 animate-fade-in">
+                <div className="ml-8 max-h-40 overflow-y-auto border border-gray-200 rounded-xl bg-white p-2 space-y-1 animate-fade-in custom-scrollbar">
                   {adminUsers.map(u => (
-                    <label key={u.id} className="flex items-center gap-3 p-1.5 hover:bg-stone-200/50 rounded-lg cursor-pointer transition-colors w-full">
-                      <input type="checkbox" name="allowedEditors" value={u.id} defaultChecked={initialEditors.includes(u.id)} className="w-4 h-4 text-red-600 rounded border-stone-300 focus:ring-red-500 cursor-pointer" />
-                      <span className="text-sm text-stone-700">{u.name} <span className="text-xs text-stone-400">({u.role})</span></span>
+                    <label key={`edit-${u.id}`} className="flex items-center gap-3 py-2.5 px-3 hover:bg-red-50/50 rounded-lg cursor-pointer transition-colors w-full border border-transparent hover:border-red-100">
+                      <input type="checkbox" name="allowedEditors" value={u.id} defaultChecked={initialEditors.includes(u.id)} className="w-4 h-4 text-red-500 rounded border-gray-300 focus:ring-red-500 cursor-pointer" />
+                      <span className="text-sm font-medium text-gray-700 flex-1 truncate">{u.name} <span className="text-xs text-gray-400 font-normal ml-1">({u.role})</span></span>
                     </label>
                   ))}
                 </div>
@@ -123,12 +159,25 @@ export default function ModalEditarPasta({ isOpen, onClose, folder, adminUsers }
             </div>
           </div>
 
-          <div className="flex gap-3 justify-end pt-4 border-t border-stone-100">
-            <button type="button" onClick={onClose} disabled={isSaving} className="px-5 py-2.5 text-stone-600 font-bold hover:bg-stone-100 rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-6">
+            <button 
+              type="button" 
+              onClick={onClose} 
+              disabled={isSaving} 
+              className="w-full sm:w-auto px-6 py-3 text-sm text-gray-600 font-bold hover:bg-gray-100 rounded-xl cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Cancelar
             </button>
-            <button type="submit" disabled={isSaving} className="px-5 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed shadow-sm">
-              {isSaving ? "Salvando..." : "Salvar Permissões"}
+            <button 
+              type="submit" 
+              disabled={isSaving} 
+              className="w-full sm:w-auto px-6 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
+            >
+              {isSaving ? (
+                <><i className="fa-solid fa-circle-notch fa-spin"></i> Salvando...</>
+              ) : (
+                <><i className="fa-solid fa-check"></i> Salvar Permissões</>
+              )}
             </button>
           </div>
         </form>

@@ -26,82 +26,107 @@ export default function Sidebar({
       {/* Overlay escuro para mobile (clicar fora fecha a sidebar) */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/60 z-30 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/60 z-30 md:hidden transition-opacity backdrop-blur-sm"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
 
       <aside 
         className={`
-          fixed inset-y-0 left-0 z-40 w-64 bg-stone-900 text-stone-300 flex flex-col min-h-screen shadow-2xl shrink-0 
-          transform transition-transform duration-300 ease-in-out
+          fixed inset-y-0 left-0 z-40 w-64 bg-scout-dark text-gray-300 flex flex-col min-h-screen shadow-2xl shrink-0 
+          transform transition-transform duration-300 ease-in-out border-r border-white/5
           md:relative md:translate-x-0
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-emerald-500 to-emerald-700" />
+        {/* Detalhe visual superior com a cor da marca */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-scout-yellow" />
 
-        <div className="p-6 pb-8 border-b border-stone-800 flex justify-between items-center">
-          <div className="flex items-center gap-3 text-white font-bold text-xl tracking-wide">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-inner drop-shadow-md shrink-0">
-              <svg className="w-6 h-6 text-emerald-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" />
-              </svg>
-            </div>
-            GE Amizade
-          </div>
+        {/* Header / Logo */}
+        <div className="p-6 pb-8 border-b border-white/10 flex justify-between items-center">
+          <Link href="/admin" className="flex items-center gap-3 cursor-pointer group">
+            <i className="fa-solid fa-fire text-scout-yellow text-2xl group-hover:scale-110 transition-transform duration-300"></i>
+            <span className="font-heading font-bold text-xl text-white tracking-wide">
+              GE Amizade
+            </span>
+          </Link>
 
           {/* Botão de fechar (X) visível apenas no mobile */}
           <button 
             onClick={onClose} 
-            className="md:hidden text-stone-400 hover:text-white p-1 rounded-md bg-stone-800 hover:bg-stone-700 transition-colors"
+            aria-label="Fechar menu"
+            className="md:hidden text-gray-400 hover:text-scout-yellow p-2 w-8 h-8 flex items-center justify-center rounded-md bg-white/5 hover:bg-white/10 transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <i className="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-          <div className="text-xs font-bold text-stone-500 uppercase tracking-widest mb-4 px-3 mt-4">
-            Gestão
+        {/* Navegação Principal */}
+        <nav className="flex-1 py-6 space-y-1 overflow-y-auto custom-scrollbar">
+          <div className="text-xs font-bold text-scout-yellow uppercase tracking-widest mb-4 px-6">
+            Gestão do Grupo
           </div>
 
           <Link 
             href="/admin/transparencia"
-            onClick={onClose} // Fecha a sidebar ao clicar em um link no mobile
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+            onClick={onClose}
+            className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
               isActive("/admin/transparencia") 
-                ? "bg-emerald-600/10 text-emerald-400 font-semibold" 
-                : "hover:bg-stone-800 hover:text-stone-100"
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold" 
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
             }`}
           >
-            <svg className={`w-5 h-5 transition-colors ${isActive("/admin/transparencia") ? "text-emerald-400" : "text-stone-500 group-hover:text-stone-300"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <i className={`fa-solid fa-magnifying-glass-chart text-lg w-5 text-center transition-colors ${isActive("/admin/transparencia") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
             Transparência
+          </Link>
+
+          {/* Módulo Financeiro */}
+          <Link 
+            href="/admin/financeiro"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
+              isActive("/admin/financeiro") 
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold" 
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <i className={`fa-solid fa-money-bill-trend-up text-lg w-5 text-center transition-colors ${isActive("/admin/financeiro") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
+            Financeiro
+          </Link>
+
+          {/* Módulo Personalizar */}
+          <Link 
+            href="/admin/personalizar"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
+              isActive("/admin/personalizar") 
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold" 
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <i className={`fa-solid fa-palette text-lg w-5 text-center transition-colors ${isActive("/admin/personalizar") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
+            Personalizar Site
           </Link>
         </nav>
 
-        <div className="p-4 border-t border-stone-800 bg-stone-900/50">
+        {/* Rodapé da Sidebar: Usuário e Sair */}
+        <div className="p-4 border-t border-white/10 bg-black/20 mt-auto">
           <div className="flex items-center gap-3 px-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-stone-800 border border-stone-700 flex items-center justify-center text-emerald-500 font-bold uppercase shrink-0">
+            <div className="w-10 h-10 rounded-full bg-scout-green flex items-center justify-center text-scout-yellow font-bold uppercase shadow-inner shrink-0">
               {userName?.charAt(0) || "U"}
             </div>
             <div className="overflow-hidden">
-              <p className="text-sm font-bold text-stone-200 truncate">{userName}</p>
-              <p className="text-xs text-stone-500 truncate">{userRole}</p>
+              <p className="text-sm font-bold text-white truncate">{userName}</p>
+              <p className="text-xs text-scout-yellow font-semibold tracking-wide truncate">{userRole}</p>
             </div>
           </div>
 
           <button 
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-stone-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <i className="fa-solid fa-arrow-right-from-bracket"></i>
             Encerrar Sessão
           </button>
         </div>

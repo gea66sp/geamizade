@@ -296,7 +296,7 @@ model Document {
   title             String   // Ex: Ata de Reunião Fev/2026
   description       String?  @db.Text
   fileUrl           String   // Link do PDF/Arquivo
-  size             Int       @default(0)
+  size              Int      @default(0)
   
   // Relação com a pasta (Se nulo, o arquivo está na "raiz")
   folderId          String?
@@ -347,4 +347,36 @@ model Notification {
   linkUrl   String?  // Link opcional
 
   createdAt DateTime @default(now())
+}
+
+// ==========================================
+// MÓDULO DE PÁGINA INICIAL E FAQ (LANDING PAGE)
+// ==========================================
+
+model HomePageSettings {
+  id                 String   @id @default(cuid())
+  
+  // Hero Section
+  heroImage          String?  // URL da Foto da Hero Section
+  heroTitle          String   // Texto principal
+  heroShortText      String   @db.Text // Texto Curto/Subtítulo
+  
+  // Seção "Sobre Nós"
+  aboutText          String   @db.Text // Texto da Seção
+  aboutImage         String?  // Imagem da Seção
+  impactedYouthCount Int      @default(0) // Número de jovens impactados
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Faq {
+  id        String   @id @default(cuid())
+  question  String   // Pergunta
+  answer    String   @db.Text // Resposta (usando Text para respostas longas)
+  order     Int      @default(0) // Útil para ordenar a exibição no front-end
+  isActive  Boolean  @default(true) // Facilita esconder uma pergunta sem excluí-la
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

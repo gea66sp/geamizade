@@ -13,7 +13,9 @@ export default function AdminShell({ children, userName, userRole }: AdminShellP
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-stone-50 overflow-hidden">
+    // Fundo alterado para bg-gray-50 (neutro e limpo) para destacar os 'cards' brancos do painel
+    <div className="flex h-screen bg-gray-50 overflow-hidden font-sans text-gray-800">
+      
       {/* Menu Lateral que agora recebe o controle de estado */}
       <Sidebar 
         userName={userName} 
@@ -23,33 +25,33 @@ export default function AdminShell({ children, userName, userRole }: AdminShellP
       />
       
       {/* Container principal (Conteúdo + Header Mobile) */}
-      <div className="flex-1 flex flex-col overflow-hidden relative">
+      <div className="flex-1 flex flex-col overflow-hidden relative w-full">
         
-        {/* Cabeçalho Mobile com Botão Hambúrguer (Oculto no Desktop) */}
-        <header className="md:hidden flex items-center justify-between p-4 bg-stone-900 text-stone-100 shadow-md z-10">
-          <div className="font-bold text-lg tracking-wide flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center">
-              <svg className="w-5 h-5 text-emerald-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-              </svg>
-            </div>
+        {/* Cabeçalho Mobile - Sincronizado com o Design System */}
+        <header className="md:hidden flex items-center justify-between p-4 bg-scout-dark text-white shadow-md z-10 border-b border-scout-yellow/20">
+          <div className="font-heading font-bold text-xl tracking-wide flex items-center gap-3">
+            <i className="fa-solid fa-fire text-scout-yellow text-2xl"></i>
             GE Amizade
           </div>
           
           <button 
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 rounded-md hover:bg-stone-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors"
+            aria-label="Abrir menu administrativo"
+            aria-expanded={isSidebarOpen}
+            className="p-2 w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-scout-yellow transition-all"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+            <i className="fa-solid fa-bars text-xl"></i>
           </button>
         </header>
 
         {/* Área onde as páginas vão renderizar */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          {children}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 custom-scrollbar">
+          {/* O max-w-7xl previne que o conteúdo estique demais em monitores ultrawide */}
+          <div className="max-w-7xl mx-auto w-full animate-fade-in-up">
+            {children}
+          </div>
         </main>
+        
       </div>
     </div>
   );
