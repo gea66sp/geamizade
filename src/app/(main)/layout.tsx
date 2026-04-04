@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Montserrat, Open_Sans } from 'next/font/google';
-import Script from 'next/script'; // Importando o componente Script do Next.js
-import '@/src/app/globals.css';
+import Script from 'next/script'; 
+import '../globals.css';
 import Navbar from '@/src/components/Navbar';
 import Footer from '@/src/components/Footer';
 
