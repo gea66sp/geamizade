@@ -166,4 +166,6 @@ export async function saveSiteSettings(formData: FormData) {
   }
 
   revalidatePath("/admin/personalizar");
+  revalidatePath("/");
+  revalidatePath("/institucional");
 }
