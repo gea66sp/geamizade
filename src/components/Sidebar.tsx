@@ -68,6 +68,21 @@ export default function Sidebar({
             Gestão do Grupo
           </div>
 
+          {/* Módulo de Usuários (NOVO) */}
+          <Link 
+            href="/admin/usuarios"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
+              isActive("/admin/usuarios") 
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold" 
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <i className={`fa-solid fa-users text-lg w-5 text-center transition-colors ${isActive("/admin/usuarios") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
+            Usuários
+          </Link>
+
+          {/* Módulo Transparência */}
           <Link 
             href="/admin/transparencia"
             onClick={onClose}

@@ -17,7 +17,7 @@ export default async function PersonalizarPage() {
     redirect("/"); 
   }
 
-  // Busca a configuração atual. Se não existir, manda um objeto vazio (fallback) para o front end preencher
+  // Busca a configuração atual. Se não existir, manda um objeto com dados iniciais (fallback)
   const homeSettings = await prisma.homePageSettings.findFirst() || {
     heroTitle: "Sempre Alerta para Servir!",
     heroShortText: "Bem-vindo ao Grupo Escoteiro Amizade.",
@@ -27,15 +27,43 @@ export default async function PersonalizarPage() {
     impactedYouthCount: 150,
   };
 
+  // Busca as Dúvidas Frequentes
   const faqs = await prisma.faq.findMany({
     orderBy: { order: "asc" }
   });
+
+  // Busca as configurações da página institucional, incluindo as relações (Diretoria e Depoimentos)
+  const instSettings = await prisma.institutionalPage.findFirst({
+    include: {
+      boardMembers: true,
+      testimonials: true,
+    }
+  }) || {
+    stats: [],
+    historyImage: "",
+    historyBadgeYear: "",
+    historyBadgeLabel: "",
+    historySubtitle: "",
+    historyTitle: "",
+    historyParagraphs: [],
+    compassTitle: "",
+    compassSubtitle: "",
+    missionText: "",
+    visionText: "",
+    valuesList: [],
+    boardMembers: [],
+    testimonials: [],
+  };
 
   return (
     // Wrapper limpo: Apenas define o limite de largura, centraliza e adiciona a animação.
     // Toda a lógica de "card" e altura (height) agora está sendo gerenciada pelo próprio componente PersonalizarForm.
     <div className="max-w-7xl mx-auto w-full animate-fade-in-down">
-      <PersonalizarForm initialHome={homeSettings} initialFaqs={faqs} />
+      <PersonalizarForm 
+        initialHome={homeSettings} 
+        initialFaqs={faqs} 
+        initialInst={instSettings} 
+      />
     </div>
   );
 }

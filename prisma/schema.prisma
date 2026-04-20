@@ -86,7 +86,7 @@ model VerificationToken {
 }
 
 // ==========================================
-// MODELO DE USUÁRIO (EXPANDIDO)
+// MODELO DE USUÁRIO E VÍNCULOS (EXPANDIDO)
 // ==========================================
 
 model User {
@@ -104,10 +104,9 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
-  // Vínculo Responsável <-> Jovem (Self-relation)
-  guardianId    String?
-  guardian      User?     @relation("GuardianDependents", fields: [guardianId], references: [id])
-  dependents    User[]    @relation("GuardianDependents")
+  // Vínculo Responsável <-> Jovem (Many-to-Many via tabela intermediária)
+  guardianTies  FamilyTie[] @relation("DependentTies") // Onde o usuário é o Jovem
+  dependentTies FamilyTie[] @relation("GuardianTies")  // Onde o usuário é o Responsável
 
   // Vínculos de Tropa
   troopId       String?
@@ -131,6 +130,21 @@ model User {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+// Tabela Intermediária para a Relação N:N (Múltiplos Pais / Múltiplos Filhos)
+model FamilyTie {
+  id             String @id @default(cuid())
+  
+  guardianId     String
+  guardian       User   @relation("GuardianTies", fields: [guardianId], references: [id], onDelete: Cascade)
+  
+  dependentId    String
+  dependent      User   @relation("DependentTies", fields: [dependentId], references: [id], onDelete: Cascade)
+  
+  relationship   String? // Opcional: "Pai", "Mãe", "Avó", etc.
+
+  @@unique([guardianId, dependentId]) // Previne vincular as mesmas duas pessoas duas vezes
 }
 
 // ==========================================
@@ -379,4 +393,58 @@ model Faq {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// MÓDULO INSTITUCIONAL
+// ==========================================
+
+model InstitutionalPage {
+  id                  String   @id @default(uuid())
+
+  // --- Estatísticas (Armazenado como JSON para simplificar) ---
+  stats               Json
+
+  // --- História ---
+  historyImage        String
+  historyBadgeYear    String   // ex: "1998"
+  historyBadgeLabel   String   // ex: "Fundação"
+  historySubtitle     String   // ex: "Nossas Raízes"
+  historyTitle        String   // ex: "Como tudo começou..."
+  historyParagraphs   String[] // Array de textos para os parágrafos
+
+  // --- Missão, Visão e Valores (Bússola) ---
+  compassTitle        String   // ex: "Nossa Bússola"
+  compassSubtitle     String   // ex: "Os princípios que norteiam..."
+  missionText         String
+  visionText          String
+  valuesList          String[] // Array ex: ["Lealdade e Honra", "Respeito ao próximo"]
+
+  // Relacionamentos
+  boardMembers        BoardMember[]
+  testimonials        Testimonial[]
+
+  updatedAt           DateTime @updatedAt
+}
+
+model BoardMember {
+  id          String   @id @default(uuid())
+  name        String   // ex: "Ricardo Almeida"
+  role        String   // ex: "Diretor Presidente"
+  bio         String   // ex: "No movimento desde 1990..."
+  imageUrl    String   // URL ou path do arquivo
+  
+  pageId      String
+  page        InstitutionalPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+}
+
+model Testimonial {
+  id          String   @id @default(uuid())
+  authorName  String   // ex: "Ana Paula"
+  authorRole  String   // ex: "Mãe de Escoteiro"
+  quote       String   // Texto do depoimento
+  rating      Int      @default(5) // Quantidade de estrelas
+  
+  pageId      String
+  page        InstitutionalPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
 }

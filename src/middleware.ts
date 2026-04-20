@@ -2,7 +2,7 @@ import { withAuth } from "next-auth/middleware";
 
 export default withAuth({
   pages: {
-    signIn: "/login", // Para onde o escoteiro sem lenço é mandado
+    signIn: "/login", 
   },
   callbacks: {
     authorized: ({ req, token }) => {
