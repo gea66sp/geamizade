@@ -47,6 +47,7 @@ export async function saveEvent(data: EventFormData) {
 
     // Atualiza a página para refletir as mudanças
     revalidatePath("/admin/calendario");
+    revalidatePath("/");
     return { success: true, message: "Evento salvo com sucesso!" };
     
   } catch (error) {
@@ -62,6 +63,7 @@ export async function deleteEvent(id: string) {
     });
     
     revalidatePath("/admin/calendario");
+    revalidatePath("/");
     return { success: true, message: "Evento excluído com sucesso!" };
   } catch (error) {
     console.error("Erro ao excluir evento:", error);

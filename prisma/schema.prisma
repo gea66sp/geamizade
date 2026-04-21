@@ -120,7 +120,7 @@ model User {
   eventRSVPs    EventRSVP[]
   notifications Notification[]
   blogPosts     BlogPost[]
-  checkedOut    InventoryItem[]        @relation("ItemCheckout")
+  loans  ItemLoan[]  @relation("UserLoans")
 
   // Controle de Acesso - Transparência (Pastas e Documentos)
   viewableFolders   Folder[]   @relation("FolderViewers")
@@ -263,15 +263,38 @@ model FinancialTransaction {
 
 model InventoryItem {
   id              String        @id @default(cuid())
+  chargeNumber    String        @unique // NOVO: Número de material carga (Único)
   name            String        
   category        String        
   quantity        Int           @default(1)
   condition       ItemCondition @default(GOOD)
   notes           String?       @db.Text
   
-  checkedOutToId  String?
-  checkedOutTo    User?         @relation("ItemCheckout", fields: [checkedOutToId], references: [id])
-  expectedReturn  DateTime?
+  // NOVO: Controle de Baixa (Descarte/Soft Delete)
+  isActive        Boolean       @default(true) // false = Descarregado
+  dischargeReason String?       @db.Text       // Justificativa da baixa
+  dischargedAt    DateTime?                    // Data exata da baixa
+
+  // Relacionamento com o histórico de empréstimos
+  loans           ItemLoan[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+// Tabela de Histórico de Empréstimos
+model ItemLoan {
+  id              String        @id @default(cuid())
+  
+  itemId          String
+  item            InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User          @relation("UserLoans", fields: [userId], references: [id])
+  
+  borrowedAt      DateTime      @default(now()) // Data da retirada
+  expectedReturn  DateTime?                     // Previsão de devolução
+  returnedAt      DateTime?                     // Data REAL da devolução. Se nulo, está emprestado no momento.
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
