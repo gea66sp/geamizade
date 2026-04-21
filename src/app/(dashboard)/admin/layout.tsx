@@ -1,7 +1,8 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth"; // Ajuste o caminho
 import { redirect } from "next/navigation";
-import AdminShell from "@/src/components/AdminShell"; // Importe o novo componente
+import AdminShell from "@/src/components/dashboard/admin/AdminShell"; // Importe o novo componente
+import prisma from "@/src/lib/prisma"; // IMPORTAMOS O PRISMA AQUI
 import type { Metadata } from "next";
 
 const BASE_URL = 'https://www.geamizade.org.br';
@@ -27,10 +28,34 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
+  // ==========================================
+  // O TRUQUE DE ATUALIZAÇÃO EM TEMPO REAL
+  // ==========================================
+  // Buscamos o usuário no banco de dados com base no ID da sessão atual.
+  // Isso garante que, mesmo que o cookie do NextAuth esteja desatualizado,
+  // nós sempre vamos buscar a foto e o nome mais recentes do banco!
+  let freshUser = null;
+  if (session.user?.id) {
+    try {
+      freshUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { name: true, role: true, image: true } // Pegamos a imagem!
+      });
+    } catch (error) {
+      console.error("Erro ao buscar dados atualizados do usuário:", error);
+    }
+  }
+
+  // Se a busca no banco falhar, usamos o que está no cache da sessão como backup
+  const userName = freshUser?.name || session.user?.name;
+  const userRole = freshUser?.role || (session.user as any)?.role;
+  const userImage = freshUser?.image || null; // Pegamos a imagem novinha!
+
   return (
     <AdminShell 
-      userName={session.user?.name} 
-      userRole={(session.user as any)?.role}
+      userName={userName} 
+      userRole={userRole}
+      userImage={userImage} // Passamos a imagem para o AdminShell
     >
       {children}
     </AdminShell>

@@ -7,13 +7,15 @@ import { signOut } from "next-auth/react";
 interface SidebarProps {
   userName?: string | null;
   userRole?: string;
-  isOpen?: boolean; // Controle de abertura no mobile
-  onClose?: () => void; // Função para fechar no mobile
+  userImage?: string | null; // ADICIONADO: Prop para receber a foto
+  isOpen?: boolean; 
+  onClose?: () => void; 
 }
 
 export default function Sidebar({ 
   userName = "Chefe", 
   userRole = "ADMIN", 
+  userImage = null, // Inicializa como nulo
   isOpen = false, 
   onClose 
 }: SidebarProps) {
@@ -56,7 +58,7 @@ export default function Sidebar({
           <button 
             onClick={onClose} 
             aria-label="Fechar menu"
-            className="md:hidden text-gray-400 hover:text-scout-yellow p-2 w-8 h-8 flex items-center justify-center rounded-md bg-white/5 hover:bg-white/10 transition-colors"
+            className="md:hidden text-gray-400 hover:text-scout-yellow p-2 w-8 h-8 flex items-center justify-center rounded-md bg-white/5 hover:bg-white/10 transition-colors cursor-pointer"
           >
             <i className="fa-solid fa-xmark text-lg"></i>
           </button>
@@ -68,7 +70,6 @@ export default function Sidebar({
             Gestão do Grupo
           </div>
 
-          {/* Módulo de Usuários (NOVO) */}
           <Link 
             href="/admin/usuarios"
             onClick={onClose}
@@ -79,24 +80,9 @@ export default function Sidebar({
             }`}
           >
             <i className={`fa-solid fa-users text-lg w-5 text-center transition-colors ${isActive("/admin/usuarios") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
-            Usuários
+            Membros
           </Link>
 
-          {/* Módulo Transparência */}
-          <Link 
-            href="/admin/transparencia"
-            onClick={onClose}
-            className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
-              isActive("/admin/transparencia") 
-                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold" 
-                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
-            }`}
-          >
-            <i className={`fa-solid fa-magnifying-glass-chart text-lg w-5 text-center transition-colors ${isActive("/admin/transparencia") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
-            Transparência
-          </Link>
-
-          {/* Módulo Financeiro */}
           <Link 
             href="/admin/financeiro"
             onClick={onClose}
@@ -110,7 +96,36 @@ export default function Sidebar({
             Financeiro
           </Link>
 
-          {/* Módulo Personalizar */}
+          <Link 
+            href="/admin/calendario"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
+              isActive("/admin/calendario") 
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold" 
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <i className={`fa-solid fa-calendar-days text-lg w-5 text-center transition-colors ${isActive("/admin/calendario") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
+            Calendário
+          </Link>
+            
+          <div className="text-xs font-bold text-scout-yellow uppercase tracking-widest mb-4 mt-6 px-6">
+            Gestão do Site
+          </div>
+
+          <Link 
+            href="/admin/transparencia"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
+              isActive("/admin/transparencia") 
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold" 
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <i className={`fa-solid fa-magnifying-glass-chart text-lg w-5 text-center transition-colors ${isActive("/admin/transparencia") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
+            Transparência
+          </Link>  
+
           <Link 
             href="/admin/personalizar"
             onClick={onClose}
@@ -126,20 +141,40 @@ export default function Sidebar({
         </nav>
 
         {/* Rodapé da Sidebar: Usuário e Sair */}
-        <div className="p-4 border-t border-white/10 bg-black/20 mt-auto">
-          <div className="flex items-center gap-3 px-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-scout-green flex items-center justify-center text-scout-yellow font-bold uppercase shadow-inner shrink-0">
-              {userName?.charAt(0) || "U"}
+        <div className="p-4 border-t border-white/10 bg-black/20 mt-auto shrink-0">
+          
+          <Link 
+            href="/admin/perfil" 
+            onClick={onClose}
+            className="flex items-center justify-between p-2 mb-3 rounded-xl hover:bg-white/10 transition-colors group cursor-pointer"
+            title="Editar meu perfil"
+          >
+            <div className="flex items-center gap-3 overflow-hidden">
+              
+              {/* === AVATAR ATUALIZADO AQUI === */}
+              <div className="w-10 h-10 rounded-full bg-scout-green flex items-center justify-center text-scout-yellow font-bold uppercase shadow-inner shrink-0 transition-transform group-hover:scale-105 overflow-hidden border border-scout-green/50">
+                {userImage ? (
+                  <img src={userImage} alt={userName || "Usuário"} className="w-full h-full object-cover" />
+                ) : (
+                  userName?.charAt(0) || "U"
+                )}
+              </div>
+              
+              <div className="overflow-hidden">
+                <p className="text-sm font-bold text-white truncate group-hover:text-scout-yellow transition-colors">
+                  {userName}
+                </p>
+                <p className="text-xs text-scout-yellow/80 font-semibold tracking-wide truncate">
+                  {userRole}
+                </p>
+              </div>
             </div>
-            <div className="overflow-hidden">
-              <p className="text-sm font-bold text-white truncate">{userName}</p>
-              <p className="text-xs text-scout-yellow font-semibold tracking-wide truncate">{userRole}</p>
-            </div>
-          </div>
+            <i className="fa-solid fa-pen-to-square text-gray-500 group-hover:text-scout-yellow transition-colors pl-2"></i>
+          </Link>
 
           <button 
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300"
+            className="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300 "
           >
             <i className="fa-solid fa-arrow-right-from-bracket"></i>
             Encerrar Sessão

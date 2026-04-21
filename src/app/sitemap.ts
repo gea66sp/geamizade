@@ -16,8 +16,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: `${baseUrl}/portal-da-transparencia`,
       lastModified: new Date(),
-      changeFrequency: 'daily', // Revalida a cada 60s, o Google deve olhar sempre
+      changeFrequency: 'weekly', // Revalida a cada 60s, o Google deve olhar sempre
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/institucional`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly', // Revalida a cada 60s, o Google deve olhar sempre
+      priority: 0.5,
     },
     {
       url: `${baseUrl}/login`,

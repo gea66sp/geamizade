@@ -3,7 +3,7 @@ import Link from "next/link";
 // Ajuste o caminho de importação do prisma conforme a estrutura do seu projeto
 import prisma from "@/src/lib/prisma"; 
 // Importe o novo componente (ajuste o caminho conforme sua estrutura, ex: "@/src/components/SectionVoluntariado")
-import SectionVoluntariado from "@/src/components/SectionVoluntariado"; 
+import SectionVoluntariado from "@/src/components/main/SectionVoluntariado"; 
 
 import type { Metadata } from "next";
 
@@ -22,7 +22,21 @@ export default async function Home() {
     orderBy: { order: "asc" },
   });
 
-  // 3. Fallbacks
+  // 3. Busca os próximos 5 eventos globais para o calendário
+  const upcomingEvents = await prisma.event.findMany({
+    where: {
+      isGlobal: true,
+      startDate: {
+        gte: new Date(),
+      },
+    },
+    orderBy: {
+      startDate: "asc",
+    },
+    take: 5,
+  });
+
+  // 4. Fallbacks
   const heroTitle = homeSettings?.heroTitle || "Aventura, Aprendizado e Amizade.";
   const heroShortText = homeSettings?.heroShortText || "Construindo um mundo melhor através da educação ao ar livre, cidadania e trabalho em equipe!";
   const aboutText = homeSettings?.aboutText || "O Grupo Escoteiro Amizade 66/SP atua há décadas transformando a vida de jovens na comunidade. Nosso propósito é contribuir para que os jovens assumam seu próprio desenvolvimento, especialmente do caráter, ajudando-os a realizar suas plenas potencialidades físicas, intelectuais, sociais, afetivas e espirituais.\n\nAtravés do Método Escoteiro, oferecemos um ambiente seguro, divertido e desafiador. Somos uma grande família unida pelo desejo de 'deixar o mundo um pouco melhor do que o encontramos' (Baden-Powell).";
@@ -126,7 +140,6 @@ export default async function Home() {
 
       {/* Ramos Escoteiros */}
       <section id="ramos" className="py-16 md:py-24 bg-gray-50 border-t border-gray-100">
-        {/* ... (Conteúdo original dos ramos permanece inalterado) ... */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="font-heading text-3xl md:text-4xl font-bold text-scout-green mb-4">Os Ramos Escoteiros</h2>
@@ -239,7 +252,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Calendário de Atividades */}
+      {/* Calendário de Atividades (Dinâmico do Banco de Dados) */}
       <section id="calendario" className="py-16 md:py-24 bg-scout-dark text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
@@ -249,52 +262,67 @@ export default async function Home() {
               <p className="text-gray-300 mb-8 text-base md:text-lg leading-relaxed">
                 Mantenha-se atualizado com a nossa programação. Atividades regulares acontecem todos os sábados, das <strong className="text-white">14h:30min às 17h:30min</strong>, em nossa sede.
               </p>
+
+              {/* Mapa do Google Maps Adicionado Aqui */}
+              <div className="w-full h-64 md:h-80 rounded-2xl overflow-hidden shadow-lg mt-6 border border-white/10 bg-white/5 backdrop-blur-md">
+                <iframe
+                  src="https://maps.google.com/maps?q=Grupo%20Escoteiro%20Amizade%2066%20Taubate&t=&z=16&ie=UTF8&iwloc=&output=embed"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen={true}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Localização do Grupo Escoteiro Amizade"
+                ></iframe>
+              </div>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-5 flex items-center gap-4 sm:gap-6 hover:bg-white/10 transition-colors border-l-4 border-scout-yellow">
-                <div className="text-center min-w-17.5 sm:min-w-20">
-                  <span className="block text-scout-yellow font-extrabold text-2xl uppercase leading-none">11</span>
-                  <span className="block text-gray-400 text-xs sm:text-sm font-medium mt-1 uppercase tracking-wider">Abril</span>
+              {upcomingEvents.length === 0 ? (
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl p-8 text-center border border-white/10 h-full flex flex-col justify-center">
+                  <p className="text-gray-400 font-medium">Nenhuma atividade global programada no momento.</p>
+                  <p className="text-sm text-gray-500 mt-2">Acompanhe as reuniões normais de sua seção.</p>
                 </div>
-                <div>
-                  <h4 className="font-bold text-base sm:text-lg text-white mb-1">Reunião de Sede</h4>
-                  <p className="text-gray-400 text-xs sm:text-sm"><i className="fa-regular fa-clock mr-1.5"></i> 14:30 - 17:30 | Todos os Ramos</p>
-                </div>
-              </div>
+              ) : (
+                upcomingEvents.map((event) => {
+                  const startDate = new Date(event.startDate);
+                  const endDate = new Date(event.endDate);
 
-              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-5 flex items-center gap-4 sm:gap-6 hover:bg-white/10 transition-colors border-l-4 border-blue-500">
-                <div className="text-center min-w-17.5 sm:min-w-20">
-                  <span className="block text-blue-400 font-extrabold text-2xl uppercase leading-none">18</span>
-                  <span className="block text-gray-400 text-xs sm:text-sm font-medium mt-1 uppercase tracking-wider">Abril</span>
-                </div>
-                <div>
-                  <h4 className="font-bold text-base sm:text-lg text-white mb-1">Reunião de Sede</h4>
-                  <p className="text-gray-400 text-xs sm:text-sm"><i className="fa-regular fa-clock mr-1.5"></i> 14:30 - 17:30 | Todos os Ramos</p>
-                </div>
-              </div>
+                  const day = startDate.getDate().toString().padStart(2, "0");
+                  const month = new Intl.DateTimeFormat("pt-BR", { month: "short" })
+                    .format(startDate)
+                    .replace(".", "");
 
-              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-5 flex items-center gap-4 sm:gap-6 hover:bg-white/10 transition-colors border-l-4 border-green-500">
-                <div className="text-center min-w-17.5 sm:min-w-20">
-                  <span className="block text-green-400 font-extrabold text-2xl uppercase leading-none">25</span>
-                  <span className="block text-gray-400 text-xs sm:text-sm font-medium mt-1 uppercase tracking-wider">Abril</span>
-                </div>
-                <div>
-                  <h4 className="font-bold text-base sm:text-lg text-white mb-1">Reunião de Sede</h4>
-                  <p className="text-gray-400 text-xs sm:text-sm"><i className="fa-regular fa-clock mr-1.5"></i> 14:30 - 17:30 | Todos os Ramos</p>
-                </div>
-              </div>
+                  const startTime = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(startDate);
+                  const endTime = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(endDate);
 
-              <div className="bg-white/5 backdrop-blur-md rounded-2xl p-5 flex items-center gap-4 sm:gap-6 hover:bg-white/10 transition-colors border-l-4 border-gray-500 opacity-70">
-                <div className="text-center min-w-17.5 sm:min-w-20">
-                  <span className="block text-gray-400 font-extrabold text-2xl uppercase leading-none">02</span>
-                  <span className="block text-gray-400 text-xs sm:text-sm font-medium mt-1 uppercase tracking-wider">Maio</span>
-                </div>
-                <div>
-                  <h4 className="font-bold text-base sm:text-lg text-white mb-1">Feriado Nacional</h4>
-                  <p className="text-gray-400 text-xs sm:text-sm">Não haverá atividade</p>
-                </div>
-              </div>
+                  return (
+                    <div 
+                      key={event.id} 
+                      className="bg-white/5 backdrop-blur-md rounded-2xl p-5 flex items-center gap-4 sm:gap-6 hover:bg-white/10 transition-colors border-l-4 border-scout-yellow"
+                    >
+                      <div className="text-center min-w-17.5 sm:min-w-20">
+                        <span className="block text-scout-yellow font-extrabold text-2xl uppercase leading-none">
+                          {day}
+                        </span>
+                        <span className="block text-gray-400 text-xs sm:text-sm font-medium mt-1 uppercase tracking-wider">
+                          {month}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-base sm:text-lg text-white mb-1 line-clamp-1">
+                          {event.title}
+                        </h4>
+                        <p className="text-gray-400 text-xs sm:text-sm">
+                          <i className="fa-regular fa-clock mr-1.5"></i> 
+                          {startTime} - {endTime} | Todos os Ramos
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

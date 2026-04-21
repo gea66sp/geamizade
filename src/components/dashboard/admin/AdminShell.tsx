@@ -7,19 +7,21 @@ interface AdminShellProps {
   children: React.ReactNode;
   userName?: string | null;
   userRole?: string;
+  userImage?: string | null; // ADICIONADO: Nova prop para a imagem de perfil
 }
 
-export default function AdminShell({ children, userName, userRole }: AdminShellProps) {
+export default function AdminShell({ children, userName, userRole, userImage }: AdminShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
     // Fundo alterado para bg-gray-50 (neutro e limpo) para destacar os 'cards' brancos do painel
     <div className="flex h-screen bg-gray-50 overflow-hidden font-sans text-gray-800">
       
-      {/* Menu Lateral que agora recebe o controle de estado */}
+      {/* Menu Lateral que agora recebe o controle de estado e a IMAGEM */}
       <Sidebar 
         userName={userName} 
-        userRole={userRole} 
+        userRole={userRole}
+        userImage={userImage} // REPASSADO: A imagem desce para a Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />

@@ -187,10 +187,7 @@ export default function LoginPage() {
                     <label htmlFor="password" className="text-[11px] font-black uppercase tracking-widest text-emerald-600">
                       Senha
                     </label>
-                    {/* Link para recuperar senha (opcional para o futuro) */}
-                    <Link href="/recuperar-senha" className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700">
-                      Esqueceu?
-                    </Link>
+                    
                   </div>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-emerald-600 transition-colors">
@@ -207,6 +204,10 @@ export default function LoginPage() {
                       placeholder="••••••••"
                     />
                   </div>
+                  {/* Link para recuperar senha (opcional para o futuro) */}
+                    <div className=" text-center text-[11px] font-bold text-emerald-600 hover:text-emerald-700">
+                      Esqueceu? Entre em contato com o seu Chefe para redefinir sua senha.
+                    </div>
                 </div>
               </div>
 
@@ -226,7 +227,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center py-4 px-6 rounded-2xl text-base font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] shadow-lg shadow-emerald-700/30 disabled:opacity-70 disabled:cursor-not-allowed transition-all group"
+                className="cursor-pointer w-full flex justify-center items-center py-4 px-6 rounded-2xl text-base font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] shadow-lg shadow-emerald-700/30 disabled:opacity-70 disabled:cursor-not-allowed transition-all group"
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin h-6 w-6 text-white" />

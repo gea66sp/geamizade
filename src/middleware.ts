@@ -18,7 +18,15 @@ export default withAuth({
 
 export const config = {
   matcher: [
-    "/admin",        // Protege a porta de entrada exata do admin
-    "/admin/:path*", // Protege todos os caminhos lá dentro
+    "/admin",        
+    "/admin/:path*",
+    "/chefe",
+    "/chefe/:path*",
+    "/membro",
+    "/membro/:path*",
+    "/responsavel",
+    "/responsavel/:path*",
+    "/perfil",
+    "/perfil/:path*" 
   ],
 };

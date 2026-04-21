@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Montserrat, Open_Sans } from 'next/font/google';
 import Script from 'next/script'; 
 import '../globals.css';
-import Navbar from '@/src/components/Navbar';
-import Footer from '@/src/components/Footer';
+import Navbar from '@/src/components/main/Navbar';
+import Footer from '@/src/components/main/Footer';
 
 // Configuração das fontes do design original
 const montserrat = Montserrat({
