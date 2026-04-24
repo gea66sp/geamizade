@@ -4,12 +4,12 @@ import prisma from "@/src/lib/prisma";
 import type { Metadata } from "next";
 
 // Componentes (Certifique-se de que eles existem na pasta _components)
-import { StatCards } from "./_components/StatCards";
+
 import { OverviewCharts } from "./_components/OverviewCharts";
 import { ModuleShortcuts } from "./_components/ModuleShortcuts";
 
 export const metadata: Metadata = {
-  title: "Dashboard Administrativo | GE Amizade",
+  title: "Dashboard Administrativo",
   description: "Central de controle para os líderes e administradores do Grupo Escoteiro.",
 };
 

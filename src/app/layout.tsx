@@ -25,6 +25,7 @@ const BASE_URL = 'https://www.geamizade.org.br';
 
 export const metadata: Metadata = {
   manifest: "/manifest.webmanifest", // Linka com o arquivo que criamos
+  
   appleWebApp: {
     capable: true,
     title: "GE Amizade",
@@ -88,8 +89,8 @@ export const metadata: Metadata = {
     images: ['/og-image.png'],
   },
   icons: {
-    icon: '/favicon.ico', 
-    apple: '/flor-de-lis.jpg',
+    icon: '/icon-192x192.png', 
+    apple: '/apple-icon.png',
   },
 };
 

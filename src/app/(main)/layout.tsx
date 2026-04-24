@@ -4,6 +4,7 @@ import Script from 'next/script';
 import '../globals.css';
 import Navbar from '@/src/components/main/Navbar';
 import Footer from '@/src/components/main/Footer';
+import InstallPrompt from "@/src/components/main/InstallPrompt";
 
 // Configuração das fontes do design original
 const montserrat = Montserrat({
@@ -77,6 +78,7 @@ export default function RootLayout({
         </main>
         
         <Footer />
+        <InstallPrompt />
       </body>
     </html>
   );
