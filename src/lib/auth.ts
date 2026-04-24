@@ -11,7 +11,7 @@ export const authOptions: NextAuthOptions = {
   // Obrigatório ser 'jwt' ao usar CredentialsProvider
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // Sessão dura 30 dias
+    maxAge: 30 * 24 * 60 * 60, // Sessão máxima de 30 dias (o padrão se marcar "Lembrar")
   },
   
   providers: [
@@ -20,7 +20,9 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "E-mail", type: "email", placeholder: "contato@exemplo.com" },
         password: { label: "Senha", type: "password" },
-        captchaToken: { label: "Captcha", type: "text" } 
+        captchaToken: { label: "Captcha", type: "text" },
+        // 1. ADICIONAMOS O CAMPO REMEMBER AQUI 👇
+        remember: { label: "Lembrar de mim", type: "text" } 
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -71,6 +73,8 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           branch: user.branch,
+          // 2. RETORNAMOS O VALOR DO CHECKBOX (convertido para boolean) 👇
+          rememberMe: credentials.remember === "true", 
         };
       }
     })
@@ -82,6 +86,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as any).role;
         token.branch = (user as any).branch;
+        // 3. SALVAMOS A ESCOLHA NO TOKEN JWT 👇
+        token.rememberMe = (user as any).rememberMe; 
       }
       return token;
     },
@@ -91,6 +97,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
         (session.user as any).branch = token.branch;
+        // 4. DISPONIBILIZAMOS A ESCOLHA NA SESSÃO DO FRONT-END 👇
+        (session.user as any).rememberMe = token.rememberMe; 
       }
       return session;
     },

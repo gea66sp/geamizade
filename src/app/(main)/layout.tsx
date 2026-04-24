@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
 import { Montserrat, Open_Sans } from 'next/font/google';
-import Script from 'next/script'; 
+ 
 import '../globals.css';
 import Navbar from '@/src/components/main/Navbar';
 import Footer from '@/src/components/main/Footer';
 import InstallPrompt from "@/src/components/main/InstallPrompt";
+
+// 👇 Importando os novos componentes de Privacidade e Analytics
+import CookieBanner from "@/src/components/CookieBanner";
+import GoogleAnalytics from "@/src/components/GoogleAnalytics";
 
 // Configuração das fontes do design original
 const montserrat = Montserrat({
@@ -50,26 +54,10 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {/* =========================================
-            GOOGLE ANALYTICS (GTAG)
-        ============================================= */}
-        <Script
-          strategy="afterInteractive"
-          src={`https://www.googletagmanager.com/gtag/js?id=G-G7S2JHLYCG`}
-        />
-        <Script
-          id="google-analytics"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-G7S2JHLYCG', {
-                page_path: window.location.pathname,
-              });
-            `,
-          }}
-        />
+            INJETOR INTELIGENTE DO GOOGLE ANALYTICS
+            (Só ativa se o usuário aceitar no CookieBanner)
+        ========================================= */}
+        <GoogleAnalytics />
 
         <Navbar />
         
@@ -78,7 +66,13 @@ export default function RootLayout({
         </main>
         
         <Footer />
+        
+        {/* =========================================
+            OVERLAYS E AVISOS (Flutuantes)
+        ========================================= */}
         <InstallPrompt />
+        <CookieBanner />
+
       </body>
     </html>
   );

@@ -43,6 +43,12 @@ export default function Footer() {
                   Portal da Transparência
                 </Link>
               </li>
+              <li>
+                <Link href="/privacidade" className="group flex items-center py-2 text-gray-400 hover:text-scout-yellow transition-colors">
+                  <i className="fa-solid fa-chevron-right text-[10px] mr-3 text-gray-600 group-hover:text-scout-yellow transition-colors"></i>
+                  Política de Privacidade
+                </Link>
+              </li>
             </ul>
           </div>
 
