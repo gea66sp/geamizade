@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
+import { Providers } from "@/src/components/Providers"; // 👈 Importação incluída
 
 export const viewport: Viewport = {
   themeColor: "#1b4d3e", // O seu verde escoteiro
@@ -122,7 +123,6 @@ const schema = [
     "sameAs": [
       "https://www.instagram.com/amizade66sp/",
       "https://www.facebook.com/GEAmizade/",
-      
     ]
   }
 ];
@@ -145,9 +145,11 @@ export default function RootLayout({
         />
       </head>
       <body className={`${openSans.variable} ${montserrat.variable} font-sans text-gray-800 bg-gray-50 flex flex-col min-h-screen antialiased`}>
-        <main className="grow">
-          {children}
-        </main>
+        <Providers> {/* 👈 Providers envolvendo o conteúdo */}
+          <main className="grow">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );
