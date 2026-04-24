@@ -120,7 +120,7 @@ model User {
   eventRSVPs    EventRSVP[]
   notifications Notification[]
   blogPosts     BlogPost[]
-  loans  ItemLoan[]  @relation("UserLoans")
+  loans         ItemLoan[]  @relation("UserLoans")
 
   // Controle de Acesso - Transparência (Pastas e Documentos)
   viewableFolders   Folder[]   @relation("FolderViewers")
@@ -130,6 +130,8 @@ model User {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([troopId]) // <-- ÍNDICE ADICIONADO AQUI
 }
 
 // Tabela Intermediária para a Relação N:N (Múltiplos Pais / Múltiplos Filhos)
@@ -219,6 +221,8 @@ model Event {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([troopId]) // <-- ÍNDICE ADICIONADO AQUI
 }
 
 model EventRSVP {
@@ -255,7 +259,14 @@ model FinancialTransaction {
 
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+
+  @@index([userId]) // <-- ÍNDICE ADICIONADO AQUI
+  @@index([status]) // <-- ÍNDICE ADICIONADO AQUI
 }
+
+// ==========================================
+// MÓDULO DE PATRIMÔNIO (ALMOXARIFADO)
+// ==========================================
 
 // ==========================================
 // MÓDULO DE PATRIMÔNIO (ALMOXARIFADO)
@@ -263,11 +274,17 @@ model FinancialTransaction {
 
 model InventoryItem {
   id              String        @id @default(cuid())
+  chargeNumber    String        @unique // <-- O campo novo que colocamos
   name            String        
   category        String        
   quantity        Int           @default(1)
   condition       ItemCondition @default(GOOD)
   notes           String?       @db.Text
+  
+  // <-- OS CAMPOS DE BAIXA QUE FALTARAM:
+  isActive        Boolean       @default(true)
+  dischargeReason String?       @db.Text
+  dischargedAt    DateTime?
   
   // Relacionamento com o histórico de empréstimos
   loans           ItemLoan[]
@@ -343,6 +360,8 @@ model Document {
   
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+
+  @@index([folderId]) // <-- ÍNDICE ADICIONADO AQUI
 }
 
 model BlogPost {
@@ -361,6 +380,8 @@ model BlogPost {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([troopId]) // <-- ÍNDICE ADICIONADO AQUI
 }
 
 // ==========================================
@@ -445,14 +466,14 @@ model InstitutionalPage {
 }
 
 model BoardMember {
-  id          String   @id @default(uuid())
-  name        String   // ex: "Ricardo Almeida"
-  role        String   // ex: "Diretor Presidente"
-  bio         String   // ex: "No movimento desde 1990..."
-  imageUrl    String   // URL ou path do arquivo
+  id        String   @id @default(uuid())
+  name      String   // ex: "Ricardo Almeida"
+  role      String   // ex: "Diretor Presidente"
+  bio       String   // ex: "No movimento desde 1990..."
+  imageUrl  String   // URL ou path do arquivo
   
-  pageId      String
-  page        InstitutionalPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  pageId    String
+  page      InstitutionalPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
 }
 
 model Testimonial {
