@@ -122,6 +122,19 @@ export default function Sidebar({
             Patrimônio
           </Link>
             
+            <Link 
+            href="/admin/tropas"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
+              isActive("/admin/tropas") 
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold" 
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <i className={`fa-solid fa-users text-lg w-5 text-center transition-colors ${isActive("/admin/tropas") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
+            Tropas
+          </Link>
+
           <div className="text-xs font-bold text-scout-yellow uppercase tracking-widest mb-4 mt-6 px-6">
             Gestão do Site
           </div>

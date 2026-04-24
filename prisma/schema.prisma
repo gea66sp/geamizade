@@ -263,18 +263,12 @@ model FinancialTransaction {
 
 model InventoryItem {
   id              String        @id @default(cuid())
-  chargeNumber    String        @unique // NOVO: Número de material carga (Único)
   name            String        
   category        String        
   quantity        Int           @default(1)
   condition       ItemCondition @default(GOOD)
   notes           String?       @db.Text
   
-  // NOVO: Controle de Baixa (Descarte/Soft Delete)
-  isActive        Boolean       @default(true) // false = Descarregado
-  dischargeReason String?       @db.Text       // Justificativa da baixa
-  dischargedAt    DateTime?                    // Data exata da baixa
-
   // Relacionamento com o histórico de empréstimos
   loans           ItemLoan[]
 

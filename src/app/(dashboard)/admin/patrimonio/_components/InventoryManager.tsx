@@ -159,7 +159,7 @@ export default function InventoryManager({
             
               <button 
                 onClick={() => setReportModalOpen(true)} 
-                className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 whitespace-nowrap"
+                className="cursor-pointer bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 whitespace-nowrap"
               >
                 <FileText className="w-5 h-5 text-blue-600" /> Relatórios
               </button>
