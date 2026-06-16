@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createDocument } from "../actions";
+import { upload } from "@vercel/blob/client"; // NOVO IMPORT AQUI
 
 type Folder = { id: string; name: string; parentId: string | null };
 type AdminUser = { id: string; name: string | null; role: string };
@@ -45,12 +46,25 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!file) return;
+    
+    // 1. CAPTURA O FORMULÁRIO AGORA (antes do await limpar o evento)
+    const formData = new FormData(e.currentTarget);
+    
     setIsUploading(true);
     
-    const formData = new FormData(e.currentTarget);
-    formData.append("file", file!); // Injeta o arquivo que veio da árvore
-    
     try {
+      // 2. FAZ O UPLOAD DIRETO DO NAVEGADOR PARA O VERCEL BLOB
+      const blob = await upload(`transparencia/arquivos/${file.name}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload', // O endpoint que autoriza o upload
+      });
+
+      // 3. ADICIONA A URL E O TAMANHO AO FORMULÁRIO QUE SALVAMOS LÁ EM CIMA
+      formData.append("fileUrl", blob.url); 
+      formData.append("fileSize", file.size.toString()); 
+      
+      // 4. CHAMA A SERVER ACTION
       await createDocument(formData);
       onClose(); // Fecha o modal após salvar
     } catch (err: any) {

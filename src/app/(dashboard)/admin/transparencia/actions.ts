@@ -1,6 +1,6 @@
 "use server";
 
-import { put, del } from "@vercel/blob";
+import { del } from "@vercel/blob"; // 'put' foi removido, pois o upload será no cliente
 import prisma from "@/src/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -249,7 +249,7 @@ export async function deleteFolder(id: string) {
 }
 
 // ==========================================
-// GERENCIAMENTO DE DOCUMENTOS
+// GERENCIAMENTO DE DOCUMENTOS (ATUALIZADO PARA CLIENT UPLOAD)
 // ==========================================
 
 export async function createDocument(formData: FormData) {
@@ -258,13 +258,16 @@ export async function createDocument(formData: FormData) {
   const title = formData.get("title") as string;
   const description = formData.get("description") as string | null;
   const folderId = formData.get("folderId") as string | null;
-  const file = formData.get("file") as File;
+  
+  // NOVA LÓGICA: Recebe os dados do arquivo que JÁ FOI enviado no navegador
+  const fileUrl = formData.get("fileUrl") as string;
+  const fileSize = Number(formData.get("fileSize") || 0);
 
   const isPublic = formData.get("isPublic") === "true";
   const isRestrictedView = formData.get("isRestrictedView") === "true";
   const isRestrictedEdit = formData.get("isRestrictedEdit") === "true";
 
-  if (!title || !file || file.size === 0) {
+  if (!title || !fileUrl) {
     throw new Error("Título e Arquivo são obrigatórios.");
   }
 
@@ -280,18 +283,15 @@ export async function createDocument(formData: FormData) {
     throw new Error("Apenas administradores podem fazer upload na raiz.");
   }
 
-  const blob = await put(`transparencia/arquivos/${file.name}`, file, {
-    access: "public",
-    addRandomSuffix: true, 
-  });
-
+  // O comando "put()" foi retirado daqui.
+  
   await prisma.document.create({
     data: { 
       title, 
       description,
       folderId: folderId || null, 
-      fileUrl: blob.url,
-      size: file.size,
+      fileUrl: fileUrl, // Salva diretamente a URL vinda do cliente
+      size: fileSize,   // Salva o tamanho vindo do cliente
       isPublic,
       isRestrictedView,
       isRestrictedEdit,
@@ -318,26 +318,28 @@ export async function updateDocument(id: string, oldFileUrl: string, formData: F
   const title = formData.get("title") as string;
   const description = formData.get("description") as string | null;
   const folderId = formData.get("folderId") as string | null;
-  const file = formData.get("file") as File | null;
+  
+  // NOVA LÓGICA: Recebe a nova URL se o usuário tiver alterado o arquivo
+  const newFileUrl = formData.get("newFileUrl") as string | null;
+  const newFileSize = Number(formData.get("newFileSize") || 0);
 
   const isPublic = formData.get("isPublic") === "true";
   const isRestrictedView = formData.get("isRestrictedView") === "true";
   const isRestrictedEdit = formData.get("isRestrictedEdit") === "true";
 
-  let newFileUrl = oldFileUrl;
+  let finalFileUrl = oldFileUrl;
+  let finalSize = document.size;
 
-  if (file && file.size > 0) {
+  // Se recebemos uma URL nova do cliente, deletamos o arquivo velho do Blob
+  if (newFileUrl && newFileUrl !== oldFileUrl) {
     try {
       await del(oldFileUrl);
     } catch (e) {
-      console.warn("Arquivo antigo não encontrado no Blob, prosseguindo com o upload...", e);
+      console.warn("Arquivo antigo não encontrado no Blob, prosseguindo...", e);
     }
     
-    const blob = await put(`transparencia/arquivos/${file.name}`, file, {
-      access: "public",
-      addRandomSuffix: true,
-    });
-    newFileUrl = blob.url;
+    finalFileUrl = newFileUrl;
+    finalSize = newFileSize;
   }
 
   await prisma.$transaction([
@@ -351,7 +353,8 @@ export async function updateDocument(id: string, oldFileUrl: string, formData: F
         title, 
         description,
         folderId: folderId || null, 
-        fileUrl: newFileUrl,
+        fileUrl: finalFileUrl,
+        size: finalSize,
         isPublic,
         isRestrictedView,
         isRestrictedEdit,
@@ -362,7 +365,6 @@ export async function updateDocument(id: string, oldFileUrl: string, formData: F
   ]);
 
   revalidatePath("/admin/transparencia");
-  
 }
 
 export async function deleteDocument(id: string, fileUrl: string) {
@@ -451,7 +453,6 @@ export async function moveItem(id: string, type: "folder" | "document", newParen
   revalidatePath("/admin/transparencia");
 }
 
-// Adicione isso no final do seu actions.ts
 export async function renameFolderInline(id: string, newName: string) {
   const user = await getAuthUser();
   const folder = await prisma.folder.findUnique({ 

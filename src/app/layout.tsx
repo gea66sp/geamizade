@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/src/components/Providers"; // 👈 Importação incluída
+import { Providers } from "@/src/components/Providers";
 
 export const viewport: Viewport = {
-  themeColor: "#1b4d3e", // O seu verde escoteiro
+  themeColor: "#1b4d3e", 
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1, // Evita que a tela dê zoom indesejado ao focar em inputs no celular
+  maximumScale: 1, 
 };
 
 const montserrat = Montserrat({
@@ -25,7 +25,7 @@ const openSans = Open_Sans({
 const BASE_URL = 'https://www.geamizade.org.br'; 
 
 export const metadata: Metadata = {
-  manifest: "/manifest.webmanifest", // Linka com o arquivo que criamos
+  manifest: "/manifest.webmanifest", 
   
   appleWebApp: {
     capable: true,
