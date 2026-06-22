@@ -13,12 +13,14 @@ interface ModalVisualizarUsuarioProps {
 export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: ModalVisualizarUsuarioProps) {
   const [userData, setUserData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"GERAL" | "MEDICO" | "ESCOTEIRO">("GERAL");
+  
+  // A aba MEDICO foi substituida por DOCUMENTOS
+  const [activeTab, setActiveTab] = useState<"GERAL" | "DOCUMENTOS" | "ESCOTEIRO">("GERAL");
 
   useEffect(() => {
     if (isOpen && userId) {
       setIsLoading(true);
-      setActiveTab("GERAL"); // Reseta a aba ao abrir
+      setActiveTab("GERAL"); 
       getUserFullDetails(userId).then((res) => {
         if (res.success) setUserData(res.user);
         setIsLoading(false);
@@ -34,7 +36,6 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
         
         {/* CABEÇALHO DO MODAL (Perfil) */}
         <div className="relative p-6 md:p-8 bg-gray-50 border-b border-gray-100 shrink-0">
-          {/* Botão Fechar */}
           <button onClick={onClose} className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-700 bg-white hover:bg-gray-100 border border-gray-200 rounded-full transition-colors cursor-pointer shadow-sm z-10">
             <i className="fa-solid fa-xmark text-lg"></i>
           </button>
@@ -91,8 +92,8 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                   <button onClick={() => setActiveTab("GERAL")} className={`cursor-pointer flex-1 min-w-30 px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center gap-2 ${activeTab === "GERAL" ? "bg-scout-green text-white shadow-md" : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-800"}`}>
                     <i className="fa-solid fa-address-card"></i> Visão Geral
                   </button>
-                  <button onClick={() => setActiveTab("MEDICO")} className={`cursor-pointer flex-1 min-w-30 px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center gap-2 ${activeTab === "MEDICO" ? "bg-scout-green text-white shadow-md" : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-800"}`}>
-                    <i className="fa-solid fa-notes-medical"></i> Saúde
+                  <button onClick={() => setActiveTab("DOCUMENTOS")} className={`cursor-pointer flex-1 min-w-30 px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center gap-2 ${activeTab === "DOCUMENTOS" ? "bg-scout-green text-white shadow-md" : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-800"}`}>
+                    <i className="fa-solid fa-folder-open"></i> Documentos
                   </button>
                   <button onClick={() => setActiveTab("ESCOTEIRO")} className={`cursor-pointer flex-1 min-w-30 px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap flex items-center justify-center gap-2 ${activeTab === "ESCOTEIRO" ? "bg-scout-green text-white shadow-md" : "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-800"}`}>
                     <i className="fa-solid fa-medal"></i> Escotismo
@@ -108,8 +109,6 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                 ======================================= */}
                 {activeTab === "GERAL" && (
                   <div className="space-y-8 animate-fade-in-up">
-                    
-                    {/* Infos Básicas */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100">
                         <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-gray-400 shadow-sm shrink-0"><i className="fa-solid fa-phone"></i></div>
@@ -127,7 +126,6 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                       </div>
                     </div>
 
-                    {/* Vínculos Familiares */}
                     <div>
                       <h4 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                         <i className="fa-solid fa-people-roof text-scout-green"></i> Rede Familiar
@@ -140,7 +138,6 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                         </div>
                       ) : (
                         <div className="space-y-6">
-                          
                           {/* Responsáveis do Jovem */}
                           {userData.guardianTies.length > 0 && (
                             <div>
@@ -189,59 +186,40 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                 )}
 
                 {/* =======================================
-                    ABA: FICHA MÉDICA
+                    NOVA ABA: DOCUMENTOS E FICHAS MÉDICAS
                 ======================================= */}
-                {activeTab === "MEDICO" && (
+                {activeTab === "DOCUMENTOS" && (
                   <div className="space-y-6 animate-fade-in-up">
-                    {!userData.medicalRecord ? (
+                    {(!userData.personalDocs || userData.personalDocs.length === 0) ? (
                       <div className="text-center py-16 bg-gray-50 rounded-3xl border border-gray-100">
                         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-200 text-gray-300">
-                          <i className="fa-solid fa-file-medical text-2xl"></i>
+                          <i className="fa-solid fa-folder-open text-2xl"></i>
                         </div>
-                        <h4 className="font-bold text-gray-700 text-lg mb-1">Sem Histórico Médico</h4>
-                        <p className="text-sm font-medium text-gray-500 max-w-sm mx-auto">A ficha médica deste usuário ainda não foi preenchida ou atualizada no sistema.</p>
+                        <h4 className="font-bold text-gray-700 text-lg mb-1">Nenhum Documento</h4>
+                        <p className="text-sm font-medium text-gray-500 max-w-sm mx-auto">Não há fichas médicas, laudos ou autorizações anexadas à pasta deste usuário.</p>
                       </div>
                     ) : (
-                      <div className="bg-white border border-gray-200 shadow-sm rounded-3xl overflow-hidden divide-y divide-gray-100">
-                        
-                        {/* Destaques Médicos */}
-                        <div className="grid grid-cols-2 bg-gray-50/50 divide-x divide-gray-100">
-                          <div className="p-5 md:p-6 text-center group">
-                            <i className="fa-solid fa-droplet text-red-500 text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Sangue</p>
-                            <p className="text-xl font-black text-gray-800">{userData.medicalRecord.bloodType || "N/I"}</p>
-                          </div>
-                          <div className="p-5 md:p-6 text-center group bg-amber-50/30">
-                            <i className="fa-solid fa-triangle-exclamation text-amber-500 text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Alergias</p>
-                            <p className="text-sm font-bold text-gray-800 truncate">{userData.medicalRecord.allergies || "Nenhuma"}</p>
-                          </div>
-                        </div>
-
-                        {/* Detalhes Médicos Lista */}
-                        <div className="p-5 md:p-8 space-y-5">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 hover:bg-gray-50 rounded-xl transition-colors">
-                            <div className="flex items-center gap-3 text-sm font-bold text-gray-600">
-                              <i className="fa-solid fa-pills w-5 text-center text-gray-400"></i> Uso Contínuo
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {userData.personalDocs.map((doc: any) => (
+                          <a 
+                            key={doc.id} 
+                            href={doc.fileUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="p-4 bg-white border border-gray-200 rounded-2xl shadow-sm flex items-start gap-4 hover:border-scout-green hover:shadow-md transition-all group cursor-pointer"
+                          >
+                            <div className="w-12 h-12 bg-red-50 text-red-500 rounded-xl flex items-center justify-center text-2xl shrink-0 group-hover:scale-110 transition-transform">
+                              <i className="fa-solid fa-file-pdf"></i>
                             </div>
-                            <p className="text-sm font-medium text-gray-900 sm:text-right">{userData.medicalRecord.continuousMeds || "Nenhum medicamento"}</p>
-                          </div>
-                          
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 hover:bg-gray-50 rounded-xl transition-colors">
-                            <div className="flex items-center gap-3 text-sm font-bold text-gray-600">
-                              <i className="fa-solid fa-id-card w-5 text-center text-gray-400"></i> Plano de Saúde
+                            <div className="flex-1 min-w-0">
+                              <h5 className="font-bold text-gray-800 truncate mb-1">{doc.title}</h5>
+                              {doc.description && <p className="text-xs text-gray-500 truncate mb-2">{doc.description}</p>}
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                <i className="fa-regular fa-calendar mr-1"></i> {new Date(doc.createdAt).toLocaleDateString('pt-BR')}
+                              </p>
                             </div>
-                            <p className="text-sm font-medium text-gray-900 sm:text-right">{userData.medicalRecord.healthInsurance || "SUS / Não possui"}</p>
-                          </div>
-
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 hover:bg-gray-50 rounded-xl transition-colors">
-                            <div className="flex items-center gap-3 text-sm font-bold text-gray-600">
-                              <i className="fa-solid fa-truck-medical w-5 text-center text-gray-400"></i> SOS Contato
-                            </div>
-                            <p className="text-sm font-bold text-blue-600 sm:text-right">{userData.medicalRecord.emergencyContact || "Não informado"}</p>
-                          </div>
-                        </div>
-
+                          </a>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -252,8 +230,6 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                 ======================================= */}
                 {activeTab === "ESCOTEIRO" && (
                   <div className="space-y-8 animate-fade-in-up">
-                    
-                    {/* Tropa/Ramo */}
                     <div className="relative overflow-hidden p-6 rounded-3xl bg-scout-dark text-white shadow-lg flex items-center justify-between">
                       <div className="absolute right-0 top-0 w-32 h-32 bg-scout-green/30 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
                       
@@ -270,7 +246,6 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                       </div>
                     </div>
 
-                    {/* Progressões e Especialidades */}
                     <div>
                       <h4 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
                         <i className="fa-solid fa-award text-scout-green"></i> Conquistas e Insígnias

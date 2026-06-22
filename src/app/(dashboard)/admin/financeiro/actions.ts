@@ -9,7 +9,11 @@ export async function createTransaction(formData: FormData) {
   const type = formData.get("type") as "INCOME" | "EXPENSE";
   const status = formData.get("status") as "PENDING" | "PAID" | "CANCELLED";
   const dueDateStr = formData.get("dueDate") as string;
+  
+  // Vínculos
   const userId = formData.get("userId") as string | null;
+  const troopId = formData.get("troopId") as string | null;   // <-- NOVO
+  const patrolId = formData.get("patrolId") as string | null; // <-- NOVO
 
   if (!title || !amountStr || !type || !dueDateStr) {
     throw new Error("Preencha todos os campos obrigatórios.");
@@ -35,6 +39,8 @@ export async function createTransaction(formData: FormData) {
       dueDate: new Date(dueDateStr + "T12:00:00"), // Evita fuso horário
       paidDate,
       userId: userId || null,
+      troopId: troopId || null,   // <-- NOVO: Se for caixa da tropa
+      patrolId: patrolId || null, // <-- NOVO: Se for caixa da patrulha
     }
   });
 
@@ -47,7 +53,11 @@ export async function updateTransaction(id: string, formData: FormData) {
   const type = formData.get("type") as "INCOME" | "EXPENSE";
   const status = formData.get("status") as "PENDING" | "PAID" | "CANCELLED";
   const dueDateStr = formData.get("dueDate") as string;
+  
+  // Vínculos
   const userId = formData.get("userId") as string | null;
+  const troopId = formData.get("troopId") as string | null;   // <-- NOVO
+  const patrolId = formData.get("patrolId") as string | null; // <-- NOVO
 
   if (!title || !amountStr || !type || !dueDateStr) {
     throw new Error("Preencha todos os campos obrigatórios.");
@@ -72,6 +82,8 @@ export async function updateTransaction(id: string, formData: FormData) {
       dueDate: new Date(dueDateStr + "T12:00:00"),
       paidDate,
       userId: userId || null,
+      troopId: troopId || null,   // <-- NOVO
+      patrolId: patrolId || null, // <-- NOVO
     }
   });
 

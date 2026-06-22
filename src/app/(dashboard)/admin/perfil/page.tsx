@@ -15,12 +15,14 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  // Busca o usuário com sua ficha médica e dados de tropa
+  // Busca o usuário com seus dados de tropa, patrulha e documentos pessoais 
+  // (a ficha médica fixa foi removida no novo schema)
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     include: {
-      medicalRecord: true,
       troop: true,
+      patrol: true,        // <-- NOVO: Traz os dados da Patrulha/Matilha
+      personalDocs: true,  // <-- NOVO: Traz os PDFs e Fichas Médicas digitalizadas
     },
   });
 

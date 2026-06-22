@@ -26,10 +26,9 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
-  // Estados do Formulário
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); // Deixe em branco para não alterar
+  const [password, setPassword] = useState(""); 
   const [selectedRole, setSelectedRole] = useState<Role>("MEMBER");
   const [selectedBranch, setSelectedBranch] = useState<Branch | "">("");
   
@@ -42,12 +41,11 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
   const availableRoles = currentUserRole === "ADMIN" ? ["ADMIN", "FINANCEIRO", "CHEFE", "RESPONSAVEL", "MEMBER"] : ["CHEFE", "RESPONSAVEL", "MEMBER"];
   const allBranches: Branch[] = ["LOBINHO", "ESCOTEIRO", "SENIOR", "PIONEIRO", "DIRETORIA"];
 
-  // BUSCAR DADOS AO ABRIR O MODAL
   useEffect(() => {
     if (isOpen && userId) {
       setIsFetching(true);
       setMessage(null);
-      setPassword(""); // Limpa o campo de senha para segurança
+      setPassword(""); 
       
       getUserFullDetails(userId).then(res => {
         if (res.success && res.user) {
@@ -56,7 +54,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
           setSelectedRole(res.user.role);
           setSelectedBranch(res.user.branch || "");
           
-          // Popula os vínculos familiares baseados no cargo
           if (res.user.role === "MEMBER") {
             setSelectedFamilyIds(res.user.guardianTies.map((t: any) => t.guardianId));
           } else if (res.user.role === "RESPONSAVEL") {
@@ -72,7 +69,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
     }
   }, [isOpen, userId]);
 
-  // LÓGICA DE VÍNCULOS
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedRole(e.target.value as Role);
     setSelectedFamilyIds([]); 
@@ -81,7 +77,7 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
 
   const availableToLink = useMemo(() => {
     return allUsers.filter(u => {
-      if (u.id === userId) return false; // Não pode vincular a si mesmo
+      if (u.id === userId) return false; 
       const correctRole = selectedRole === "MEMBER" ? u.role === "RESPONSAVEL" : u.role === "MEMBER";
       const notSelected = !selectedFamilyIds.includes(u.id);
       const matchesSearch = u.name?.toLowerCase().includes(searchFamilyTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchFamilyTerm.toLowerCase());
@@ -94,7 +90,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
   const addFamilyTie = (id: string) => { setSelectedFamilyIds(prev => [...prev, id]); setSearchFamilyTerm(""); };
   const removeFamilyTie = (id: string) => setSelectedFamilyIds(prev => prev.filter(fid => fid !== id));
 
-  // SALVAR ALTERAÇÕES
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!userId) return;
@@ -103,7 +98,7 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
 
     const data = {
       name, email,
-      ...(password ? { password } : {}), // Só envia a senha se ele digitou uma nova
+      ...(password ? { password } : {}),
       role: selectedRole,
       branch: (selectedBranch as Branch) || undefined,
       familyTieIds: selectedFamilyIds,
@@ -130,10 +125,9 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 bg-gray-900/60 z-100 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar relative">
         
-        {/* Header do Modal */}
         <div className="flex justify-between items-start mb-6 md:mb-8 border-b border-gray-100 pb-5">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center shrink-0">
@@ -149,7 +143,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
           </button>
         </div>
 
-        {/* Loading State */}
         {isFetching ? (
           <div className="py-20 flex flex-col items-center justify-center text-gray-400">
             <i className="fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-amber-500"></i>
@@ -158,13 +151,11 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
         ) : (
           <form onSubmit={handleSubmit} autoComplete="off" className="space-y-6">
             
-            {/* Inputs invisíveis para enganar os gerenciadores de senha */}
             <div style={{ position: "absolute", width: "1px", height: "1px", overflow: "hidden", opacity: 0 }}>
               <input type="email" name="fake_email_trap" tabIndex={-1} autoComplete="username" />
               <input type="password" name="fake_password_trap" tabIndex={-1} autoComplete="current-password" />
             </div>
 
-            {/* Feedback de Mensagem */}
             {message && (
               <div className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-bold animate-fade-in-up ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
                 <i className={`fa-solid text-lg ${message.type === "success" ? "fa-circle-check" : "fa-triangle-exclamation"}`}></i>
@@ -172,10 +163,8 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
               </div>
             )}
 
-            {/* Campos em Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
               
-              {/* Nome */}
               <div className="space-y-1.5 md:col-span-2">
                 <label className="block text-sm font-bold text-gray-700">Nome Completo <span className="text-red-500">*</span></label>
                 <div className="relative">
@@ -186,7 +175,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
                 </div>
               </div>
 
-              {/* Email */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-bold text-gray-700">E-mail <span className="text-red-500">*</span></label>
                 <div className="relative">
@@ -197,7 +185,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
                 </div>
               </div>
 
-              {/* Nova Senha */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-bold text-gray-700">Nova Senha <span className="text-gray-400 font-normal text-xs">(Opcional)</span></label>
                 <div className="relative">
@@ -208,7 +195,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
                 </div>
               </div>
 
-              {/* Cargo */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-bold text-gray-700">Cargo / Acesso <span className="text-red-500">*</span></label>
                 <div className="relative">
@@ -224,7 +210,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
                 </div>
               </div>
 
-              {/* Ramo */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-bold text-gray-700">Ramo (Opcional)</label>
                 <div className="relative">
@@ -241,11 +226,9 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
                 </div>
               </div>
 
-              {/* Bloco de Vínculos Familiares (Apenas para MEMBRO ou RESPONSAVEL) */}
               {(selectedRole === "MEMBER" || selectedRole === "RESPONSAVEL") && (
                 <div className="md:col-span-2 space-y-4 p-5 md:p-6 bg-amber-50/30 border border-amber-100 rounded-2xl mt-2 relative">
                   
-                  {/* Título do Bloco */}
                   <div className="flex items-center gap-3 border-b border-amber-200/50 pb-3">
                     <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
                       <i className="fa-solid fa-people-arrows text-sm"></i>
@@ -260,7 +243,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
                     </div>
                   </div>
                   
-                  {/* Usuários Já Vinculados (Pílulas) */}
                   {linkedUsers.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {linkedUsers.map(u => (
@@ -274,7 +256,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
                     </div>
                   )}
 
-                  {/* Input de Busca */}
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                       <i className="fa-solid fa-magnifying-glass text-amber-500"></i>
@@ -287,7 +268,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 text-sm outline-none transition-all shadow-sm font-medium" 
                     />
                     
-                    {/* Dropdown de Resultados */}
                     {searchFamilyTerm.length > 0 && (
                       <div className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-56 overflow-y-auto custom-scrollbar">
                         {availableToLink.length > 0 ? (
@@ -314,7 +294,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
               )}
             </div>
 
-            {/* Botões de Ação */}
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-gray-100">
               <button 
                 type="button" 

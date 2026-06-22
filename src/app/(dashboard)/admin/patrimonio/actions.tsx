@@ -12,11 +12,16 @@ export type InventoryFormData = {
   quantity: number;
   condition: ItemCondition;
   notes?: string;
+  // Campos de Propriedade/Centro de Custo
+  troopId?: string | null;
+  patrolId?: string | null;
 };
 
 export async function saveInventoryItem(data: InventoryFormData) {
   try {
-    // Se não informou o Número de Carga, gera um automático (Ex: MC-849201)
+    const troopId = data.troopId && data.troopId.trim() !== "" ? data.troopId : null;
+    const patrolId = data.patrolId && data.patrolId.trim() !== "" ? data.patrolId : null;
+
     let finalChargeNumber = data.chargeNumber?.trim();
     if (!finalChargeNumber && !data.id) {
       let isUnique = false;
@@ -36,7 +41,8 @@ export async function saveInventoryItem(data: InventoryFormData) {
           quantity: data.quantity,
           condition: data.condition,
           notes: data.notes,
-          // Não atualizamos o chargeNumber aqui, pois ele é imutável após criado!
+          troopId: troopId,
+          patrolId: patrolId,
         },
       });
     } else {
@@ -48,10 +54,16 @@ export async function saveInventoryItem(data: InventoryFormData) {
           quantity: data.quantity,
           condition: data.condition,
           notes: data.notes,
+          troopId: troopId,
+          patrolId: patrolId,
         },
       });
     }
+    
+    // Atualiza a página geral de patrimônio e as páginas individuais das tropas
     revalidatePath("/admin/patrimonio");
+    if (troopId) revalidatePath(`/admin/tropas/${troopId}`);
+    
     return { success: true };
   } catch (error: any) {
     if (error.code === 'P2002') return { error: "Este Número de Carga já está em uso!" };
@@ -59,10 +71,8 @@ export async function saveInventoryItem(data: InventoryFormData) {
   }
 }
 
-// NOVA FUNÇÃO DE "EXCLUSÃO LÓGICA" (Dar Baixa)
 export async function dischargeInventoryItem(id: string, reason: string) {
   try {
-    // Verifica se o item está emprestado no momento. Se estiver, não pode ser descarregado.
     const activeLoan = await prisma.itemLoan.findFirst({ where: { itemId: id, returnedAt: null } });
     if (activeLoan) return { error: "Não é possível dar baixa em um item que está emprestado. Devolva-o primeiro." };
 
@@ -74,6 +84,7 @@ export async function dischargeInventoryItem(id: string, reason: string) {
         dischargedAt: new Date(),
       },
     });
+    
     revalidatePath("/admin/patrimonio");
     return { success: true };
   } catch (error) {
@@ -101,21 +112,14 @@ export async function checkoutItem(itemId: string, userId: string, expectedRetur
 export async function returnItem(itemId: string) {
   try {
     const activeLoan = await prisma.itemLoan.findFirst({
-      where: { 
-        itemId: itemId,
-        returnedAt: null 
-      },
+      where: { itemId: itemId, returnedAt: null },
     });
 
-    if (!activeLoan) {
-      return { error: "Nenhum empréstimo ativo encontrado para este item." };
-    }
+    if (!activeLoan) return { error: "Nenhum empréstimo ativo encontrado para este item." };
 
     await prisma.itemLoan.update({
       where: { id: activeLoan.id },
-      data: {
-        returnedAt: new Date(),
-      },
+      data: { returnedAt: new Date() },
     });
 
     revalidatePath("/admin/patrimonio");
@@ -126,10 +130,18 @@ export async function returnItem(itemId: string) {
   }
 }
 
-// ==========================================
-// FUNÇÕES DE RELATÓRIO (PDF)
-// ==========================================
+export async function deleteInventoryItem(id: string) {
+  try {
+    await prisma.inventoryItem.delete({ where: { id } });
+    revalidatePath("/admin/patrimonio");
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao excluir material:", error);
+    return { success: false, error: "Erro ao excluir o material. Verifique se existem empréstimos ativos." };
+  }
+}
 
+// Relatórios
 export async function getInventoryReportData() {
   try {
     const items = await prisma.inventoryItem.findMany({
@@ -138,7 +150,9 @@ export async function getInventoryReportData() {
         loans: {
           where: { returnedAt: null },
           include: { user: { select: { name: true } } }
-        }
+        },
+        troop: { select: { name: true } },
+        patrol: { select: { name: true } }
       }
     });
     return { success: true, data: items };
@@ -150,8 +164,6 @@ export async function getInventoryReportData() {
 export async function getLoansReportData(startDate?: string, endDate?: string) {
   try {
     const whereClause: any = {};
-    
-    // Se o usuário selecionou datas, filtra pela data de retirada (borrowedAt)
     if (startDate && endDate) {
       whereClause.borrowedAt = {
         gte: new Date(`${startDate}T00:00:00.000Z`),

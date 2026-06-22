@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import ModalEditarTransacao from "./ModalEditarTransacao";
 import { deleteTransaction } from "../actions";
 
-export default function TransactionTable({ transactions, users }: { transactions: any[], users: any[] }) {
+// <-- NOVO: Adicionado troops na tipagem
+export default function TransactionTable({ transactions, users, troops }: { transactions: any[], users: any[], troops: any[] }) {
   const [editingTx, setEditingTx] = useState<any | null>(null);
   
   // Controle do Menu Mobile (3 pontinhos)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   
-  // Controle do Modal de Confirmação customizado (substituindo o window.confirm)
+  // Controle do Modal de Confirmação customizado
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -57,6 +58,17 @@ export default function TransactionTable({ transactions, users }: { transactions
     return null;
   };
 
+  // <-- NOVO: Componente para mostrar a qual caixa pertence o dinheiro
+  const ScopeBadge = ({ tx }: { tx: any }) => {
+    if (tx.patrol) {
+      return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100"><i className="fa-solid fa-paw mr-1"></i> {tx.patrol.name}</span>;
+    }
+    if (tx.troop) {
+      return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-scout-green/10 text-scout-green border border-scout-green/20"><i className="fa-solid fa-tent mr-1"></i> {tx.troop.name}</span>;
+    }
+    return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100"><i className="fa-solid fa-globe mr-1"></i> Geral</span>;
+  };
+
   if (transactions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-10 m-4 sm:m-6 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
@@ -73,7 +85,6 @@ export default function TransactionTable({ transactions, users }: { transactions
     <>
       {/* =========================================
           VERSÃO MOBILE: LISTA DE CARDS (FLEX)
-          Oculta a tabela nativa em telas < md
       ============================================= */}
       <div className="md:hidden flex flex-col divide-y divide-gray-100 pb-4">
         {transactions.map((tx) => {
@@ -86,12 +97,18 @@ export default function TransactionTable({ transactions, users }: { transactions
                 {/* Lado Esquerdo: Info */}
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-gray-800 text-sm sm:text-base truncate leading-tight mb-1">{tx.title}</h4>
-                  {tx.user && (
-                    <p className="text-xs text-gray-500 mb-1 flex items-center gap-1.5 truncate">
-                      <i className="fa-solid fa-user text-gray-300"></i> {tx.user.name}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-400 flex items-center gap-1.5">
+                  
+                  {/* Badge de Escopo e Usuário */}
+                  <div className="flex flex-wrap items-center gap-2 mb-2 mt-1">
+                    <ScopeBadge tx={tx} />
+                    {tx.user && (
+                      <p className="text-xs text-gray-500 flex items-center gap-1 truncate">
+                        <i className="fa-solid fa-user text-gray-300"></i> {tx.user.name}
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-gray-400 flex items-center gap-1.5 mt-1">
                     <i className="fa-regular fa-calendar-days text-gray-300"></i> Venc: {formatDate(tx.dueDate)}
                   </p>
                 </div>
@@ -139,12 +156,11 @@ export default function TransactionTable({ transactions, users }: { transactions
 
       {/* =========================================
           VERSÃO DESKTOP: TABELA TRADICIONAL
-          Oculta no mobile
       ============================================= */}
       <table className="hidden md:table w-full text-left border-collapse">
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase tracking-wider text-gray-500 sticky top-0 z-10 shadow-sm">
-            <th className="px-5 py-3.5 font-bold">Descrição</th>
+            <th className="px-5 py-3.5 font-bold">Descrição & Centro de Custo</th>
             <th className="px-5 py-3.5 font-bold">Vencimento</th>
             <th className="px-5 py-3.5 font-bold">Valor</th>
             <th className="px-5 py-3.5 font-bold">Status</th>
@@ -156,7 +172,10 @@ export default function TransactionTable({ transactions, users }: { transactions
             <tr key={tx.id} className="hover:bg-gray-50/80 transition-colors group">
               <td className="px-5 py-4">
                 <div className="font-bold text-gray-800">{tx.title}</div>
-                {tx.user && <div className="text-xs text-gray-500 mt-1 flex items-center gap-1.5"><i className="fa-solid fa-user text-gray-300"></i> {tx.user.name}</div>}
+                <div className="flex items-center gap-3 mt-1.5">
+                  <ScopeBadge tx={tx} />
+                  {tx.user && <div className="text-xs text-gray-500 flex items-center gap-1.5"><i className="fa-solid fa-user text-gray-300"></i> {tx.user.name}</div>}
+                </div>
               </td>
               <td className="px-5 py-4 text-gray-600 font-medium">{formatDate(tx.dueDate)}</td>
               <td className={`px-5 py-4 font-black ${tx.type === 'INCOME' ? 'text-scout-green' : 'text-red-600'}`}>
@@ -167,12 +186,10 @@ export default function TransactionTable({ transactions, users }: { transactions
               </td>
               <td className="px-5 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
                 
-                {/* Botão de Editar */}
                 <button onClick={() => setEditingTx(tx)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer mr-1" title="Editar">
                   <i className="fa-solid fa-pen text-sm"></i>
                 </button>
                 
-                {/* Botão de Excluir */}
                 <button onClick={() => setConfirmDeleteId(tx.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Apagar">
                   <i className="fa-solid fa-trash text-sm"></i>
                 </button>
@@ -193,9 +210,10 @@ export default function TransactionTable({ transactions, users }: { transactions
         isOpen={!!editingTx} 
         onClose={() => setEditingTx(null)} 
         users={users} 
+        troops={troops} // <-- NOVO: Passando as tropas pro modal de edição
       />
 
-      {/* Modal de Confirmação de Exclusão (Substituindo window.confirm) */}
+      {/* Modal de Confirmação de Exclusão */}
       {confirmDeleteId && (
         <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center">

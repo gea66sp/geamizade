@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { updateProfile } from "../actions"; 
+import UploadDocModal from "./UploadDocModal";
+import RenameDocModal from "./RenameDocModal";
+import DeleteDocModal from "./DeleteDocModal";
 
 type ProfileFormProps = {
   initialData: any; 
@@ -11,6 +14,11 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
   const [activeTab, setActiveTab] = useState("pessoais");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
+  
+  // Controle dos Modais
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [docToRename, setDocToRename] = useState<any>(null);
+  const [docToDelete, setDocToDelete] = useState<any>(null);
   
   // Estado para o preview instantâneo da foto de perfil
   const [imagePreview, setImagePreview] = useState<string | null>(initialData.image || null);
@@ -29,7 +37,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
     setMessage({ type: "", text: "" });
 
     try {
-      // O formData agora enviará também o campo "image" contendo o Arquivo (File)
+      // O formData enviará name, phone, image e newPassword (se houver)
       const result = await updateProfile(formData, initialData.id);
       if (result.success) {
         setMessage({ type: "success", text: "Perfil atualizado com sucesso! ⚜️" });
@@ -62,15 +70,15 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab("medica")}
+          onClick={() => setActiveTab("documentos")}
           className={`cursor-pointer flex items-center justify-center gap-2 px-5 py-4 font-bold text-sm transition-colors whitespace-nowrap min-w-35 flex-1 ${
-            activeTab === "medica"
+            activeTab === "documentos"
               ? "bg-white border-b-2 border-scout-green text-scout-green shadow-[0_-2px_0_0_inset_#22c55e]"
               : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
           }`}
         >
-          <i className="fa-solid fa-notes-medical"></i>
-          Ficha Médica
+          <i className="fa-solid fa-folder-open"></i>
+          Meus Documentos
         </button>
         <button
           type="button"
@@ -141,7 +149,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
                 </div>
               </div>
               
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 md:col-span-2">
                 <label className="block text-sm font-bold text-gray-700">Telefone / WhatsApp</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i className="fa-brands fa-whatsapp text-gray-400"></i></div>
@@ -150,7 +158,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
               </div>
 
               {/* Campos Desabilitados (Apenas Leitura) */}
-              <div className="space-y-1.5 opacity-70">
+              <div className="space-y-1.5 opacity-70 md:col-span-2 border-t border-gray-100 pt-5">
                 <label className="block text-sm font-bold text-gray-500">E-mail <span className="font-normal text-xs">(Apenas leitura)</span></label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i className="fa-solid fa-envelope text-gray-400"></i></div>
@@ -165,75 +173,81 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
                   <input type="text" value={initialData.branch || "Sem Ramo Específico"} readOnly className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-100 text-gray-500 cursor-not-allowed font-medium capitalize" />
                 </div>
               </div>
+
+              <div className="space-y-1.5 opacity-70">
+                <label className="block text-sm font-bold text-gray-500">Patrulha / Matilha <span className="font-normal text-xs">(Apenas leitura)</span></label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i className="fa-solid fa-paw text-gray-400"></i></div>
+                  <input type="text" value={initialData.patrol?.name || "Sem Patrulha Vinculada"} readOnly className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-100 text-gray-500 cursor-not-allowed font-medium" />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* =======================================
-              ABA: FICHA MÉDICA 
+              ABA: MEUS DOCUMENTOS (NOVO)
           ======================================= */}
-          <div className={`${activeTab === "medica" ? "block animate-fade-in-up" : "hidden"} space-y-6 md:space-y-8`}>
+          <div className={`${activeTab === "documentos" ? "block animate-fade-in-up" : "hidden"} space-y-6 md:space-y-8`}>
             <div className="border-b border-gray-100 pb-3 flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl md:text-2xl font-heading font-bold text-gray-800">Ficha Médica e Saúde</h2>
-                <p className="text-sm text-gray-500 mt-1">Essas informações são vitais para acampamentos e atividades.</p>
+                <h2 className="text-xl md:text-2xl font-heading font-bold text-gray-800">Meus Documentos</h2>
+                <p className="text-sm text-gray-500 mt-1">Sua Ficha Médica, Autorizações e Carteirinha ficam armazenados aqui.</p>
               </div>
-              <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center shrink-0">
-                <i className="fa-solid fa-notes-medical text-xl"></i>
+              <div className="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-folder-open text-xl"></i>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-              
-              <div className="space-y-1.5">
-                <label className="block text-sm font-bold text-gray-700">Tipo Sanguíneo</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i className="fa-solid fa-droplet text-red-400"></i></div>
-                  <select name="bloodType" defaultValue={initialData.medicalRecord?.bloodType || ""} className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-400 outline-none transition-all cursor-pointer font-bold text-gray-800 appearance-none">
-                    <option value="">Não sei / Não informar</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none"><i className="fa-solid fa-chevron-down text-gray-400 text-xs"></i></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {initialData.personalDocs && initialData.personalDocs.length > 0 ? (
+                initialData.personalDocs.map((doc: any) => (
+                  <div key={doc.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl bg-gray-50 hover:border-blue-300 transition-colors flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-red-100 text-red-500 flex items-center justify-center shrink-0">
+                         <i className="fa-solid fa-file-pdf text-lg"></i>
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-gray-800 line-clamp-1">{doc.title}</p>
+                        <p className="text-xs text-gray-500">{(doc.size / 1024 / 1024).toFixed(2)} MB</p>
+                      </div>
+                    </div>
+                    
+                    {/* BOTÕES DE AÇÃO: RENOMEAR, EXCLUIR, BAIXAR */}
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <button type="button" onClick={() => setDocToRename(doc)} className="text-blue-500 hover:bg-blue-100 p-2 sm:p-2.5 rounded-lg transition-colors" title="Renomear">
+                        <i className="fa-solid fa-pen"></i>
+                      </button>
+                      <button type="button" onClick={() => setDocToDelete(doc)} className="text-red-500 hover:bg-red-100 p-2 sm:p-2.5 rounded-lg transition-colors" title="Eliminar">
+                        <i className="fa-solid fa-trash"></i>
+                      </button>
+                      <a href={doc.fileUrl} target="_blank" rel="noreferrer" className="text-scout-green hover:bg-green-100 p-2 sm:p-2.5 rounded-lg transition-colors" title="Baixar Documento">
+                        <i className="fa-solid fa-download"></i>
+                      </a>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full py-10 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                  <i className="fa-solid fa-file-circle-xmark text-4xl text-gray-300 mb-3"></i>
+                  <p className="text-gray-500 font-medium">Nenhum documento anexado ao seu perfil.</p>
                 </div>
-              </div>
+              )}
+            </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-sm font-bold text-gray-700">Contato de Emergência</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i className="fa-solid fa-truck-medical text-gray-400"></i></div>
-                  <input name="emergencyContact" type="text" placeholder="Nome e Telefone (Ex: Mãe - 11 9000-0000)" defaultValue={initialData.medicalRecord?.emergencyContact || ""} className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none transition-all text-gray-800 font-medium" />
-                </div>
-              </div>
-
-              <div className="space-y-1.5 md:col-span-2">
-                <label className="block text-sm font-bold text-amber-600 items-center gap-2"><i className="fa-solid fa-triangle-exclamation"></i> Alergias (Medicamentos, insetos, etc)</label>
-                <textarea name="allergies" rows={2} placeholder="Descreva se possui alguma alergia..." defaultValue={initialData.medicalRecord?.allergies || ""} className="w-full px-4 py-3 border border-amber-200 rounded-xl bg-amber-50/50 focus:bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 outline-none transition-all text-gray-800 custom-scrollbar resize-none font-medium" />
-              </div>
-
-              <div className="space-y-1.5 md:col-span-2">
-                <label className="block text-sm font-bold text-gray-700">Medicamentos de Uso Contínuo</label>
-                <textarea name="continuousMeds" rows={2} placeholder="Descreva se toma algum remédio frequente..." defaultValue={initialData.medicalRecord?.continuousMeds || ""} className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none transition-all text-gray-800 custom-scrollbar resize-none" />
-              </div>
-
-              <div className="space-y-1.5 md:col-span-2">
-                <label className="block text-sm font-bold text-gray-700">Restrições Alimentares</label>
-                <textarea name="dietaryRestrictions" rows={2} placeholder="Vegetariano, intolerância a lactose..." defaultValue={initialData.medicalRecord?.dietaryRestrictions || ""} className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none transition-all text-gray-800 custom-scrollbar resize-none" />
-              </div>
-
-              <div className="space-y-1.5 md:col-span-2 border-t border-gray-100 pt-5">
-                <label className="block text-sm font-bold text-gray-700">Plano de Saúde (Convênio)</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i className="fa-solid fa-id-card text-gray-400"></i></div>
-                  <input name="healthInsurance" type="text" placeholder="Nome do plano e Nº da carteirinha" defaultValue={initialData.medicalRecord?.healthInsurance || ""} className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none transition-all text-gray-800 font-medium" />
-                </div>
-              </div>
-
+            {/* Componente de Upload */}
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              <p className="text-sm text-gray-500 mb-4 bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                <i className="fa-solid fa-circle-info text-blue-500 mr-2"></i> 
+                Para enviar novos documentos (como sua Ficha Médica atualizada em PDF), utilize o botão abaixo.
+              </p>
+              <button 
+                   type="button" 
+                    onClick={() => setIsModalOpen(true)} 
+                    className="w-full py-4 border-2 border-dashed border-scout-green text-scout-green rounded-xl font-bold hover:bg-green-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+              <i className="fa-solid fa-cloud-arrow-up"></i>
+              Fazer Upload de Novo Documento
+              </button>
             </div>
           </div>
 
@@ -251,7 +265,6 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
                 <label className="block text-sm font-bold text-gray-700">Nova Senha</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i className="fa-solid fa-lock text-gray-400"></i></div>
-                  {/* autoComplete="new-password" evita que o navegador preencha sozinho */}
                   <input name="newPassword" type="password" minLength={6} autoComplete="new-password" placeholder="Mínimo 6 caracteres" className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-gray-800" />
                 </div>
               </div>
@@ -267,7 +280,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           
           <div className="w-full sm:w-auto flex-1">
             {message.text && (
-              <div className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg animate-fade-in ${message.type === "success" ? "bg-green-100/50 text-green-700" : "bg-red-100/50 text-red-600"}`}>
+              <div className={`flex items-center gap-2 text-sm font-bold px-4 py-3 rounded-xl animate-fade-in ${message.type === "success" ? "bg-green-100/70 text-green-700 border border-green-200" : "bg-red-100/70 text-red-600 border border-red-200"}`}>
                 <i className={`fa-solid ${message.type === "success" ? "fa-circle-check" : "fa-triangle-exclamation"}`}></i>
                 {message.text}
               </div>
@@ -277,17 +290,37 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           <button
             type="submit"
             disabled={isSaving}
-            className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-green-700 text-white px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <><i className="fa-solid fa-circle-notch fa-spin"></i> Salvando...</>
             ) : (
-              <><i className="fa-solid fa-floppy-disk"></i> Salvar Perfil</>
+              <><i className="fa-solid fa-floppy-disk"></i> Salvar Alterações</>
             )}
           </button>
         </div>
 
       </form>
+      
+      {/* =======================================
+          MODAIS RENDERIZADOS
+      ======================================= */}
+      <UploadDocModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        userId={initialData.id} 
+      />
+
+      <RenameDocModal 
+        document={docToRename} 
+        onClose={() => setDocToRename(null)} 
+      />
+      
+      <DeleteDocModal 
+        document={docToDelete} 
+        onClose={() => setDocToDelete(null)} 
+      />
+
     </div>
   );
 }

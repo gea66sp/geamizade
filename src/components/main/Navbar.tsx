@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image"; // Importação do componente Image do Next.js
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -14,11 +15,26 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo / Nome */}
           <Link href="/" className="shrink-0 flex items-center gap-3 cursor-pointer group">
+          {/* Logo da UEB com fundo branco circular para máximo contraste */}
+            <div className="ml-2 bg-white w-15 h-15 rounded-xs flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
+              <Image 
+                src="/ueb.png" 
+                alt="Logo dos Escoteiros do Brasil" 
+                width={40} 
+                height={40} 
+                className="object-contain"
+              />
+            </div>
+            {/* Logo do Grupo (Fogo) */}
             <i className="fa-solid fa-fire text-scout-yellow text-3xl group-hover:scale-110 transition-transform duration-300"></i>
+            
+            {/* Texto */}
             <div className="flex flex-col">
               <span className="font-heading font-bold text-xl leading-tight">GE Amizade</span>
               <span className="text-xs text-scout-yellow font-semibold tracking-wider">66/SP</span>
             </div>
+
+            
           </Link>
 
           {/* Menu Desktop */}

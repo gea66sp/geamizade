@@ -3,7 +3,8 @@
 import { useState } from "react";
 import ModalNovaTransacao from "./ModalNovaTransacao";
 
-export default function BtnNovaTransacao({ users }: { users: any[] }) {
+// Agora tipamos corretamente para receber as tropas também!
+export default function BtnNovaTransacao({ users, troops }: { users: any[], troops: any[] }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -16,11 +17,12 @@ export default function BtnNovaTransacao({ users }: { users: any[] }) {
         Novo Lançamento
       </button>
 
-      {/* Renderiza o modal e gerencia seu estado de abertura */}
+      {/* Renderiza o modal repassando os usuários E as tropas */}
       <ModalNovaTransacao 
         isOpen={isOpen} 
         onClose={() => setIsOpen(false)} 
         users={users} 
+        troops={troops} // <-- NOVO: Repassando as tropas para o modal
       />
     </>
   );

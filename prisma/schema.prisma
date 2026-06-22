@@ -104,17 +104,23 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
-  // Vínculo Responsável <-> Jovem (Many-to-Many via tabela intermediária)
+  // Vínculo Responsável <-> Jovem
   guardianTies  FamilyTie[] @relation("DependentTies") // Onde o usuário é o Jovem
   dependentTies FamilyTie[] @relation("GuardianTies")  // Onde o usuário é o Responsável
 
-  // Vínculos de Tropa
+  // Vínculos Operacionais (Tropa e Patrulha)
   troopId       String?
   troop         Troop?    @relation("TroopMembers", fields: [troopId], references: [id])
-  managedTroops Troop[]   @relation("TroopManager") // Tropas que este usuário (Chefe) gerencia
+  managedTroops Troop[]   @relation("TroopManager") // Tropas que o chefe coordena
+  
+  patrolId      String?
+  patrol        Patrol?   @relation("PatrolMembers", fields: [patrolId], references: [id])
+
+  // Liderança de Patrulha (Para jovens)
+  ledPatrols    Patrol[]  @relation("PatrolLeader")
+  subLedPatrols Patrol[]  @relation("PatrolSubLeader")
 
   // Relações com Módulos
-  medicalRecord MedicalRecord?
   progressions  Progression[]
   financials    FinancialTransaction[] @relation("UserTransactions")
   eventRSVPs    EventRSVP[]
@@ -122,7 +128,10 @@ model User {
   blogPosts     BlogPost[]
   loans         ItemLoan[]  @relation("UserLoans")
 
-  // Controle de Acesso - Transparência (Pastas e Documentos)
+  // Documentos Pessoais
+  personalDocs  Document[] @relation("UserDocuments")
+
+  // CMS
   viewableFolders   Folder[]   @relation("FolderViewers")
   editableFolders   Folder[]   @relation("FolderEditors")
   viewableDocuments Document[] @relation("DocumentViewers")
@@ -131,74 +140,92 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  @@index([troopId]) // <-- ÍNDICE ADICIONADO AQUI
+  @@index([troopId])
+  @@index([patrolId])
 }
 
-// Tabela Intermediária para a Relação N:N (Múltiplos Pais / Múltiplos Filhos)
 model FamilyTie {
-  id             String @id @default(cuid())
-  
-  guardianId     String
-  guardian       User   @relation("GuardianTies", fields: [guardianId], references: [id], onDelete: Cascade)
-  
-  dependentId    String
-  dependent      User   @relation("DependentTies", fields: [dependentId], references: [id], onDelete: Cascade)
-  
-  relationship   String? // Opcional: "Pai", "Mãe", "Avó", etc.
+  id           String @id @default(cuid())
+  guardianId   String
+  guardian     User   @relation("GuardianTies", fields: [guardianId], references: [id], onDelete: Cascade)
+  dependentId  String
+  dependent    User   @relation("DependentTies", fields: [dependentId], references: [id], onDelete: Cascade)
+  relationship String? 
 
-  @@unique([guardianId, dependentId]) // Previne vincular as mesmas duas pessoas duas vezes
+  @@unique([guardianId, dependentId]) 
 }
 
 // ==========================================
-// MÓDULO OPERACIONAL ESCOTEIRO
+// MÓDULO OPERACIONAL: TROPAS E PATRULHAS
 // ==========================================
 
 model Troop {
   id          String   @id @default(cuid())
   name        String   // Ex: Tropa Escoteira Xavante, Alcatéia Seeonee
-  branch      Branch   // Ramo da tropa
+  branch      Branch   
   description String?  @db.Text
   
-  // Relações
+  // Liderança Adulta
   managerId   String?  // Chefe responsável
   manager     User?    @relation("TroopManager", fields: [managerId], references: [id])
+  
+  // Organização Interna
   members     User[]   @relation("TroopMembers")
-  events      Event[]
+  patrols     Patrol[] @relation("TroopPatrols") 
+  
+  // Módulos Vinculados à Tropa
+  events      Event[]  @relation("TroopEvents")
   blogPosts   BlogPost[]
+  financials  FinancialTransaction[] @relation("TroopTransactions")
+  inventory   InventoryItem[]        @relation("TroopInventory")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-model MedicalRecord {
-  id                  String   @id @default(cuid())
-  userId              String   @unique
-  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Patrol {
+  id          String   @id @default(cuid())
+  name        String   // Ex: Patrulha Águia, Matilha Vermelha
   
-  bloodType           String?  // Ex: O+, AB-
-  allergies           String?  @db.Text
-  continuousMeds      String?  @db.Text
-  dietaryRestrictions String?  @db.Text
-  emergencyContact    String?  // Nome e telefone
-  healthInsurance     String?  // Plano de saúde
-  notes               String?  @db.Text
+  troopId     String
+  troop       Troop    @relation("TroopPatrols", fields: [troopId], references: [id], onDelete: Cascade)
+  
+  // Liderança Jovem
+  leaderId    String?  // Monitor (Escoteiro/Sênior) ou Primo (Lobinho)
+  leader      User?    @relation("PatrolLeader", fields: [leaderId], references: [id])
+  
+  subLeaderId String?  // Submonitor ou Segundo
+  subLeader   User?    @relation("PatrolSubLeader", fields: [subLeaderId], references: [id])
 
-  updatedAt           DateTime @updatedAt
+  // Membros Gerais da Patrulha
+  members     User[]   @relation("PatrolMembers")
+  
+  // Módulos Vinculados à Patrulha (Vaquinhas, barracas exclusivas, etc)
+  financials  FinancialTransaction[] @relation("PatrolTransactions")
+  inventory   InventoryItem[]        @relation("PatrolInventory")
+  events      Event[]                @relation("PatrolEvents")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([troopId])
+  @@index([leaderId])
+  @@index([subLeaderId])
 }
 
 model Progression {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  title       String   // Nome do distintivo/especialidade
-  category    String   // Ex: Especialidade, Insígnia, Progressão Máxima
-  level       String?  // Ex: Nível 1, 2, 3
-  earnedDate  DateTime? // Se nulo, está "em progresso"
-  notes       String?  @db.Text
+  title      String   
+  category   String   
+  level      String?  
+  earnedDate DateTime? 
+  notes      String?  @db.Text
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 // ==========================================
@@ -214,15 +241,20 @@ model Event {
   location    String?
   isGlobal    Boolean  @default(false)
   
+  // Escopo do Evento
   troopId     String?
-  troop       Troop?   @relation(fields: [troopId], references: [id])
+  troop       Troop?   @relation("TroopEvents", fields: [troopId], references: [id])
   
+  patrolId    String?
+  patrol      Patrol?  @relation("PatrolEvents", fields: [patrolId], references: [id])
+
   attendees   EventRSVP[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([troopId]) // <-- ÍNDICE ADICIONADO AQUI
+  @@index([troopId]) 
+  @@index([patrolId])
 }
 
 model EventRSVP {
@@ -231,11 +263,8 @@ model EventRSVP {
   event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  status    Boolean  @default(true) // True = Confirmado, False = Ausente justificado
-
+  status    Boolean  @default(true) 
   createdAt DateTime @default(now())
-
   @@unique([eventId, userId])
 }
 
@@ -245,28 +274,32 @@ model EventRSVP {
 
 model FinancialTransaction {
   id          String            @id @default(cuid())
-  title       String            // Ex: Mensalidade Março/2026
+  title       String            
   amount      Decimal           @db.Decimal(10, 2)
   type        TransactionType
   status      TransactionStatus @default(PENDING)
   dueDate     DateTime
   paidDate    DateTime?
+  receiptUrl  String?           // Link do comprovante
   
-  userId      String?           // Quem está pagando/recebendo
+  // RELACIONAMENTOS PARA CENTRO DE CUSTO
+  userId      String?           // Pessoa que está pagando
   user        User?             @relation("UserTransactions", fields: [userId], references: [id])
   
-  receiptUrl  String?           // Link do comprovante
+  troopId     String?           // Caixa da Tropa
+  troop       Troop?            @relation("TroopTransactions", fields: [troopId], references: [id])
+
+  patrolId    String?           // Caixa da Patrulha
+  patrol      Patrol?           @relation("PatrolTransactions", fields: [patrolId], references: [id])
 
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
-  @@index([userId]) // <-- ÍNDICE ADICIONADO AQUI
-  @@index([status]) // <-- ÍNDICE ADICIONADO AQUI
+  @@index([userId]) 
+  @@index([troopId])
+  @@index([patrolId])
+  @@index([status]) 
 }
-
-// ==========================================
-// MÓDULO DE PATRIMÔNIO (ALMOXARIFADO)
-// ==========================================
 
 // ==========================================
 // MÓDULO DE PATRIMÔNIO (ALMOXARIFADO)
@@ -274,41 +307,44 @@ model FinancialTransaction {
 
 model InventoryItem {
   id              String        @id @default(cuid())
-  chargeNumber    String        @unique // <-- O campo novo que colocamos
+  chargeNumber    String        @unique 
   name            String        
   category        String        
   quantity        Int           @default(1)
   condition       ItemCondition @default(GOOD)
   notes           String?       @db.Text
   
-  // <-- OS CAMPOS DE BAIXA QUE FALTARAM:
   isActive        Boolean       @default(true)
   dischargeReason String?       @db.Text
   dischargedAt    DateTime?
   
-  // Relacionamento com o histórico de empréstimos
+  // RELACIONAMENTOS PARA PROPRIEDADE DO MATERIAL
+  troopId         String?       // Material pertence à Tropa?
+  troop           Troop?        @relation("TroopInventory", fields: [troopId], references: [id])
+
+  patrolId        String?       // Material exclusivo de uma Patrulha?
+  patrol          Patrol?       @relation("PatrolInventory", fields: [patrolId], references: [id])
+
   loans           ItemLoan[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  
+  @@index([troopId])
+  @@index([patrolId])
 }
 
-// Tabela de Histórico de Empréstimos
 model ItemLoan {
-  id              String        @id @default(cuid())
-  
-  itemId          String
-  item            InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  
-  userId          String
-  user            User          @relation("UserLoans", fields: [userId], references: [id])
-  
-  borrowedAt      DateTime      @default(now()) // Data da retirada
-  expectedReturn  DateTime?                     // Previsão de devolução
-  returnedAt      DateTime?                     // Data REAL da devolução. Se nulo, está emprestado no momento.
-
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id             String        @id @default(cuid())
+  itemId         String
+  item           InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User          @relation("UserLoans", fields: [userId], references: [id])
+  borrowedAt     DateTime      @default(now()) 
+  expectedReturn DateTime?     
+  returnedAt     DateTime?     
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 // ==========================================
@@ -316,72 +352,74 @@ model ItemLoan {
 // ==========================================
 
 model Folder {
-  id                String   @id @default(cuid())
-  name              String
-  description       String?  @db.Text
+  id               String   @id @default(cuid())
+  name             String
+  description      String?  @db.Text
   
-  // Auto-relacionamento para subpastas (Estilo Windows Explorer)
-  parentId          String?
-  parent            Folder?  @relation("SubFolders", fields: [parentId], references: [id], onDelete: Cascade)
-  subFolders        Folder[] @relation("SubFolders")
+  parentId         String?
+  parent           Folder?  @relation("SubFolders", fields: [parentId], references: [id], onDelete: Cascade)
+  subFolders       Folder[] @relation("SubFolders")
   
-  documents         Document[]
+  documents        Document[]
 
-  // Visibilidade e Controle de Acesso
-  isPublic          Boolean  @default(true)  // Visível no site público?
-  isRestrictedView  Boolean  @default(false) // Se true, apenas admins específicos veem
-  isRestrictedEdit  Boolean  @default(false) // Se true, apenas admins específicos editam
+  isPublic         Boolean  @default(true)  
+  isRestrictedView Boolean  @default(false) 
+  isRestrictedEdit Boolean  @default(false) 
 
-  allowedViewers    User[]   @relation("FolderViewers")
-  allowedEditors    User[]   @relation("FolderEditors")
+  allowedViewers   User[]   @relation("FolderViewers")
+  allowedEditors   User[]   @relation("FolderEditors")
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Document {
-  id                String   @id @default(cuid())
-  title             String   // Ex: Ata de Reunião Fev/2026
-  description       String?  @db.Text
-  fileUrl           String   // Link do PDF/Arquivo
-  size              Int      @default(0)
+  id               String   @id @default(cuid())
+  title            String   
+  description      String?  @db.Text
+  fileUrl          String   
+  size             Int      @default(0)
   
-  // Relação com a pasta (Se nulo, o arquivo está na "raiz")
-  folderId          String?
-  folder            Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  // Relacionamento com a Pasta do CMS
+  folderId         String?
+  folder           Folder?  @relation(fields: [folderId], references: [id], onDelete: Cascade)
   
-  // Visibilidade e Controle de Acesso (Override específico do arquivo)
-  isPublic          Boolean  @default(true)  // Visível no site público?
-  isRestrictedView  Boolean  @default(false)
-  isRestrictedEdit  Boolean  @default(false)
+  // NOVO: Relacionamento com o Perfil do Usuário
+  ownerId          String?
+  owner            User?    @relation("UserDocuments", fields: [ownerId], references: [id], onDelete: Cascade)
 
-  allowedViewers    User[]   @relation("DocumentViewers")
-  allowedEditors    User[]   @relation("DocumentEditors")
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  isPublic         Boolean  @default(true)  
+  isRestrictedView Boolean  @default(false)
+  isRestrictedEdit Boolean  @default(false)
 
-  @@index([folderId]) // <-- ÍNDICE ADICIONADO AQUI
+  allowedViewers   User[]   @relation("DocumentViewers")
+  allowedEditors   User[]   @relation("DocumentEditors")
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([folderId]) 
+  @@index([ownerId])
 }
 
 model BlogPost {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  content     String   @db.Text // HTML ou Markdown do Rich Text
-  imageUrl    String?  // Capa da postagem
-  published   Boolean  @default(false)
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String   @db.Text 
+  imageUrl  String?  
+  published Boolean  @default(false)
   
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
   
-  troopId     String?  // Se nulo, é notícia global
-  troop       Troop?   @relation(fields: [troopId], references: [id])
+  troopId   String?  
+  troop     Troop?   @relation(fields: [troopId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([troopId]) // <-- ÍNDICE ADICIONADO AQUI
+  @@index([troopId]) 
 }
 
 // ==========================================
@@ -396,7 +434,7 @@ model Notification {
   title     String
   message   String   @db.Text
   isRead    Boolean  @default(false)
-  linkUrl   String?  // Link opcional
+  linkUrl   String?  
 
   createdAt DateTime @default(now())
 }
@@ -407,16 +445,12 @@ model Notification {
 
 model HomePageSettings {
   id                 String   @id @default(cuid())
-  
-  // Hero Section
-  heroImage          String?  // URL da Foto da Hero Section
-  heroTitle          String   // Texto principal
-  heroShortText      String   @db.Text // Texto Curto/Subtítulo
-  
-  // Seção "Sobre Nós"
-  aboutText          String   @db.Text // Texto da Seção
-  aboutImage         String?  // Imagem da Seção
-  impactedYouthCount Int      @default(0) // Número de jovens impactados
+  heroImage          String?  
+  heroTitle          String   
+  heroShortText      String   @db.Text 
+  aboutText          String   @db.Text 
+  aboutImage         String?  
+  impactedYouthCount Int      @default(0) 
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -424,10 +458,10 @@ model HomePageSettings {
 
 model Faq {
   id        String   @id @default(cuid())
-  question  String   // Pergunta
-  answer    String   @db.Text // Resposta (usando Text para respostas longas)
-  order     Int      @default(0) // Útil para ordenar a exibição no front-end
-  isActive  Boolean  @default(true) // Facilita esconder uma pergunta sem excluí-la
+  question  String   
+  answer    String   @db.Text 
+  order     Int      @default(0) 
+  isActive  Boolean  @default(true) 
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -438,39 +472,33 @@ model Faq {
 // ==========================================
 
 model InstitutionalPage {
-  id                  String   @id @default(uuid())
+  id                String   @id @default(uuid())
+  stats             Json
+  historyImage      String
+  historyBadgeYear  String   
+  historyBadgeLabel String   
+  historySubtitle   String   
+  historyTitle      String   
+  historyParagraphs String[] 
 
-  // --- Estatísticas (Armazenado como JSON para simplificar) ---
-  stats               Json
+  compassTitle      String   
+  compassSubtitle   String   
+  missionText       String
+  visionText        String
+  valuesList        String[] 
 
-  // --- História ---
-  historyImage        String
-  historyBadgeYear    String   // ex: "1998"
-  historyBadgeLabel   String   // ex: "Fundação"
-  historySubtitle     String   // ex: "Nossas Raízes"
-  historyTitle        String   // ex: "Como tudo começou..."
-  historyParagraphs   String[] // Array de textos para os parágrafos
+  boardMembers      BoardMember[]
+  testimonials      Testimonial[]
 
-  // --- Missão, Visão e Valores (Bússola) ---
-  compassTitle        String   // ex: "Nossa Bússola"
-  compassSubtitle     String   // ex: "Os princípios que norteiam..."
-  missionText         String
-  visionText          String
-  valuesList          String[] // Array ex: ["Lealdade e Honra", "Respeito ao próximo"]
-
-  // Relacionamentos
-  boardMembers        BoardMember[]
-  testimonials        Testimonial[]
-
-  updatedAt           DateTime @updatedAt
+  updatedAt         DateTime @updatedAt
 }
 
 model BoardMember {
   id        String   @id @default(uuid())
-  name      String   // ex: "Ricardo Almeida"
-  role      String   // ex: "Diretor Presidente"
-  bio       String   // ex: "No movimento desde 1990..."
-  imageUrl  String   // URL ou path do arquivo
+  name      String   
+  role      String   
+  bio       String   
+  imageUrl  String   
   
   pageId    String
   page      InstitutionalPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
@@ -478,10 +506,10 @@ model BoardMember {
 
 model Testimonial {
   id          String   @id @default(uuid())
-  authorName  String   // ex: "Ana Paula"
-  authorRole  String   // ex: "Mãe de Escoteiro"
-  quote       String   // Texto do depoimento
-  rating      Int      @default(5) // Quantidade de estrelas
+  authorName  String   
+  authorRole  String   
+  quote       String   
+  rating      Int      @default(5) 
   
   pageId      String
   page        InstitutionalPage @relation(fields: [pageId], references: [id], onDelete: Cascade)

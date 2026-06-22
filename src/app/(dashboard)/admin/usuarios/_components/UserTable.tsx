@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Role, Branch } from "@prisma/client";
 import Image from "next/image";
 import ModalNovoUsuario from "./ModalNovoUsuario";
 import ModalVisualizarUsuario from "./ModalVisualizarUsuario";
-import ModalEditarUsuario from "./ModalEditarUsuario"; // NOVO
-import ModalExcluirUsuario from "./ModalExcluirUsuario"; // NOVO
+import ModalEditarUsuario from "./ModalEditarUsuario"; 
+import ModalExcluirUsuario from "./ModalExcluirUsuario"; 
 
 interface User {
   id: string;
@@ -23,8 +23,15 @@ interface UserTableProps {
 }
 
 export default function UserTable({ users, currentUserRole }: UserTableProps) {
+  // Filtros
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState<Role | "ALL">("ALL");
+  
+  // ==========================================
+  // ESTADOS DE PAGINAÇÃO (NOVO)
+  // ==========================================
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Padrão de 10 usuários por página
   
   // Controle dos Modais
   const [isNewUserModalOpen, setIsNewUserModalOpen] = useState(false);
@@ -34,10 +41,14 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Usuário Selecionado (Útil para extrair o Nome pro modal de exclusão)
+  // Sempre que o usuário digitar na busca ou trocar o filtro, voltamos para a Página 1
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, roleFilter, itemsPerPage]);
+
   const selectedUser = users.find(u => u.id === selectedUserId);
 
-  // Lógica de Filtro Instantâneo
+  // 1. Aplica a Busca e o Filtro de Cargo na lista toda
   const filteredUsers = users.filter((user) => {
     const matchesSearch = 
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -47,6 +58,22 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
 
     return matchesSearch && matchesRole;
   });
+
+  // ==========================================
+  // LÓGICA MATEMÁTICA DE PAGINAÇÃO
+  // ==========================================
+  const totalItems = filteredUsers.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  
+  // 2. Fatiamos (slice) a lista filtrada para exibir apenas os usuários da página atual
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Funções de Navegação
+  const goToNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  const goToPreviousPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
 
   const getRoleBadge = (role: Role) => {
     const styles: Record<Role, string> = {
@@ -89,7 +116,7 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <i className="fa-solid fa-filter text-gray-400"></i>
               </div>
-              <select className="block w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-8 text-sm focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none appearance-none cursor-pointer transition-all" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as Role | "ALL")}>
+              <select className="block w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-8 text-sm focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none appearance-none cursor-pointer transition-all font-medium text-gray-700" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as Role | "ALL")}>
                 <option value="ALL">Todos os Cargos</option>
                 <option value="ADMIN">Administradores</option>
                 <option value="CHEFE">Chefes</option>
@@ -111,8 +138,8 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
 
         {/* VERSÃO MOBILE (LISTA DE CARDS) */}
         <div className="md:hidden flex flex-col divide-y divide-gray-100 overflow-y-auto">
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
+          {paginatedUsers.length > 0 ? (
+            paginatedUsers.map((user) => (
               <div key={user.id} className="p-4 bg-white hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="shrink-0 h-12 w-12 rounded-full border-2 border-gray-100 shadow-sm overflow-hidden bg-scout-green/10 flex items-center justify-center text-scout-green font-bold text-lg">
@@ -132,7 +159,6 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
                   </div>
                 </div>
 
-                {/* BOTÕES MOBILE */}
                 <div className="grid grid-cols-3 gap-2">
                   <button onClick={() => handleAction('VIEW', user.id)} className="cursor-pointer flex items-center justify-center gap-1 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors">
                     <i className="fa-solid fa-eye"></i> Ver
@@ -155,7 +181,7 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
         </div>
 
         {/* VERSÃO DESKTOP (TABELA) */}
-        <div className="hidden md:block overflow-y-auto flex-1 custom-scrollbar">
+        <div className="hidden md:block overflow-x-auto flex-1 custom-scrollbar">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
               <tr>
@@ -166,8 +192,8 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
+              {paginatedUsers.length > 0 ? (
+                paginatedUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50/80 transition-colors group">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-4">
@@ -189,7 +215,6 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
                       ) : <span className="text-gray-400 italic text-sm">Não atribuído</span>}
                     </td>
                     
-                    {/* BOTÕES DESKTOP */}
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => handleAction('VIEW', user.id)} className="cursor-pointer w-8 h-8 inline-flex items-center justify-center bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 rounded-lg transition-colors" title="Visualizar Ficha">
@@ -219,40 +244,67 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
           </table>
         </div>
         
-        {/* RODAPÉ */}
-        <div className="bg-gray-50 px-6 py-3.5 border-t border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-widest shrink-0">
-          Total de <span className="text-gray-800">{filteredUsers.length}</span> usuário(s)
+        {/* ==========================================
+            RODAPÉ (CONTROLES DE PAGINAÇÃO)
+        ========================================== */}
+        <div className="bg-gray-50 px-4 sm:px-6 py-3.5 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4 shrink-0">
+          
+          {/* Informação de Visualização */}
+          <div className="text-xs font-medium text-gray-500 text-center sm:text-left">
+            Mostrando <span className="font-bold text-gray-800">{totalItems === 0 ? 0 : startIndex + 1}</span> a <span className="font-bold text-gray-800">{endIndex}</span> de <span className="font-bold text-gray-800">{totalItems}</span> usuários
+          </div>
+
+          <div className="flex items-center gap-4">
+            
+            {/* Seletor de Itens por Página */}
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest hidden sm:block">Por Página:</label>
+              <select 
+                value={itemsPerPage} 
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 py-1.5 px-2 outline-none focus:border-scout-green cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+
+            {/* Botões Próximo / Anterior */}
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={goToPreviousPage} 
+                disabled={currentPage === 1}
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                title="Página Anterior"
+              >
+                <i className="fa-solid fa-chevron-left text-xs"></i>
+              </button>
+              
+              <div className="text-xs font-bold text-gray-700 px-2 min-w-12 text-center">
+                {currentPage} / {totalPages || 1}
+              </div>
+
+              <button 
+                onClick={goToNextPage} 
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                title="Próxima Página"
+              >
+                <i className="fa-solid fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* MODAIS */}
-      <ModalNovoUsuario 
-        isOpen={isNewUserModalOpen}
-        onClose={() => setIsNewUserModalOpen(false)}
-        currentUserRole={currentUserRole}
-        allUsers={users}
-      />
-
-      <ModalVisualizarUsuario 
-        isOpen={isViewModalOpen}
-        onClose={() => { setIsViewModalOpen(false); setSelectedUserId(null); }}
-        userId={selectedUserId}
-      />
-
-      <ModalEditarUsuario 
-        isOpen={isEditModalOpen}
-        onClose={() => { setIsEditModalOpen(false); setSelectedUserId(null); }}
-        userId={selectedUserId}
-        currentUserRole={currentUserRole}
-        allUsers={users}
-      />
-
-      <ModalExcluirUsuario 
-        isOpen={isDeleteModalOpen}
-        onClose={() => { setIsDeleteModalOpen(false); setSelectedUserId(null); }}
-        userId={selectedUserId}
-        userName={selectedUser?.name || null}
-      />
+      {/* MODAIS (Inalterados) */}
+      <ModalNovoUsuario isOpen={isNewUserModalOpen} onClose={() => setIsNewUserModalOpen(false)} currentUserRole={currentUserRole} allUsers={users} />
+      <ModalVisualizarUsuario isOpen={isViewModalOpen} onClose={() => { setIsViewModalOpen(false); setSelectedUserId(null); }} userId={selectedUserId} />
+      <ModalEditarUsuario isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedUserId(null); }} userId={selectedUserId} currentUserRole={currentUserRole} allUsers={users} />
+      <ModalExcluirUsuario isOpen={isDeleteModalOpen} onClose={() => { setIsDeleteModalOpen(false); setSelectedUserId(null); }} userId={selectedUserId} userName={selectedUser?.name || null} />
     </>
   );
 }

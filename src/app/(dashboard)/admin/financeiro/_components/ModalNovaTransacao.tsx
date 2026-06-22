@@ -7,12 +7,17 @@ interface ModalNovaTransacaoProps {
   isOpen: boolean;
   onClose: () => void;
   users: { id: string; name: string | null; branch: string | null }[];
+  troops: any[]; // <-- NOVO: Recebe as tropas e patrulhas
 }
 
-export default function ModalNovaTransacao({ isOpen, onClose, users }: ModalNovaTransacaoProps) {
+export default function ModalNovaTransacao({ isOpen, onClose, users, troops }: ModalNovaTransacaoProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [type, setType] = useState<"INCOME" | "EXPENSE">("INCOME");
   const [status, setStatus] = useState<"PENDING" | "PAID">("PENDING");
+  
+  // <-- NOVOS ESTADOS PARA O ESCOPO FINANCEIRO
+  const [scope, setScope] = useState<"GLOBAL" | "TROOP" | "PATROL">("GLOBAL");
+  const [selectedTroopId, setSelectedTroopId] = useState("");
 
   if (!isOpen) return null;
 
@@ -21,12 +26,15 @@ export default function ModalNovaTransacao({ isOpen, onClose, users }: ModalNova
     setIsSaving(true);
     const formData = new FormData(e.currentTarget);
     
-    // Opcional: Aqui você poderia forçar o 'amount' a trocar vírgula por ponto 
-    // antes de enviar para o backend, se necessário, mas o input type="number" geralmente já lida com isso.
-    
     try {
       await createTransaction(formData);
       onClose(); // Fecha após salvar
+      
+      // Reseta os campos para o próximo uso
+      setScope("GLOBAL");
+      setSelectedTroopId("");
+      setType("INCOME");
+      setStatus("PENDING");
     } catch (err: any) {
       if (err.message !== "NEXT_REDIRECT") {
         alert(err.message || "Erro ao salvar transação.");
@@ -36,14 +44,16 @@ export default function ModalNovaTransacao({ isOpen, onClose, users }: ModalNova
     }
   }
 
+  // Encontra as patrulhas da tropa selecionada para popular o segundo select
+  const currentPatrols = selectedTroopId ? troops.find(t => t.id === selectedTroopId)?.patrols || [] : [];
+
   return (
-    <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 bg-gray-900/60 z-100 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar relative">
         
         {/* Header do Modal com botão de Fechar nativo */}
         <div className="flex justify-between items-start mb-6 md:mb-8 border-b border-gray-100 pb-5">
           <div className="flex items-center gap-4">
-            {/* Ícone dinâmico que reflete se é Entrada ou Saída */}
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${type === "INCOME" ? "bg-scout-green/10 text-scout-green" : "bg-red-50 text-red-500"}`}>
               {type === "INCOME" ? (
                 <i className="fa-solid fa-arrow-turn-down text-xl"></i>
@@ -80,6 +90,7 @@ export default function ModalNovaTransacao({ isOpen, onClose, users }: ModalNova
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            
             {/* Título */}
             <div className="space-y-1.5 md:col-span-2">
               <label htmlFor="tx-title" className="block text-sm font-bold text-gray-700">Descrição do Lançamento <span className="text-red-500">*</span></label>
@@ -93,7 +104,7 @@ export default function ModalNovaTransacao({ isOpen, onClose, users }: ModalNova
               />
             </div>
 
-            {/* Valor - UX Melhorada para Mobile (type="number") */}
+            {/* Valor */}
             <div className="space-y-1.5">
               <label htmlFor="tx-amount" className="block text-sm font-bold text-gray-700">Valor (R$) <span className="text-red-500">*</span></label>
               <div className="relative">
@@ -113,21 +124,6 @@ export default function ModalNovaTransacao({ isOpen, onClose, users }: ModalNova
               </div>
             </div>
 
-            {/* Vinculado a (Opcional) */}
-            <div className="space-y-1.5">
-              <label htmlFor="tx-user" className="block text-sm font-bold text-gray-700">Vincular a um Membro (Opcional)</label>
-              <select 
-                id="tx-user"
-                name="userId" 
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 cursor-pointer transition-all"
-              >
-                <option value="">Lançamento Geral (Sem vínculo)</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.name} {u.branch ? `(${u.branch})` : ''}</option>
-                ))}
-              </select>
-            </div>
-
             {/* Vencimento */}
             <div className="space-y-1.5">
               <label htmlFor="tx-date" className="block text-sm font-bold text-gray-700">Data de Vencimento <span className="text-red-500">*</span></label>
@@ -140,8 +136,82 @@ export default function ModalNovaTransacao({ isOpen, onClose, users }: ModalNova
               />
             </div>
 
+            {/* ==========================================
+                NOVO: ESCOPO DO LANÇAMENTO (CAIXA)
+            ========================================== */}
+            <div className="space-y-3 md:col-span-2 border-t border-gray-100 pt-5 mt-2">
+              <label className="block text-sm font-bold text-gray-700">
+                Centro de Custo (Caixa) <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <label className={`text-center py-2.5 rounded-lg font-bold cursor-pointer transition-all border ${scope === "GLOBAL" ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"}`}>
+                  <input type="radio" name="scope" value="GLOBAL" checked={scope === "GLOBAL"} onChange={() => {setScope("GLOBAL"); setSelectedTroopId("");}} className="hidden" />
+                  <i className="fa-solid fa-globe mb-1 block text-lg"></i> Geral
+                </label>
+                <label className={`text-center py-2.5 rounded-lg font-bold cursor-pointer transition-all border ${scope === "TROOP" ? "bg-scout-green/10 border-scout-green/30 text-scout-green" : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"}`}>
+                  <input type="radio" name="scope" value="TROOP" checked={scope === "TROOP"} onChange={() => {setScope("TROOP"); setSelectedTroopId("");}} className="hidden" />
+                  <i className="fa-solid fa-tent mb-1 block text-lg"></i> Tropa
+                </label>
+                <label className={`text-center py-2.5 rounded-lg font-bold cursor-pointer transition-all border ${scope === "PATROL" ? "bg-amber-50 border-amber-200 text-amber-600" : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"}`}>
+                  <input type="radio" name="scope" value="PATROL" checked={scope === "PATROL"} onChange={() => {setScope("PATROL"); setSelectedTroopId("");}} className="hidden" />
+                  <i className="fa-solid fa-paw mb-1 block text-lg"></i> Patrulha
+                </label>
+              </div>
+            </div>
+
+            {/* Filtros dinâmicos baseados no Escopo */}
+            {(scope === "TROOP" || scope === "PATROL") && (
+              <div className="space-y-1.5 md:col-span-1 animate-fade-in-up">
+                <label className="block text-sm font-bold text-gray-700">Selecione a Tropa <span className="text-red-500">*</span></label>
+                <select 
+                  name="troopId" 
+                  value={selectedTroopId}
+                  onChange={(e) => setSelectedTroopId(e.target.value)}
+                  required 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 transition-all cursor-pointer"
+                >
+                  <option value="">Selecione...</option>
+                  {troops.map(t => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {scope === "PATROL" && (
+              <div className="space-y-1.5 md:col-span-1 animate-fade-in-up">
+                <label className="block text-sm font-bold text-gray-700">Selecione a Patrulha <span className="text-red-500">*</span></label>
+                <select 
+                  name="patrolId" 
+                  required 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 transition-all cursor-pointer disabled:opacity-50"
+                  disabled={!selectedTroopId}
+                >
+                  <option value="">{selectedTroopId ? "Selecione..." : "Escolha a Tropa primeiro"}</option>
+                  {currentPatrols.map((p: any) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Vinculado a um Membro */}
+            <div className="space-y-1.5 md:col-span-2 border-t border-gray-100 pt-5 mt-2">
+              <label htmlFor="tx-user" className="block text-sm font-bold text-gray-700">Vincular a um Membro (Opcional)</label>
+              <select 
+                id="tx-user"
+                name="userId" 
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 cursor-pointer transition-all"
+              >
+                <option value="">Sem vínculo com pessoa (Caixa comum)</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>{u.name} {u.branch ? `(${u.branch})` : ''}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Status */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 md:col-span-2 border-t border-gray-100 pt-5 mt-2">
               <label htmlFor="tx-status" className="block text-sm font-bold text-gray-700">Status do Lançamento</label>
               <select 
                 id="tx-status"
@@ -157,14 +227,14 @@ export default function ModalNovaTransacao({ isOpen, onClose, users }: ModalNova
 
             {/* Data de Pagamento (Só aparece se estiver pago) */}
             {status === "PAID" && (
-              <div className="space-y-1.5 md:col-span-2 animate-fade-in border-t border-gray-100 pt-4 mt-2">
+              <div className="space-y-1.5 md:col-span-2 animate-fade-in bg-gray-50 p-4 rounded-xl border border-gray-200 mt-2">
                 <label htmlFor="tx-paid-date" className="block text-sm font-bold text-gray-700">Data de Liquidação (Efetivação) <span className="text-red-500">*</span></label>
                 <input 
                   id="tx-paid-date"
                   type="date" 
                   name="paidDate" 
                   required 
-                  className="w-full md:w-1/2 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 transition-all cursor-text md:cursor-pointer" 
+                  className="w-full md:w-1/2 px-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 transition-all cursor-text md:cursor-pointer" 
                 />
               </div>
             )}
