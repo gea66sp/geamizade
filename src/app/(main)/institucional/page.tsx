@@ -50,9 +50,11 @@ export default async function InstitucionalPage() {
                   {instData.historySubtitle}
                 </span>
               )}
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-heading font-black text-gray-900 mb-5 leading-tight">
+              
+              <h1 className="section-title text-gray-900! font-black! text-4xl! md:text-5xl! mb-5!">
                 {instData.historyTitle || "Nossa Instituição"}
               </h1>
+              <div className="section-divider mx-auto lg:mx-0 mb-8"></div>
 
               <div className="space-y-4 text-gray-600 text-sm md:text-base leading-relaxed text-left">
                 {instData.historyParagraphs.map((p, i) => (
@@ -63,9 +65,7 @@ export default async function InstitucionalPage() {
 
             {/* Imagem (Otimizada para Mobile com aspect-video) */}
             <div className="w-full lg:w-1/2 relative order-1 lg:order-2">
-              {/* Efeito de luz de fundo adaptativo */}
               <div className="absolute -inset-2 bg-scout-yellow/20 rounded-4xl blur-2xl -z-10"></div>
-
               <div className="relative aspect-video md:aspect-4/3 rounded-4xl overflow-hidden shadow-xl bg-gray-100 border border-white">
                 {instData.historyImage ? (
                   <img
@@ -115,11 +115,12 @@ export default async function InstitucionalPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-2xl mx-auto mb-12 md:mb-20">
-            <h2 className="text-3xl md:text-5xl font-heading font-black tracking-tight">
+            <h2 className="text-3xl md:text-5xl font-heading font-black tracking-tight text-white mb-4">
               {instData.compassTitle || "Nossa Essência"}
             </h2>
+            <div className="section-divider mx-auto"></div>
             {instData.compassSubtitle && (
-              <p className="text-gray-400 mt-3 text-sm md:text-lg font-light">
+              <p className="text-gray-400 mt-6 text-sm md:text-lg font-light">
                 {instData.compassSubtitle}
               </p>
             )}
@@ -129,7 +130,7 @@ export default async function InstitucionalPage() {
             {/* Missão */}
             {instData.missionText && (
               <div className="flex flex-col items-center md:items-start text-center md:text-left group">
-                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-6 border border-white/5 group-hover:bg-scout-green/20 transition-colors duration-500">
+                <div className="icon-box group-hover:bg-scout-green/20">
                   <i className="fa-solid fa-bullseye text-scout-yellow text-2xl" />
                 </div>
                 <h3 className="text-xl md:text-2xl font-heading font-bold mb-3 text-white">Missão</h3>
@@ -142,7 +143,7 @@ export default async function InstitucionalPage() {
             {/* Visão */}
             {instData.visionText && (
               <div className="flex flex-col items-center md:items-start text-center md:text-left group">
-                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-6 border border-white/5 group-hover:bg-scout-yellow/20 transition-colors duration-500">
+                <div className="icon-box group-hover:bg-scout-yellow/20">
                   <i className="fa-solid fa-eye text-scout-yellow text-2xl" />
                 </div>
                 <h3 className="text-xl md:text-2xl font-heading font-bold mb-3 text-white">Visão</h3>
@@ -155,7 +156,7 @@ export default async function InstitucionalPage() {
             {/* Valores */}
             {instData.valuesList.length > 0 && (
               <div className="flex flex-col items-center md:items-start text-center md:text-left group">
-                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-6 border border-white/5 group-hover:bg-blue-500/20 transition-colors duration-500">
+                <div className="icon-box group-hover:bg-blue-500/20">
                   <i className="fa-solid fa-gem text-scout-yellow text-2xl" />
                 </div>
                 <h3 className="text-xl md:text-2xl font-heading font-bold mb-4 text-white">Valores</h3>
@@ -183,16 +184,17 @@ export default async function InstitucionalPage() {
               <span className="text-xs md:text-sm font-bold tracking-widest uppercase text-scout-green mb-2 block">
                 Liderança Servidora
               </span>
-              <h2 className="text-3xl md:text-4xl font-heading font-black text-gray-900">
+              <h2 className="section-title">
                 Nossa Diretoria
               </h2>
+              <div className="section-divider mx-auto mt-4"></div>
             </div>
 
-            {/* Layout Unboxed: removemos os cards brancos e focamos na foto e texto */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 md:gap-12">
               {instData.boardMembers.map((m) => (
                 <div key={m.id} className="flex flex-col items-center text-center group">
-                  <div className="w-28 h-28 md:w-36 md:h-36 mx-auto mb-4 md:mb-5 rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-md group-hover:scale-105 group-hover:shadow-xl transition-all duration-500 shrink-0">
+                  {/* Note que inserimos o group-hover:scale-105 group-hover:shadow-xl diretamente aqui */}
+                  <div className="avatar-profile group-hover:scale-105 group-hover:shadow-xl">
                     {m.imageUrl ? (
                       <img
                         src={m.imageUrl}
@@ -231,14 +233,15 @@ export default async function InstitucionalPage() {
             
             <div className="text-center mb-12 md:mb-16">
               <i className="fa-solid fa-quote-right text-4xl text-scout-green/30 mb-4 block"></i>
-              <h2 className="text-3xl md:text-4xl font-heading font-black text-gray-900">
+              <h2 className="section-title">
                 O que dizem sobre nós
               </h2>
+              <div className="section-divider mx-auto mt-4"></div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
               {instData.testimonials.map((t) => (
-                <div key={t.id} className="bg-gray-50 p-6 md:p-8 rounded-4xl border border-gray-100 hover:shadow-md transition-shadow flex flex-col h-full group">
+                <div key={t.id} className="card-testimonial group">
                   
                   <div className="flex gap-1 text-scout-yellow mb-4 text-xs md:text-sm">
                     {Array.from({ length: 5 }).map((_, i) => (

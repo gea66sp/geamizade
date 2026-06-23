@@ -33,18 +33,18 @@ export default function PrivacyPage() {
         <div className="space-y-8 md:space-y-12 animate-fade-in-up">
           
           {/* Seção 1: Identidade */}
-          <section className="bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <section className="card-policy">
             <div className="flex items-center gap-4 mb-6 text-scout-green">
               <i className="fa-solid fa-file-signature text-2xl"></i>
               <h2 className="text-2xl font-bold font-heading text-gray-900">1. Quem Somos</h2>
             </div>
-            <p className="text-gray-600 leading-relaxed text-base md:text-lg font-medium">
+            <p className="text-policy">
               O portal <strong>geamizade.org.br</strong> é de propriedade e operação do <strong>Grupo Escoteiro Amizade 66/SP</strong>, com sede em Taubaté/SP. Somos os controladores dos dados coletados através desta plataforma, garantindo que o tratamento das informações ocorra exclusivamente para fins administrativos e educativos do movimento escoteiro.
             </p>
           </section>
 
           {/* Seção 2: O que coletamos */}
-          <section className="bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <section className="card-policy">
             <div className="flex items-center gap-4 mb-8 text-scout-green">
               <i className="fa-solid fa-lock text-2xl"></i>
               <h2 className="text-2xl font-bold font-heading text-gray-900">2. Dados que Coletamos</h2>
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
                 <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
                   <i className="fa-solid fa-address-card text-gray-400"></i> Informações de Cadastro:
                 </h3>
-                <ul className="text-base text-gray-600 space-y-3 font-medium ml-2 border-l-2 border-scout-green/20 pl-4">
+                <ul className="list-policy">
                   <li>Dados pessoais (Nome, E-mail, Telefone);</li>
                   <li>Vínculos familiares (Pai/Mãe/Responsável);</li>
                   <li>Ramos escoteiros e progressão jovem;</li>
@@ -65,7 +65,7 @@ export default function PrivacyPage() {
                 <h3 className="font-bold text-gray-800 text-lg flex items-center gap-2">
                   <i className="fa-solid fa-globe text-gray-400"></i> Dados de Navegação:
                 </h3>
-                <ul className="text-base text-gray-600 space-y-3 font-medium ml-2 border-l-2 border-scout-green/20 pl-4">
+                <ul className="list-policy">
                   <li>Endereço IP e cookies técnicos;</li>
                   <li>Páginas visitadas (via Google Analytics, sob consentimento).</li>
                 </ul>
@@ -74,12 +74,12 @@ export default function PrivacyPage() {
           </section>
 
           {/* Seção 3: Cookies */}
-          <section className="bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <section className="card-policy">
             <div className="flex items-center gap-4 mb-6 text-scout-green">
               <i className="fa-solid fa-cookie-bite text-2xl"></i>
               <h2 className="text-2xl font-bold font-heading text-gray-900">3. Uso de Cookies</h2>
             </div>
-            <p className="text-gray-600 leading-relaxed text-base md:text-lg font-medium mb-8">
+            <p className="text-policy mb-8">
               Utilizamos cookies para melhorar sua experiência. Você pode gerenciar suas preferências através do nosso banner de consentimento localizado no rodapé do site.
             </p>
             <div className="grid md:grid-cols-2 gap-6">
@@ -103,12 +103,12 @@ export default function PrivacyPage() {
           </section>
 
           {/* Seção 4: Direitos do Usuário */}
-          <section className="bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <section className="card-policy">
             <div className="flex items-center gap-4 mb-6 text-scout-green">
               <i className="fa-solid fa-scale-balanced text-2xl"></i>
               <h2 className="text-2xl font-bold font-heading text-gray-900">4. Seus Direitos (LGPD)</h2>
             </div>
-            <p className="text-gray-600 leading-relaxed text-base md:text-lg font-medium mb-8">
+            <p className="text-policy mb-8">
               Como titular dos dados, você possui direitos garantidos pela Lei Geral de Proteção de Dados:
             </p>
             <div className="flex flex-wrap gap-3">
@@ -120,7 +120,7 @@ export default function PrivacyPage() {
                 { icon: "fa-file-export", text: "Portabilidade" },
                 { icon: "fa-share-nodes", text: "Informação de compartilhamento" }
               ].map((item, index) => (
-                <div key={index} className="px-4 py-2.5 text-xs md:text-sm font-bold bg-scout-green/5 text-scout-green rounded-xl border border-scout-green/20 flex items-center gap-2">
+                <div key={index} className="badge-policy">
                   <i className={`fa-solid ${item.icon} opacity-60`}></i> {item.text}
                 </div>
               ))}
@@ -144,7 +144,7 @@ export default function PrivacyPage() {
               </p>
               <Link 
                 href="/" 
-                className="inline-flex items-center gap-3 bg-scout-yellow text-scout-dark font-black px-8 py-4 rounded-2xl hover:bg-yellow-400 hover:scale-105 transition-all uppercase tracking-widest text-sm shadow-lg"
+                className="btn-primary uppercase tracking-widest text-sm"
               >
                 <i className="fa-solid fa-house"></i> Voltar ao Início
               </Link>

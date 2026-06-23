@@ -1,6 +1,7 @@
 import prisma from "@/src/lib/prisma";
 import ExplorerTree from "./_components/ExplorerTree";
 import StorageAlert from "./_components/StorageAlert"; 
+import { FolderTree, Server } from "lucide-react"; // Importação dos ícones leves
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -25,9 +26,9 @@ export default async function TransparenciaDashboardPage() {
     }
   });
   
-  // Busca administradores para o modal de novo arquivo
+  // CORREÇÃO: Sincronizado com os papéis de gestão do backend (actions.ts)
   const adminUsers = await prisma.user.findMany({
-    where: { role: { in: ["ADMIN", "CHEFE"] } },
+    where: { role: { in: ["ADMIN", "CHEFE", "FINANCEIRO", "DEVELOPER"] } },
     select: { id: true, name: true, role: true },
     orderBy: { name: "asc" },
   });
@@ -37,7 +38,7 @@ export default async function TransparenciaDashboardPage() {
   // ==========================================
   const totalBytes = allDocuments.reduce((acc, doc) => acc + doc.size, 0);
   const usedMB = (totalBytes / (1024 * 1024)).toFixed(2);
-  const limitGB = 1;
+  const limitGB = 1; // Ajuste este limite conforme o seu plano do Vercel Blob
   const limitMB = limitGB * 1024;
   const percentage = Math.min((Number(usedMB) / limitMB) * 100, 100).toFixed(1);
 
@@ -48,7 +49,7 @@ export default async function TransparenciaDashboardPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex-1 flex flex-col min-h-125">
         {/* Cabeçalho do Card */}
         <div className="bg-gray-50/80 border-b border-gray-100 px-5 py-4 flex items-center gap-3 shrink-0">
-          <i className="fa-solid fa-folder-tree text-scout-yellow text-lg"></i>
+          <FolderTree className="text-scout-yellow w-5 h-5" />
           <span className="text-sm font-bold text-gray-700">Estrutura de Arquivos</span>
         </div>
         
@@ -63,7 +64,7 @@ export default async function TransparenciaDashboardPage() {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-5 gap-4">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
-              <i className="fa-solid fa-server text-gray-400 text-xl"></i>
+              <Server className="text-gray-400 w-6 h-6" />
             </div>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-gray-800 leading-tight">Armazenamento em Nuvem</h2>

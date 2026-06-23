@@ -66,7 +66,7 @@ export default async function Home() {
         />
       )}
 
-      {/* Hero Section Otimizado (Responsividade e Contraste) */}
+      {/* Hero Section Otimizado */}
       <header 
         className="relative flex items-center justify-center text-center px-4 min-h-[80vh] md:min-h-150 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: heroBgImage, backgroundColor: '#1a202c' }}
@@ -82,10 +82,10 @@ export default async function Home() {
             {heroShortText}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full sm:w-auto">
-            <Link href="#contato" className="w-full sm:w-auto bg-scout-yellow text-scout-dark px-8 py-4 rounded-full font-bold text-lg hover:bg-yellow-400 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 active:scale-95">
+            <Link href="#contato" className="btn-primary">
               <i className="fa-solid fa-map-location-dot"></i> Quero ser Escoteiro
             </Link>
-            <Link href="#sobre" className="w-full sm:w-auto bg-white/10 backdrop-blur-md border-2 border-white/80 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center gap-2 active:scale-95">
+            <Link href="#sobre" className="btn-outline-white">
               Conheça o Grupo
             </Link>
           </div>
@@ -102,8 +102,8 @@ export default async function Home() {
       <section id="sobre" className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-scout-green mb-4">Nossa História, Nossa Missão</h2>
-            <div className="w-20 h-1.5 bg-scout-yellow mb-8 rounded-full"></div>
+            <h2 className="section-title">Nossa História, Nossa Missão</h2>
+            <div className="section-divider mb-8"></div>
             <p className="text-gray-600 mb-8 text-base md:text-lg leading-relaxed whitespace-pre-wrap">
               {aboutText}
             </p>
@@ -142,14 +142,14 @@ export default async function Home() {
       <section id="ramos" className="py-16 md:py-24 bg-gray-50 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-scout-green mb-4">Os Ramos Escoteiros</h2>
+            <h2 className="section-title">Os Ramos Escoteiros</h2>
             <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg">O Movimento Escoteiro é dividido por faixas etárias para oferecer atividades adequadas ao desenvolvimento de cada jovem.</p>
-            <div className="w-20 h-1.5 bg-scout-yellow mx-auto mt-6 rounded-full"></div>
+            <div className="section-divider mx-auto mt-6"></div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {/* Ramo Lobinho */}
-            <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-8 border-t-4 border-yellow-400 text-center group flex flex-col h-full">
+            <div className="card-branch group border-t-4 border-yellow-400">
               <div className="w-20 h-20 mx-auto bg-yellow-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
                 <i className="fa-solid fa-paw text-3xl text-yellow-600"></i>
               </div>
@@ -160,7 +160,7 @@ export default async function Home() {
             </div>
 
             {/* Ramo Escoteiro */}
-            <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-8 border-t-4 border-green-600 text-center group flex flex-col h-full">
+            <div className="card-branch group border-t-4 border-green-600">
               <div className="w-20 h-20 mx-auto bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                 <i className="fa-solid fa-compass text-3xl text-green-700"></i>
               </div>
@@ -171,7 +171,7 @@ export default async function Home() {
             </div>
 
             {/* Ramo Sênior */}
-            <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-8 border-t-4 border-red-800 text-center group flex flex-col h-full">
+            <div className="card-branch group border-t-4 border-red-800">
               <div className="w-20 h-20 mx-auto bg-red-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300">
                 <i className="fa-solid fa-mountain text-3xl text-red-800"></i>
               </div>
@@ -182,7 +182,7 @@ export default async function Home() {
             </div>
 
             {/* Ramo Pioneiro */}
-            <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-8 border-t-4 border-red-500 text-center group flex flex-col h-full">
+            <div className="card-branch group border-t-4 border-red-500">
               <div className="w-20 h-20 mx-auto bg-red-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
                 <i className="fa-solid fa-hands-holding-circle text-3xl text-red-600"></i>
               </div>
@@ -199,8 +199,8 @@ export default async function Home() {
       <section id="destaques" className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-4">
           <div>
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-scout-green mb-4">Destaques do Grupo</h2>
-            <div className="w-20 h-1.5 bg-scout-yellow rounded-full"></div>
+            <h2 className="section-title">Destaques do Grupo</h2>
+            <div className="section-divider"></div>
           </div>
           <Link href="#" className="group text-scout-green font-bold hover:text-scout-dark flex items-center gap-2 transition-colors py-2">
             Ver todas as notícias <i className="fa-solid fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
@@ -208,7 +208,7 @@ export default async function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col border border-gray-100">
+          <div className="card-news">
             <div className="relative w-full h-48">
               <Image src="/zooparque.png" alt="Visita ao Zooparque" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
             </div>
@@ -222,7 +222,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col border border-gray-100">
+          <div className="card-news">
             <div className="relative w-full h-48">
               <Image src="/acao-comunitaria.png" alt="Ação Comunitária" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
             </div>
@@ -236,7 +236,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col border border-gray-100">
+          <div className="card-news">
             <div className="relative w-full h-48">
               <Image src="/camara-municipal.png" alt="Conquista" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
             </div>
@@ -258,7 +258,7 @@ export default async function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
             <div>
               <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-4">Próximas Atividades</h2>
-              <div className="w-20 h-1.5 bg-scout-yellow mb-8 rounded-full"></div>
+              <div className="section-divider mb-8"></div>
               <p className="text-gray-300 mb-8 text-base md:text-lg leading-relaxed">
                 Mantenha-se atualizado com a nossa programação. Atividades regulares acontecem todos os sábados, das <strong className="text-white">14h:30min às 17h:30min</strong>, em nossa sede.
               </p>
@@ -333,8 +333,8 @@ export default async function Home() {
         <section id="faq" className="py-16 md:py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <div className="bg-gray-50 rounded-3xl p-6 md:p-12 shadow-sm border border-gray-100">
             <div className="text-center mb-10">
-              <h2 className="font-heading text-3xl md:text-4xl font-bold text-scout-green mb-4">Dúvidas Frequentes</h2>
-              <div className="w-20 h-1.5 bg-scout-yellow mx-auto rounded-full"></div>
+              <h2 className="section-title">Dúvidas Frequentes</h2>
+              <div className="section-divider mx-auto"></div>
             </div>
             <div className="space-y-4">
               {faqs.map((faq) => (
@@ -342,7 +342,7 @@ export default async function Home() {
                   key={faq.id} 
                   className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden [&_summary::-webkit-details-marker]:hidden transition-all duration-300"
                 >
-                  <summary className="font-bold text-base md:text-lg text-gray-800 p-5 md:p-6 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 transition-colors list-none select-none">
+                  <summary className="font-bold text-base md:text-lg text-gray-800 p-5 md:p-6 flex items-center justify-between hover:bg-gray-50/80 transition-colors list-none select-none">
                     <div className="flex items-start gap-3 pr-4">
                       <i className="fa-solid fa-circle-question text-scout-yellow mt-1 text-lg"></i>
                       <span>{faq.question}</span>

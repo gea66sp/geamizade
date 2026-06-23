@@ -52,14 +52,7 @@ export default async function UsuariosPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 animate-fade-in-down">
-      
-      {/* Cabeçalho */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-extrabold text-scout-green tracking-tight">Efetivo do Grupo</h1>
-          <p className="text-gray-500 text-sm md:text-base mt-1">Gestão de chefes, jovens e seus responsáveis legais.</p>
-        </div>
-      </div>
+     
 
       {/* Componente Cliente (Tabela, Filtros e Modais) */}
       <UserTable users={users} currentUserRole={session.user.role} />

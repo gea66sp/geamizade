@@ -12,7 +12,7 @@ export default function StorageAlert() {
       <i className="fa-solid fa-circle-info text-blue-500 text-lg mt-0.5 shrink-0"></i>
       
       <p className="leading-relaxed">
-        O tamanho máximo permitido para envios é de <strong className="text-gray-800">4,5 MB por arquivo</strong>. 
+        O tamanho máximo permitido para envios é de <strong className="text-gray-800">500 MB por arquivo</strong>. 
         Para solicitar o aumento do limite individual de arquivo ou expandir o armazenamento total, entre em contato com o administrador do sistema. O tamanho real utilizado pode variar, pois fotos de perfil, avatares e outros arquivos relacionados ao usuário também consomem espaço de armazenamento.
       </p>
 

@@ -20,13 +20,25 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
   const [docToRename, setDocToRename] = useState<any>(null);
   const [docToDelete, setDocToDelete] = useState<any>(null);
   
-  // Estado para o preview instantâneo da foto de perfil
+  // Estado para o preview instantâneo da foto de perfil e erro de validação
   const [imagePreview, setImagePreview] = useState<string | null>(initialData.image || null);
+  const [imageError, setImageError] = useState<string>("");
 
-  // Função para criar o preview assim que o usuário escolhe a foto do PC/Celular
+  const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // Limite rigoroso de 1 MB em bytes
+
+  // Função para validar o tamanho e criar o preview
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    setImageError(""); // Limpa erros anteriores
+
     if (file) {
+      if (file.size > MAX_IMAGE_SIZE) {
+        const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+        setImageError(`Sua foto tem ${sizeInMB} MB. O limite é 1 MB.`);
+        e.target.value = ""; // Limpa o input para evitar o envio acidental
+        return;
+      }
+
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
     }
@@ -132,7 +144,20 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
                   />
                 </label>
               </div>
+
+              {/* Feedback de Erro Visual Inline */}
+              {imageError && (
+                <div className="mt-3 bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 animate-fade-in border border-red-100">
+                  <i className="fa-solid fa-triangle-exclamation"></i>
+                  {imageError}
+                </div>
+              )}
+
+              {/* Dica de usabilidade e Regra de negócio (Limite de 1MB) */}
               <p className="text-xs text-gray-500 mt-3 font-medium md:hidden">Toque na foto para alterar</p>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2 hidden md:block">
+                Formatos: JPG, PNG • Máx: <span className="text-amber-600">1 MB</span>
+              </span>
             </div>
 
             <div className="border-b border-gray-100 pb-3">
@@ -289,7 +314,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={isSaving || imageError.length > 0}
             className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-green-700 text-white px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSaving ? (

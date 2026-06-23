@@ -122,7 +122,7 @@ export default function Sidebar({
             Patrimônio
           </Link>
             
-            <Link 
+          <Link 
             href="/admin/tropas"
             onClick={onClose}
             className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
@@ -163,6 +163,20 @@ export default function Sidebar({
           >
             <i className={`fa-solid fa-palette text-lg w-5 text-center transition-colors ${isActive("/admin/personalizar") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
             Personalizar Site
+          </Link>
+
+          {/* === NOVO LINK DO BLOG AQUI === */}
+          <Link 
+            href="/admin/blog"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-6 py-3.5 transition-all duration-200 group border-l-4 ${
+              isActive("/admin/blog") 
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold" 
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            <i className={`fa-solid fa-newspaper text-lg w-5 text-center transition-colors ${isActive("/admin/blog") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
+            Notícias / Blog
           </Link>
         </nav>
 

@@ -6,21 +6,52 @@ import { uploadPersonalDocument } from "../actions"; // Ajuste o caminho se nece
 type UploadDocModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  userId: string;
+  // userId mantido nas props caso você use em outro lugar do modal, 
+  // mas não será mais enviado para a action por segurança.
+  userId: string; 
 };
 
 export default function UploadDocModal({ isOpen, onClose, userId }: UploadDocModalProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
 
+  const MAX_FILE_SIZE = 4.5 * 1024 * 1024; // 4.5 MB em bytes
+
   if (!isOpen) return null;
+
+  // Validação em tempo real ao escolher o arquivo
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.size > MAX_FILE_SIZE) {
+      const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+      setError(`O arquivo selecionado tem ${sizeInMB} MB. O limite máximo é 4.5 MB.`);
+      e.target.value = ""; // Limpa o input imediatamente
+    } else {
+      setError(""); // Limpa os erros caso o arquivo seja válido
+    }
+  };
 
   async function handleUpload(formData: FormData) {
     setIsUploading(true);
     setError("");
 
+    // Dupla checagem de segurança antes de enviar para o servidor
+    const file = formData.get("file") as File;
+    if (!file || file.size === 0) {
+      setError("Por favor, selecione um arquivo.");
+      setIsUploading(false);
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      setError("O arquivo excede o limite de 4.5 MB. Tente comprimir a imagem ou PDF.");
+      setIsUploading(false);
+      return;
+    }
+
     try {
-      const result = await uploadPersonalDocument(formData, userId);
+      // O userId foi removido daqui para respeitar a segurança do backend atualizado
+      const result = await uploadPersonalDocument(formData);
       
       if (result.success) {
         onClose(); // Fecha o modal em caso de sucesso
@@ -70,15 +101,26 @@ export default function UploadDocModal({ isOpen, onClose, userId }: UploadDocMod
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-bold text-gray-700">Arquivo (PDF ou Imagem)</label>
+            <div className="flex justify-between items-center">
+              <label className="block text-sm font-bold text-gray-700">Arquivo (PDF ou Imagem)</label>
+              {/* Etiqueta visual de limite em destaque */}
+              <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
+                Máximo: 4.5 MB
+              </span>
+            </div>
+            
             <input 
               name="file" 
               type="file" 
               accept=".pdf, image/jpeg, image/png, image/webp"
               required 
               disabled={isUploading}
+              onChange={handleFileChange}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none transition-all text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-scout-green/10 file:text-scout-green hover:file:bg-scout-green/20 cursor-pointer"
             />
+            <p className="text-[11px] text-gray-400 font-medium">
+              Arquivos aceitos: PDF, JPG, PNG e WebP.
+            </p>
           </div>
 
           <div className="pt-2 flex gap-3">

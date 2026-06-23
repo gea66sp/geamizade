@@ -44,7 +44,6 @@ export default async function TropasPublicPage() {
     <main className="min-h-screen bg-gray-50/50 py-16 md:py-24 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         
-
         {/* ==========================================
             GRID DE TROPAS (CARDS)
         ========================================== */}
@@ -90,7 +89,7 @@ export default async function TropasPublicPage() {
 
                     {/* Informações do Chefe Responsável */}
                     <div className="mb-6 flex items-center gap-3.5">
-                      <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-scout-yellow/10 group-hover:text-scout-yellow group-hover:border-scout-yellow/20 transition-colors">
+                      <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-scout-yellow/10 group-hover:text-scout-yellow group-hover:border-scout-yellow/20 transition-colors duration-300">
                         <i className="fa-solid fa-user-tie text-lg"></i>
                       </div>
                       <div>

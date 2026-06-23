@@ -1,11 +1,17 @@
 "use server";
 
-import { del } from "@vercel/blob"; // 'put' foi removido, pois o upload será no cliente
+import { del } from "@vercel/blob";
 import prisma from "@/src/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
+
+// ==========================================
+// CONFIGURAÇÕES E GRUPOS DE ACESSO
+// ==========================================
+
+// Papéis que possuem permissão geral de gestão (quando o item não for restrito)
+const PERMITTED_MANAGEMENT_ROLES = ["ADMIN", "DEVELOPER", "FINANCEIRO", "CHEFE"];
 
 // ==========================================
 // FUNÇÕES AUXILIARES DE SEGURANÇA E DADOS
@@ -15,7 +21,7 @@ async function getAuthUser() {
   const session = await getServerSession(authOptions);
   
   if (!session?.user?.email) {
-    throw new Error("Usuário não autenticado. Faça login para continuar.");
+    throw new Error("Sua sessão expirou ou você não está autenticado. Por favor, faça login novamente para continuar.");
   }
 
   const user = await prisma.user.findUnique({
@@ -23,7 +29,7 @@ async function getAuthUser() {
   });
 
   if (!user) {
-    throw new Error("Usuário não encontrado no banco de dados.");
+    throw new Error("Usuário não encontrado no sistema. Entre em contato com o administrador.");
   }
 
   return user;
@@ -34,14 +40,17 @@ async function verifyEditPermission(
   isRestrictedEdit: boolean,
   allowedEditorsIds: string[] = []
 ) {
+  // Administradores e Desenvolvedores têm bypass total por segurança de infraestrutura
+  if (user.role === "ADMIN" || user.role === "DEVELOPER") return;
+
   if (isRestrictedEdit) {
     const isAllowed = allowedEditorsIds.includes(user.id);
     if (!isAllowed) {
-      throw new Error("Acesso negado: Você não tem permissão específica para gerenciar este item.");
+      throw new Error("Acesso negado: Este item possui restrições de edição e você não está na lista de editores autorizados.");
     }
   } else {
-    if (user.role !== "ADMIN") {
-      throw new Error("Acesso negado: Apenas administradores podem gerenciar o portal da transparência.");
+    if (!PERMITTED_MANAGEMENT_ROLES.includes(user.role)) {
+      throw new Error("Acesso negado: Seu perfil atual não possui permissão administrativa para gerenciar arquivos do portal da transparência.");
     }
   }
 }
@@ -66,13 +75,17 @@ export async function createFolder(formData: FormData) {
   const isRestrictedView = formData.get("isRestrictedView") === "true";
   const isRestrictedEdit = formData.get("isRestrictedEdit") === "true";
 
-  if (!name) throw new Error("O nome da pasta é obrigatório.");
+  if (!name || !name.trim()) {
+    throw new Error("O nome da pasta é obrigatório e não pode conter apenas espaços.");
+  }
 
   // VALIDAÇÃO: Impede pastas com nomes iguais no mesmo nível
   const existingFolder = await prisma.folder.findFirst({
     where: { name: name.trim(), parentId: parentId || null }
   });
-  if (existingFolder) throw new Error(`Já existe uma pasta chamada "${name.trim()}" neste local.`);
+  if (existingFolder) {
+    throw new Error(`Conflito de nome: Já existe uma pasta chamada "${name.trim()}" neste local. Escolha um nome diferente.`);
+  }
 
   if (parentId) {
     const parentFolder = await prisma.folder.findUnique({
@@ -88,7 +101,9 @@ export async function createFolder(formData: FormData) {
       );
     }
   } else {
-    if (user.role !== "ADMIN") throw new Error("Apenas administradores podem criar pastas na raiz.");
+    if (user.role !== "ADMIN" && user.role !== "DEVELOPER" && user.role !== "FINANCEIRO") {
+      throw new Error("Acesso negado: Apenas a diretoria executiva ou administradores podem criar pastas na raiz do portal.");
+    }
   }
 
   await prisma.folder.create({
@@ -105,7 +120,6 @@ export async function createFolder(formData: FormData) {
   });
 
   revalidatePath("/admin/transparencia");
-  
 }
 
 export async function createFolderInline(formData: FormData) {
@@ -114,13 +128,16 @@ export async function createFolderInline(formData: FormData) {
   const name = formData.get("name") as string;
   const parentId = formData.get("parentId") as string | null;
 
-  if (!name) throw new Error("O nome da pasta é obrigatório.");
+  if (!name || !name.trim()) {
+    throw new Error("O nome da pasta é obrigatório.");
+  }
 
-  // VALIDAÇÃO: Impede pastas com nomes iguais no mesmo nível
   const existingFolder = await prisma.folder.findFirst({
     where: { name: name.trim(), parentId: parentId || null }
   });
-  if (existingFolder) throw new Error(`Já existe uma pasta chamada "${name.trim()}" neste local.`);
+  if (existingFolder) {
+    throw new Error(`Conflito de nome: Já existe uma pasta chamada "${name.trim()}" neste local.`);
+  }
 
   if (parentId) {
     const parentFolder = await prisma.folder.findUnique({
@@ -136,7 +153,9 @@ export async function createFolderInline(formData: FormData) {
       );
     }
   } else {
-    if (user.role !== "ADMIN") throw new Error("Apenas administradores podem criar pastas na raiz.");
+    if (user.role !== "ADMIN" && user.role !== "DEVELOPER" && user.role !== "FINANCEIRO") {
+      throw new Error("Acesso negado: Apenas a diretoria executiva ou administradores podem criar pastas na raiz do portal.");
+    }
   }
 
   const newFolder = await prisma.folder.create({
@@ -159,7 +178,7 @@ export async function updateFolder(id: string, formData: FormData) {
     include: { allowedEditors: { select: { id: true } } }
   });
 
-  if (!folder) throw new Error("Pasta não encontrada.");
+  if (!folder) throw new Error("A pasta que você está tentando atualizar não foi encontrada.");
 
   await verifyEditPermission(user, folder.isRestrictedEdit, folder.allowedEditors.map(e => e.id));
 
@@ -171,15 +190,18 @@ export async function updateFolder(id: string, formData: FormData) {
   const isRestrictedView = formData.get("isRestrictedView") === "true";
   const isRestrictedEdit = formData.get("isRestrictedEdit") === "true";
 
-  // VALIDAÇÃO: Impede renomear para um nome que já existe no mesmo nível (ignorando a própria pasta)
+  if (!name || !name.trim()) throw new Error("O nome da pasta não pode ficar vazio.");
+
   const existingFolder = await prisma.folder.findFirst({
     where: { 
       name: name.trim(), 
       parentId: parentId || null,
-      id: { not: id } // Ignora a pasta atual na busca
+      id: { not: id }
     }
   });
-  if (existingFolder) throw new Error(`Já existe uma pasta chamada "${name.trim()}" neste local.`);
+  if (existingFolder) {
+    throw new Error(`Operação cancelada: Já existe outra pasta chamada "${name.trim()}" neste mesmo nível.`);
+  }
 
   await prisma.$transaction([
     prisma.folder.update({
@@ -202,7 +224,6 @@ export async function updateFolder(id: string, formData: FormData) {
   ]);
 
   revalidatePath("/admin/transparencia");
-  
 }
 
 export async function deleteFolder(id: string) {
@@ -213,14 +234,15 @@ export async function deleteFolder(id: string) {
     include: { allowedEditors: { select: { id: true } } }
   });
 
-  if (!folder) throw new Error("Pasta não encontrada.");
+  if (!folder) throw new Error("A pasta selecionada para exclusão não foi encontrada ou já foi removida.");
 
   await verifyEditPermission(user, folder.isRestrictedEdit, folder.allowedEditors.map(e => e.id));
 
+  // Coleta recursiva de subpastas para limpar arquivos físicos no Vercel Blob
   const allFolders = await prisma.folder.findMany({ select: { id: true, parentId: true } });
-  
   const foldersToDelete = new Set([id]);
   let added = true;
+  
   while (added) {
     added = false;
     for (const f of allFolders) {
@@ -236,11 +258,17 @@ export async function deleteFolder(id: string) {
     select: { fileUrl: true }
   });
 
+  // Remove os arquivos físicos vinculados à árvore de diretórios
   const urlsToDelete = documentsToDelete.map(doc => doc.fileUrl);
   if (urlsToDelete.length > 0) {
-    await del(urlsToDelete);
+    try {
+      await del(urlsToDelete);
+    } catch (e) {
+      console.error("Aviso: Falha ao remover alguns arquivos físicos do Vercel Blob. Prosseguindo com o banco...", e);
+    }
   }
 
+  // O onDelete: Cascade do Prisma cuidará da remoção lógica de subpastas e registros de documentos
   await prisma.folder.delete({
     where: { id },
   });
@@ -249,7 +277,7 @@ export async function deleteFolder(id: string) {
 }
 
 // ==========================================
-// GERENCIAMENTO DE DOCUMENTOS (ATUALIZADO PARA CLIENT UPLOAD)
+// GERENCIAMENTO DE DOCUMENTOS (CLIENT UPLOAD)
 // ==========================================
 
 export async function createDocument(formData: FormData) {
@@ -259,7 +287,6 @@ export async function createDocument(formData: FormData) {
   const description = formData.get("description") as string | null;
   const folderId = formData.get("folderId") as string | null;
   
-  // NOVA LÓGICA: Recebe os dados do arquivo que JÁ FOI enviado no navegador
   const fileUrl = formData.get("fileUrl") as string;
   const fileSize = Number(formData.get("fileSize") || 0);
 
@@ -267,8 +294,8 @@ export async function createDocument(formData: FormData) {
   const isRestrictedView = formData.get("isRestrictedView") === "true";
   const isRestrictedEdit = formData.get("isRestrictedEdit") === "true";
 
-  if (!title || !fileUrl) {
-    throw new Error("Título e Arquivo são obrigatórios.");
+  if (!title || !title.trim() || !fileUrl) {
+    throw new Error("Informações incompletas: É obrigatório preencher o título e efetuar o upload do documento.");
   }
 
   if (folderId) {
@@ -279,19 +306,17 @@ export async function createDocument(formData: FormData) {
     if (parentFolder) {
       await verifyEditPermission(user, parentFolder.isRestrictedEdit, parentFolder.allowedEditors.map(e => e.id));
     }
-  } else if (user.role !== "ADMIN") {
-    throw new Error("Apenas administradores podem fazer upload na raiz.");
+  } else if (user.role !== "ADMIN" && user.role !== "DEVELOPER") {
+    throw new Error("Acesso negado: Apenas administradores do sistema podem publicar arquivos soltos na raiz.");
   }
 
-  // O comando "put()" foi retirado daqui.
-  
   await prisma.document.create({
     data: { 
-      title, 
+      title: title.trim(), 
       description,
       folderId: folderId || null, 
-      fileUrl: fileUrl, // Salva diretamente a URL vinda do cliente
-      size: fileSize,   // Salva o tamanho vindo do cliente
+      fileUrl: fileUrl,
+      size: fileSize,
       isPublic,
       isRestrictedView,
       isRestrictedEdit,
@@ -311,7 +336,7 @@ export async function updateDocument(id: string, oldFileUrl: string, formData: F
     include: { allowedEditors: { select: { id: true } } }
   });
 
-  if (!document) throw new Error("Documento não encontrado.");
+  if (!document) throw new Error("O documento que você deseja editar não existe ou foi removido.");
 
   await verifyEditPermission(user, document.isRestrictedEdit, document.allowedEditors.map(e => e.id));
 
@@ -319,7 +344,6 @@ export async function updateDocument(id: string, oldFileUrl: string, formData: F
   const description = formData.get("description") as string | null;
   const folderId = formData.get("folderId") as string | null;
   
-  // NOVA LÓGICA: Recebe a nova URL se o usuário tiver alterado o arquivo
   const newFileUrl = formData.get("newFileUrl") as string | null;
   const newFileSize = Number(formData.get("newFileSize") || 0);
 
@@ -327,15 +351,17 @@ export async function updateDocument(id: string, oldFileUrl: string, formData: F
   const isRestrictedView = formData.get("isRestrictedView") === "true";
   const isRestrictedEdit = formData.get("isRestrictedEdit") === "true";
 
+  if (!title || !title.trim()) throw new Error("O título do documento não pode ficar em branco.");
+
   let finalFileUrl = oldFileUrl;
   let finalSize = document.size;
 
-  // Se recebemos uma URL nova do cliente, deletamos o arquivo velho do Blob
+  // Substituição física do arquivo se um novo upload foi realizado no cliente
   if (newFileUrl && newFileUrl !== oldFileUrl) {
     try {
       await del(oldFileUrl);
     } catch (e) {
-      console.warn("Arquivo antigo não encontrado no Blob, prosseguindo...", e);
+      console.warn("Arquivo antigo não localizado no servidor de armazenamento, aplicando o novo link...", e);
     }
     
     finalFileUrl = newFileUrl;
@@ -350,7 +376,7 @@ export async function updateDocument(id: string, oldFileUrl: string, formData: F
     prisma.document.update({
       where: { id },
       data: { 
-        title, 
+        title: title.trim(), 
         description,
         folderId: folderId || null, 
         fileUrl: finalFileUrl,
@@ -375,14 +401,14 @@ export async function deleteDocument(id: string, fileUrl: string) {
     include: { allowedEditors: { select: { id: true } } }
   });
 
-  if (!document) throw new Error("Documento não encontrado.");
+  if (!document) throw new Error("O documento selecionado não foi encontrado.");
 
   await verifyEditPermission(user, document.isRestrictedEdit, document.allowedEditors.map(e => e.id));
 
   try {
     await del(fileUrl);
   } catch (e) {
-    console.error("Erro ao deletar do Vercel Blob:", e);
+    console.error("Erro ao remover o arquivo físico do Vercel Blob:", e);
   }
   
   await prisma.document.delete({
@@ -393,44 +419,65 @@ export async function deleteDocument(id: string, fileUrl: string) {
 }
 
 // ==========================================
-// FUNÇÕES DE MOVER (EXPLORER)
+// FUNÇÕES DE MOVIMENTAÇÃO (EXPLORER)
 // ==========================================
 
 export async function moveItem(id: string, type: "folder" | "document", newParentId: string | null) {
   const user = await getAuthUser();
-  // Idealmente, você chamaria a verifyEditPermission aqui para o item sendo movido.
 
   if (type === "folder") {
-    // Regra para evitar que uma pasta seja movida para dentro dela mesma
-    if (id === newParentId) throw new Error("A pasta não pode ser movida para dentro dela mesma.");
+    if (id === newParentId) {
+      throw new Error("Movimentação inválida: Não é possível mover uma pasta para dentro dela mesma.");
+    }
     
-    // 1. Pega o nome da pasta que está sendo movida
-    const currentFolder = await prisma.folder.findUnique({ where: { id } });
-    if (!currentFolder) throw new Error("Pasta não encontrada.");
+    // EVITA LOOP INFINITO: Valida se o destino escolhido não é uma subpasta da própria pasta movida
+    let currentParentId = newParentId;
+    while (currentParentId) {
+      if (currentParentId === id) {
+        throw new Error("Movimentação inválida: Você não pode mover uma pasta pai para dentro de uma de suas subpastas.");
+      }
+      const parent = await prisma.folder.findUnique({
+        where: { id: currentParentId },
+        select: { parentId: true }
+      });
+      currentParentId = parent?.parentId || null;
+    }
+    
+    const currentFolder = await prisma.folder.findUnique({ 
+      where: { id },
+      include: { allowedEditors: { select: { id: true } } }
+    });
+    if (!currentFolder) throw new Error("A pasta selecionada não foi encontrada.");
+    
+    // Valida a permissão de quem está movendo a pasta
+    await verifyEditPermission(user, currentFolder.isRestrictedEdit, currentFolder.allowedEditors.map(e => e.id));
 
-    // 2. Verifica se já existe uma pasta com o mesmo nome no local de destino
+    // Valida se há conflito de nome no destino
     const existingFolder = await prisma.folder.findFirst({
       where: {
         name: currentFolder.name,
         parentId: newParentId,
-        id: { not: id } // Evita barrar se o usuário tentar mover pro exato mesmo lugar onde já está
+        id: { not: id }
       }
     });
 
     if (existingFolder) {
-      throw new Error(`Já existe uma pasta chamada "${currentFolder.name}" neste local.`);
+      throw new Error(`Conflito de movimentação: Já existe uma pasta chamada "${currentFolder.name}" no diretório de destino.`);
     }
 
-    // 3. Efetua a mudança
     await prisma.folder.update({
       where: { id },
       data: { parentId: newParentId }
     });
     
   } else {
-    // Mesma lógica de validação para Documentos
-    const currentDoc = await prisma.document.findUnique({ where: { id } });
-    if (!currentDoc) throw new Error("Documento não encontrado.");
+    const currentDoc = await prisma.document.findUnique({ 
+      where: { id },
+      include: { allowedEditors: { select: { id: true } } }
+    });
+    if (!currentDoc) throw new Error("O documento selecionado não foi encontrado.");
+
+    await verifyEditPermission(user, currentDoc.isRestrictedEdit, currentDoc.allowedEditors.map(e => e.id));
 
     const existingDoc = await prisma.document.findFirst({
       where: {
@@ -441,7 +488,7 @@ export async function moveItem(id: string, type: "folder" | "document", newParen
     });
 
     if (existingDoc) {
-      throw new Error(`Já existe um arquivo chamado "${currentDoc.title}" neste local.`);
+      throw new Error(`Conflito de movimentação: Já existe um arquivo chamado "${currentDoc.title}" no diretório de destino.`);
     }
 
     await prisma.document.update({
@@ -455,18 +502,24 @@ export async function moveItem(id: string, type: "folder" | "document", newParen
 
 export async function renameFolderInline(id: string, newName: string) {
   const user = await getAuthUser();
+  
+  if (!newName || !newName.trim()) throw new Error("O novo nome da pasta não pode ser vazio.");
+
   const folder = await prisma.folder.findUnique({ 
-    where: { id }, include: { allowedEditors: { select: { id: true } } } 
+    where: { id }, 
+    include: { allowedEditors: { select: { id: true } } } 
   });
   
-  if (!folder) throw new Error("Pasta não encontrada.");
+  if (!folder) throw new Error("A pasta solicitada não foi localizada.");
   await verifyEditPermission(user, folder.isRestrictedEdit, folder.allowedEditors.map(e => e.id));
 
   const existingFolder = await prisma.folder.findFirst({
     where: { name: newName.trim(), parentId: folder.parentId, id: { not: id } }
   });
   
-  if (existingFolder) throw new Error(`Já existe uma pasta chamada "${newName.trim()}" neste local.`);
+  if (existingFolder) {
+    throw new Error(`Não foi possível renomear: O nome "${newName.trim()}" já está em uso neste nível.`);
+  }
 
   await prisma.folder.update({
     where: { id },
