@@ -97,7 +97,7 @@ export default function LoginClient() {
       setIsLoading(false);
       recaptchaRef.current?.reset();
     } else {
-      sessionStorage.setItem("scout_active_session", "true");
+      document.cookie = "scout_active_session=true; path=/;";
       router.push("/admin");
       router.refresh();
     }

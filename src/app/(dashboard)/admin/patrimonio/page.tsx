@@ -54,19 +54,6 @@ export default async function PatrimonioPage() {
 
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full animate-fade-in-down h-full min-h-[calc(100vh-10rem)] pb-12">
-      
-      {/* CABEÇALHO */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-5 border-b border-gray-200">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-extrabold text-scout-green tracking-tight">
-            Patrimônio e Almoxarifado
-          </h1>
-          <p className="text-gray-500 text-sm md:text-base mt-1">
-            Controle de barracas, ferramentas e materiais em campo.
-          </p>
-        </div>
-      </div>
-
       <InventoryManager 
         initialItems={items} 
         allLoans={allLoans} 

@@ -1,7 +1,8 @@
 import { NextAuthOptions, getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import prisma from "./prisma"; // Ajuste o caminho se necessário (ex: ../lib/prisma)
+// Importe o prisma de acordo com o seu projeto. O padrão geralmente é:
+import prisma from "@/src/lib/prisma"; 
 import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
@@ -21,7 +22,6 @@ export const authOptions: NextAuthOptions = {
         email: { label: "E-mail", type: "email", placeholder: "contato@exemplo.com" },
         password: { label: "Senha", type: "password" },
         captchaToken: { label: "Captcha", type: "text" },
-        // 1. ADICIONAMOS O CAMPO REMEMBER AQUI 👇
         remember: { label: "Lembrar de mim", type: "text" } 
       },
       async authorize(credentials) {
@@ -73,21 +73,22 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           branch: user.branch,
-          // 2. RETORNAMOS O VALOR DO CHECKBOX (convertido para boolean) 👇
+          // Convertendo a string para boolean com segurança
           rememberMe: credentials.remember === "true", 
-        };
+        } as any; // Cast para any para que o NextAuth aceite campos extras
       }
     })
   ],
   
   callbacks: {
     async jwt({ token, user }) {
+      // 'user' só existe na primeira vez que a função roda (no momento do login)
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
         token.branch = (user as any).branch;
-        // 3. SALVAMOS A ESCOLHA NO TOKEN JWT 👇
-        token.rememberMe = (user as any).rememberMe; 
+        // Garantimos que a flag vá para o token de forma segura (forçando ser booleano)
+        token.rememberMe = (user as any).rememberMe === true; 
       }
       return token;
     },
@@ -97,8 +98,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
         (session.user as any).branch = token.branch;
-        // 4. DISPONIBILIZAMOS A ESCOLHA NA SESSÃO DO FRONT-END 👇
-        (session.user as any).rememberMe = token.rememberMe; 
+        // Disponibilizamos a escolha na sessão do Front-end
+        (session.user as any).rememberMe = token.rememberMe === true; 
       }
       return session;
     },
