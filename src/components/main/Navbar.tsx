@@ -41,6 +41,7 @@ export default function Navbar() {
           <div className="hidden md:flex space-x-8 items-center">
             <Link href="/" className="hover:text-scout-yellow transition-colors font-semibold">Home</Link>
             <Link href="/institucional" className="hover:text-scout-yellow transition-colors font-semibold">Institucional</Link>
+            <Link href="/blog" className="hover:text-scout-yellow transition-colors font-semibold">Notícias</Link>
             <Link href="/portal-da-transparencia" className="hover:text-scout-yellow transition-colors font-semibold">Portal da Transparência</Link>
             <Link href="/tropas" className="hover:text-scout-yellow transition-colors font-semibold">Tropas</Link>
             <Link href="#contato" className="bg-scout-yellow text-scout-dark px-6 py-2.5 rounded-full font-bold hover:bg-yellow-400 transition-all transform hover:scale-105 shadow-md active:scale-95">
@@ -76,6 +77,9 @@ export default function Navbar() {
           </Link>
           <Link href="/institucional" onClick={closeMenu} className="block py-3 px-3 text-white hover:text-scout-yellow hover:bg-white/5 rounded-lg transition-colors font-semibold">
             Institucional
+          </Link>
+          <Link href="/blog" onClick={closeMenu} className="block py-3 px-3 text-white hover:text-scout-yellow hover:bg-white/5 rounded-lg transition-colors font-semibold">
+            Notícias
           </Link>
           <Link href="/portal-da-transparencia" onClick={closeMenu} className="block py-3 px-3 text-white hover:text-scout-yellow hover:bg-white/5 rounded-lg transition-colors font-semibold">
             Portal da Transparência

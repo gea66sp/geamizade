@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   description: "Grupo Escoteiro Amizade 66/SP - Promovendo valores, aventuras e amizades duradouras. Junte-se a nós para explorar, aprender e crescer juntos em Taubaté!",
 };
 
+// Função auxiliar para limpar tags HTML das notícias vindas do banco
+function extractTextFromHtml(html: string) {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 export default async function Home() {
   // 1. Busca as configurações da página
   const homeSettings = await prisma.homePageSettings.findFirst();
@@ -36,13 +41,59 @@ export default async function Home() {
     take: 5,
   });
 
-  // 4. Fallbacks
+  // 4. Busca as últimas 3 notícias publicadas no banco de dados
+  const highlightedPosts = await prisma.blogPost.findMany({
+    where: { published: true },
+    include: {
+      troop: {
+        select: { name: true },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 3,
+  });
+
+  // 5. Fallbacks Gerais
   const heroTitle = homeSettings?.heroTitle || "Aventura, Aprendizado e Amizade.";
   const heroShortText = homeSettings?.heroShortText || "Construindo um mundo melhor através da educação ao ar livre, cidadania e trabalho em equipe!";
   const aboutText = homeSettings?.aboutText || "O Grupo Escoteiro Amizade 66/SP atua há décadas transformando a vida de jovens na comunidade. Nosso propósito é contribuir para que os jovens assumam seu próprio desenvolvimento, especialmente do caráter, ajudando-os a realizar suas plenas potencialidades físicas, intelectuais, sociais, afetivas e espirituais.\n\nAtravés do Método Escoteiro, oferecemos um ambiente seguro, divertido e desafiador. Somos uma grande família unida pelo desejo de 'deixar o mundo um pouco melhor do que o encontramos' (Baden-Powell).";
   const impactedCount = homeSettings?.impactedYouthCount || 500;
   const heroBgImage = homeSettings?.heroImage ? `url(${homeSettings.heroImage})` : undefined;
   const aboutImageSrc = homeSettings?.aboutImage || "/sobre-nos.png";
+
+  // 6. Fallback das Notícias (Suas notícias originais estáticas)
+  const fallbackNews = [
+    {
+      id: "static-1",
+      title: "Visita ao Zooparque 2026",
+      content: "No último final de semana a Alcateia Chill juntamente com a família escoteira do GE Amizade passou o dia no Zooparque Itatiba, em meio a animais, trilhas e aventuras…. Um dia inesquecível de muitas descobertas, risadas, amizades, registros e muita diversão!",
+      imageUrl: "/zooparque.png",
+      troop: { name: "Passeio" },
+      slug: "https://www.instagram.com/amizade66sp/",
+      isExternal: true, // Tag que avisa que o link é para fora do site
+    },
+    {
+      id: "static-2",
+      title: "Festival Paralímpico",
+      content: "Festival Paralímpico, realizado no Ginásio da CTI, em Taubaté, sob a coordenação do Comitê Paralímpico Brasileiro (CPB). Fantástica experiência onde, além do contato direto com o esporte adaptado, os jovens puderam vivenciar na prática valores de empatia, cooperação e serviço ao próximo.",
+      imageUrl: "/acao-comunitaria.png",
+      troop: { name: "Inclusão Social" },
+      slug: "https://www.instagram.com/amizade66sp/",
+      isExternal: true,
+    },
+    {
+      id: "static-3",
+      title: "Homenagem na Câmara Municipal",
+      content: "Parabenizamos nossos Escoteiros e Chefes que receberam reconhecimento por seus serviços à comunidade.",
+      imageUrl: "/camara-municipal.png",
+      troop: { name: "Conquista" },
+      slug: "https://www.instagram.com/amizade66sp/",
+      isExternal: true,
+    }
+  ];
+
+  // Define qual lista de notícias renderizar
+  const displayPosts = highlightedPosts.length > 0 ? highlightedPosts : fallbackNews;
 
   const faqSchema = {
     "@context": "https://schema.org",
@@ -202,53 +253,44 @@ export default async function Home() {
             <h2 className="section-title">Destaques do Grupo</h2>
             <div className="section-divider"></div>
           </div>
-          <Link href="#" className="group text-scout-green font-bold hover:text-scout-dark flex items-center gap-2 transition-colors py-2">
+          <Link href="/blog" className="group text-scout-green font-bold hover:text-scout-dark flex items-center gap-2 transition-colors py-2">
             Ver todas as notícias <i className="fa-solid fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
           </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="card-news">
-            <div className="relative w-full h-48">
-              <Image src="/zooparque.png" alt="Visita ao Zooparque" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
+          {displayPosts.map((post: any) => (
+            <div key={post.id} className="card-news flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="relative w-full h-48 shrink-0">
+                <Image 
+                  src={post.imageUrl || "/sobre-nos.png"} 
+                  alt={post.title} 
+                  fill 
+                  sizes="(max-width: 768px) 100vw, 33vw" 
+                  className="object-cover" 
+                />
+              </div>
+              <div className="p-6 flex flex-col grow">
+                <span className="text-xs font-bold text-scout-light uppercase tracking-widest mb-2 block">
+                  {post.troop?.name || "Notícia Geral"}
+                </span>
+                <h3 className="font-heading font-bold text-xl text-gray-800 mb-3 line-clamp-2">
+                  {post.title}
+                </h3>
+                <p className="text-gray-600 text-sm mb-6 grow line-clamp-4">
+                  {/* Se for fallback mantem como está, se for do banco limpa o HTML */}
+                  {post.isExternal ? post.content : extractTextFromHtml(post.content)}
+                </p>
+                <Link 
+                  href={post.isExternal ? post.slug : `/blog/${post.slug}`} 
+                  target={post.isExternal ? "_blank" : undefined}
+                  className="group text-scout-green font-semibold hover:text-scout-dark inline-flex items-center gap-2 transition-colors mt-auto w-fit"
+                >
+                  Ler mais <i className="fa-solid fa-arrow-right text-xs transform group-hover:translate-x-1 transition-transform"></i>
+                </Link>
+              </div>
             </div>
-            <div className="p-6 flex flex-col grow">
-              <span className="text-xs font-bold text-scout-light uppercase tracking-widest mb-2 block">Passeio</span>
-              <h3 className="font-heading font-bold text-xl text-gray-800 mb-3">Visita ao Zooparque 2026</h3>
-              <p className="text-gray-600 text-sm mb-6 grow line-clamp-4">No último final de semana a Alcateia Chill juntamente com a família escoteira do GE Amizade passou o dia no Zooparque Itatiba, em meio a animais, trilhas e aventuras…. Um dia inesquecível de muitas descobertas, risadas, amizades, registros e muita diversão!</p>
-              <Link href="https://www.instagram.com/amizade66sp/" target="_blank" className="group text-scout-green font-semibold hover:text-scout-dark inline-flex items-center gap-2 transition-colors mt-auto">
-                Ler mais <i className="fa-solid fa-arrow-right text-xs transform group-hover:translate-x-1 transition-transform"></i>
-              </Link>
-            </div>
-          </div>
-
-          <div className="card-news">
-            <div className="relative w-full h-48">
-              <Image src="/acao-comunitaria.png" alt="Ação Comunitária" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
-            </div>
-            <div className="p-6 flex flex-col grow">
-              <span className="text-xs font-bold text-scout-light uppercase tracking-widest mb-2 block">Inclusão Social</span>
-              <h3 className="font-heading font-bold text-xl text-gray-800 mb-3">Festival Paralímpico</h3>
-              <p className="text-gray-600 text-sm mb-6 grow line-clamp-4">Festival Paralímpico, realizado no Ginásio da CTI, em Taubaté, sob a coordenação do Comitê Paralímpico Brasileiro (CPB). Fantástica experiência onde, além do contato direto com o esporte adaptado, os jovens puderam vivenciar na prática valores de empatia, cooperação e serviço ao próximo.</p>
-              <Link href="https://www.instagram.com/amizade66sp/" target="_blank" className="group text-scout-green font-semibold hover:text-scout-dark inline-flex items-center gap-2 transition-colors mt-auto">
-                Ler mais <i className="fa-solid fa-arrow-right text-xs transform group-hover:translate-x-1 transition-transform"></i>
-              </Link>
-            </div>
-          </div>
-
-          <div className="card-news">
-            <div className="relative w-full h-48">
-              <Image src="/camara-municipal.png" alt="Conquista" fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
-            </div>
-            <div className="p-6 flex flex-col grow">
-              <span className="text-xs font-bold text-scout-light uppercase tracking-widest mb-2 block">Conquista</span>
-              <h3 className="font-heading font-bold text-xl text-gray-800 mb-3">Homenagem na Câmara Municipal</h3>
-              <p className="text-gray-600 text-sm mb-6 grow line-clamp-4">Parabenizamos nossos Escoteiros e Chefes que receberam reconhecimento por seus serviços à comunidade.</p>
-              <Link href="https://www.instagram.com/amizade66sp/" target="_blank" className="group text-scout-green font-semibold hover:text-scout-dark inline-flex items-center gap-2 transition-colors mt-auto">
-                Ler mais <i className="fa-solid fa-arrow-right text-xs transform group-hover:translate-x-1 transition-transform"></i>
-              </Link>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 

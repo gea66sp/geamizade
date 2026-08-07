@@ -14,6 +14,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/portal-da-transparencia`,
       lastModified: new Date(),
       changeFrequency: 'weekly', // Revalida a cada 60s, o Google deve olhar sempre
@@ -33,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // 2. Busca dinâmica das rotas de arquivos públicos no banco de dados
+  // 2. Busca dinâmica das rotas de arquivos públicos no banco de dados e do blog
   let dynamicRoutes: MetadataRoute.Sitemap = [];
   
   try {
@@ -43,14 +49,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       select: { id: true, createdAt: true }, // Trazemos apenas o necessário para performance
     });
 
-    dynamicRoutes = publicDocuments.map((doc) => ({
+    const publishedPosts = await prisma.blogPost.findMany({
+      where: { published: true },
+      select: { slug: true, updatedAt: true },
+    });
+
+    const documentRoutes = publicDocuments.map((doc): MetadataRoute.Sitemap[number] => ({
       url: `${baseUrl}/portal-da-transparencia/arquivo/${doc.id}`,
       lastModified: doc.createdAt,
       changeFrequency: 'monthly',
       priority: 0.6,
     }));
+
+    const blogRoutes = publishedPosts.map((post): MetadataRoute.Sitemap[number] => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: post.updatedAt,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    }));
+
+    dynamicRoutes = [...documentRoutes, ...blogRoutes];
   } catch (error) {
-    console.error("Erro ao buscar documentos para o sitemap:", error);
+    console.error("Erro ao buscar rotas dinâmicas para o sitemap:", error);
     // Em caso de falha no banco (build time), ele segue apenas com as rotas estáticas
   }
 
