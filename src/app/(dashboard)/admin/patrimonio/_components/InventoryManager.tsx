@@ -7,6 +7,7 @@ import LoanHistory from "./LoanHistory";
 import DischargeModal from "./DischargeModal";
 import ReportModal from "./ReportModal";
 import { FileText } from "lucide-react";
+import type { InventoryRow, LoanRow, TroopOption, UserOption } from "@/src/types/dashboard";
 
 const CONDITION_MAP = {
   NEW: { label: "Novo", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -22,10 +23,10 @@ export default function InventoryManager({
   troops,
   categories
 }: { 
-  initialItems: any[], 
-  allLoans: any[], 
-  users: any[],
-  troops: any[],
+  initialItems: InventoryRow[],
+  allLoans: LoanRow[],
+  users: UserOption[],
+  troops: TroopOption[],
   categories: string[]
 }) {
   const [activeTab, setActiveTab] = useState<"ESTOQUE" | "HISTORICO">("ESTOQUE");
@@ -38,7 +39,7 @@ export default function InventoryManager({
   const [isItemModalOpen, setItemModalOpen] = useState(false);
   const [isCheckoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [isDischargeModalOpen, setDischargeModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [selectedItem, setSelectedItem] = useState<InventoryRow | null>(null);
   const [isReportModalOpen, setReportModalOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
@@ -62,13 +63,13 @@ export default function InventoryManager({
     });
   }, [initialItems, search, filterCondition, filterStatus, filterCategory]);
 
-  const handleOpenEdit = (item: any) => { setSelectedItem(item); setItemModalOpen(true); };
-  const handleOpenCheckout = (item: any) => { setSelectedItem(item); setCheckoutModalOpen(true); };
-  const handleOpenDischarge = (item: any) => { setSelectedItem(item); setDischargeModalOpen(true); };
+  const handleOpenEdit = (item: InventoryRow) => { setSelectedItem(item); setItemModalOpen(true); };
+  const handleOpenCheckout = (item: InventoryRow) => { setSelectedItem(item); setCheckoutModalOpen(true); };
+  const handleOpenDischarge = (item: InventoryRow) => { setSelectedItem(item); setDischargeModalOpen(true); };
   const handleOpenNew = () => { setSelectedItem(null); setItemModalOpen(true); };
 
   // Componente Auxiliar para mostrar de quem é o Material
-  const AllocationBadge = ({ item }: { item: any }) => {
+  const AllocationBadge = ({ item }: { item: InventoryRow }) => {
     if (item.patrol) {
       return <span className="bg-amber-50 text-amber-600 px-2 py-1 rounded text-[10px] font-bold border border-amber-100"><i className="fa-solid fa-paw mr-1"></i> {item.patrol.name}</span>;
     }
@@ -264,12 +265,12 @@ export default function InventoryManager({
                         {!item.isActive ? (
                            <div className="flex flex-col gap-1 text-red-700 max-w-50">
                              <div className="flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-wider"><i className="fa-solid fa-triangle-exclamation"></i> Baixado</div>
-                             <p className="text-xs text-red-600/90 truncate" title={item.dischargeReason}>{item.dischargeReason}</p>
+                             <p className="text-xs text-red-600/90 truncate" title={item.dischargeReason ?? undefined}>{item.dischargeReason}</p>
                            </div>
                         ) : activeLoan ? (
                           <div className="flex flex-col gap-1 text-amber-700 max-w-50">
                             <div className="flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-wider"><i className="fa-regular fa-clock"></i> Emprestado para</div>
-                            <p className="text-xs font-bold text-amber-900 truncate" title={activeLoan.user?.name}>{activeLoan.user?.name}</p>
+                            <p className="text-xs font-bold text-amber-900 truncate" title={activeLoan.user?.name ?? undefined}>{activeLoan.user?.name}</p>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 w-fit text-[10px] uppercase tracking-widest">
@@ -312,7 +313,7 @@ export default function InventoryManager({
       )}
 
       {/* Modais */}
-      <ItemModal isOpen={isItemModalOpen} onClose={() => setItemModalOpen(false)} item={selectedItem} troops={troops} />
+      <ItemModal key={selectedItem?.id ?? "novo"} isOpen={isItemModalOpen} onClose={() => setItemModalOpen(false)} item={selectedItem} troops={troops} users={users} />
       <CheckoutModal isOpen={isCheckoutModalOpen} onClose={() => setCheckoutModalOpen(false)} item={selectedItem} users={users} />
       <DischargeModal isOpen={isDischargeModalOpen} onClose={() => setDischargeModalOpen(false)} item={selectedItem} />
       <ReportModal isOpen={isReportModalOpen} onClose={() => setReportModalOpen(false)} />

@@ -6,7 +6,8 @@ import Image from "next/image";
 import ModalNovoUsuario from "./ModalNovoUsuario";
 import ModalVisualizarUsuario from "./ModalVisualizarUsuario";
 import ModalEditarUsuario from "./ModalEditarUsuario"; 
-import ModalExcluirUsuario from "./ModalExcluirUsuario"; 
+import ModalExcluirUsuario from "./ModalExcluirUsuario";
+import ModalRedefinirSenha from "./ModalRedefinirSenha"; 
 
 interface User {
   id: string;
@@ -40,11 +41,17 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
-  // Sempre que o usuário digitar na busca ou trocar o filtro, voltamos para a Página 1
-  useEffect(() => {
+  // Sempre que o usuário digitar na busca ou trocar o filtro, voltamos para a
+  // Página 1. Feito por ajuste durante o render (padrão recomendado pelo React)
+  // em vez de useEffect, que causaria um render extra em cascata.
+  const filtersKey = `${searchTerm}|${roleFilter}|${itemsPerPage}`;
+  const [prevFiltersKey, setPrevFiltersKey] = useState(filtersKey);
+  if (prevFiltersKey !== filtersKey) {
+    setPrevFiltersKey(filtersKey);
     setCurrentPage(1);
-  }, [searchTerm, roleFilter, itemsPerPage]);
+  }
 
   const selectedUser = users.find(u => u.id === selectedUserId);
 
@@ -91,11 +98,12 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
     );
   };
 
-  const handleAction = (action: 'VIEW' | 'EDIT' | 'DELETE', userId: string) => {
+  const handleAction = (action: 'VIEW' | 'EDIT' | 'DELETE' | 'RESET', userId: string) => {
     setSelectedUserId(userId);
     if (action === 'VIEW') setIsViewModalOpen(true);
     if (action === 'EDIT') setIsEditModalOpen(true);
     if (action === 'DELETE') setIsDeleteModalOpen(true);
+    if (action === 'RESET') setIsResetModalOpen(true);
   };
 
   return (
@@ -223,6 +231,10 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
                         <button onClick={() => handleAction('EDIT', user.id)} className="cursor-pointer w-8 h-8 inline-flex items-center justify-center bg-gray-50 hover:bg-amber-50 text-gray-400 hover:text-amber-600 rounded-lg transition-colors" title="Editar Usuário">
                           <i className="fa-solid fa-pen"></i>
                         </button>
+                        <button onClick={() => handleAction('RESET', user.id)} className="cursor-pointer w-8 h-8 inline-flex items-center justify-center bg-gray-50 hover:bg-amber-50 text-gray-400 hover:text-amber-600 rounded-lg transition-colors" title="Redefinir Senha">
+                          <i className="fa-solid fa-key text-xs"></i>
+                        </button>
+
                         <button onClick={() => handleAction('DELETE', user.id)} className="cursor-pointer w-8 h-8 inline-flex items-center justify-center bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-lg transition-colors" title="Excluir Usuário">
                           <i className="fa-solid fa-trash-can"></i>
                         </button>
@@ -302,8 +314,15 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
 
       {/* MODAIS (Inalterados) */}
       <ModalNovoUsuario isOpen={isNewUserModalOpen} onClose={() => setIsNewUserModalOpen(false)} currentUserRole={currentUserRole} allUsers={users} />
-      <ModalVisualizarUsuario isOpen={isViewModalOpen} onClose={() => { setIsViewModalOpen(false); setSelectedUserId(null); }} userId={selectedUserId} />
+      <ModalVisualizarUsuario key={selectedUserId ?? "nenhum"} isOpen={isViewModalOpen} onClose={() => { setIsViewModalOpen(false); setSelectedUserId(null); }} userId={selectedUserId} />
       <ModalEditarUsuario isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setSelectedUserId(null); }} userId={selectedUserId} currentUserRole={currentUserRole} allUsers={users} />
+      <ModalRedefinirSenha
+        key={`reset-${selectedUserId ?? "nenhum"}`}
+        isOpen={isResetModalOpen}
+        onClose={() => { setIsResetModalOpen(false); setSelectedUserId(null); }}
+        user={selectedUser ? { id: selectedUser.id, name: selectedUser.name, email: selectedUser.email ?? null } : null}
+      />
+
       <ModalExcluirUsuario isOpen={isDeleteModalOpen} onClose={() => { setIsDeleteModalOpen(false); setSelectedUserId(null); }} userId={selectedUserId} userName={selectedUser?.name || null} />
     </>
   );

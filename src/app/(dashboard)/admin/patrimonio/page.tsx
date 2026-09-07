@@ -20,6 +20,7 @@ export default async function PatrimonioPage() {
       },
       troop: { select: { name: true } },
       patrol: { select: { name: true } },
+      assignedUser: { select: { id: true, name: true } },
     },
     orderBy: { name: "asc" },
   });

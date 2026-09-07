@@ -1,14 +1,76 @@
 import prisma from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
+import { getAuthUser } from "@/src/lib/auth";
 import PrintButton from "./PrintButton";
+import type { TransactionRow as ReportRow } from "@/src/types/dashboard";
 
 // Tipagem correta para o Next.js 15+, onde searchParams é uma Promise!
 interface RelatorioPageProps {
   searchParams: Promise<{ inicio?: string; fim?: string }>;
 }
 
+
+const formatCurrency = (val: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
+
+const formatDate = (date: Date | string) =>
+  new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
+
+
+// Definido FORA da página: declarar um componente dentro de outro cria um
+// tipo novo a cada render, o que faz o React desmontar e remontar a subárvore.
+function TabelaLancamentos({ titulo, itens, icone }: { titulo: string; itens: ReportRow[]; icone: string }) {
+  if (itens.length === 0) return null;
+  return (
+    <div className="mb-10 break-inside-avoid">
+      <h2 className="text-lg font-bold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4 flex items-center gap-2">
+        <i className={`fa-solid ${icone} text-gray-400 text-sm`}></i> 
+        {titulo}
+      </h2>
+      <table className="w-full text-left text-xs border-collapse border border-gray-200">
+        <thead>
+          <tr className="bg-gray-50 text-gray-600 font-bold uppercase tracking-wider">
+            <th className="p-3 border border-gray-200 w-[15%]">Data</th>
+            <th className="p-3 border border-gray-200 w-[45%]">Descrição</th>
+            <th className="p-3 border border-gray-200 w-[20%]">Associado</th>
+            <th className="p-3 border border-gray-200 text-right w-[20%]">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {itens.map((t) => (
+            <tr key={t.id} className="hover:bg-gray-50/50 border-b border-gray-200 transition-colors">
+              <td className="p-3 border border-gray-200 text-gray-600">{formatDate(t.dueDate)}</td>
+              <td className="p-3 border border-gray-200 font-semibold text-gray-800">
+                {t.title} 
+                {t.troop && <span className="text-[10px] bg-green-50 text-scout-green px-1.5 py-0.5 rounded ml-1.5 font-bold">{t.troop.name}</span>}
+                {t.patrol && <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded ml-1.5 font-bold">{t.patrol.name}</span>}
+              </td>
+              <td className="p-3 border border-gray-200 text-gray-500">{t.user?.name || "-"}</td>
+              <td className={`p-3 border border-gray-200 text-right font-black ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>
+                {t.type === 'INCOME' ? '+' : '-'}{formatCurrency(t.amount)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default async function RelatorioFinanceiroPage({ searchParams }: RelatorioPageProps) {
-  
+  const user = await getAuthUser();
+
+  // VERIFICAÇÃO DE ACESSO: Mesma trava usada em /admin/financeiro
+  const isAuthorized = user && (
+    user.role === "ADMIN" ||
+    user.role === "FINANCEIRO" ||
+    user.branch === "DIRETORIA"
+  );
+
+  if (!isAuthorized) {
+    redirect("/");
+  }
+
   // 1. CORREÇÃO CRÍTICA: Aguarda a resolução dos parâmetros da URL
   const resolvedSearchParams = await searchParams;
   const inicio = resolvedSearchParams.inicio;
@@ -60,63 +122,17 @@ export default async function RelatorioFinanceiroPage({ searchParams }: Relatori
   const caixasTropas = transactions.filter(t => t.troopId && !t.patrolId);
   const caixasPatrulhas = transactions.filter(t => t.patrolId);
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
-  };
-
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
-  };
-
-  // Componente de Tabela Interno Reutilizável
-  const TabelaLancamentos = ({ titulo, itens, icone }: { titulo: string; itens: any[]; icone: string }) => {
-    if (itens.length === 0) return null;
-    return (
-      <div className="mb-10 break-inside-avoid">
-        <h2 className="text-lg font-bold text-gray-800 border-b-2 border-gray-200 pb-2 mb-4 flex items-center gap-2">
-          <i className={`fa-solid ${icone} text-gray-400 text-sm`}></i> 
-          {titulo}
-        </h2>
-        <table className="w-full text-left text-xs border-collapse border border-gray-200">
-          <thead>
-            <tr className="bg-gray-50 text-gray-600 font-bold uppercase tracking-wider">
-              <th className="p-3 border border-gray-200 w-[15%]">Data</th>
-              <th className="p-3 border border-gray-200 w-[45%]">Descrição</th>
-              <th className="p-3 border border-gray-200 w-[20%]">Associado</th>
-              <th className="p-3 border border-gray-200 text-right w-[20%]">Valor</th>
-            </tr>
-          </thead>
-          <tbody>
-            {itens.map((t) => (
-              <tr key={t.id} className="hover:bg-gray-50/50 border-b border-gray-200 transition-colors">
-                <td className="p-3 border border-gray-200 text-gray-600">{formatDate(t.dueDate)}</td>
-                <td className="p-3 border border-gray-200 font-semibold text-gray-800">
-                  {t.title} 
-                  {t.troop && <span className="text-[10px] bg-green-50 text-scout-green px-1.5 py-0.5 rounded ml-1.5 font-bold">{t.troop.name}</span>}
-                  {t.patrol && <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded ml-1.5 font-bold">{t.patrol.name}</span>}
-                </td>
-                <td className="p-3 border border-gray-200 text-gray-500">{t.user?.name || "-"}</td>
-                <td className={`p-3 border border-gray-200 text-right font-black ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>
-                  {t.type === 'INCOME' ? '+' : '-'}{formatCurrency(t.amount)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
 
   return (
     <div className="bg-white min-h-screen text-black">
       
       {/* Barra de Ações Superior (print:hidden esconde isso no PDF gerado) */}
-      <div className="print:hidden bg-gray-900 text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
+      <div className="print:hidden bg-gray-900 text-white p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sticky top-0 z-50 shadow-md">
         <p className="text-sm font-medium">
-          <i className="fa-solid fa-circle-info text-blue-400 mr-2"></i> 
+          <i className="fa-solid fa-circle-info text-blue-400 mr-2"></i>
           Visualização de Impressão ativa. Clique no botão ao lado para salvar o PDF.
         </p>
-        <div className="flex gap-3">
+        <div className="flex gap-3 shrink-0">
           <a 
             href="/admin/financeiro" 
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-sm transition-all text-center"
@@ -131,12 +147,12 @@ export default async function RelatorioFinanceiroPage({ searchParams }: Relatori
       <div className="max-w-[210mm] mx-auto p-8 md:p-14 bg-white print:p-0 print:max-w-none shadow-[0_0_40px_rgba(0,0,0,0.03)] my-6 print:my-0 border border-gray-100 print:border-0 rounded-2xl print:rounded-none">
         
         {/* Cabeçalho Oficial do Relatório */}
-        <div className="border-b-4 border-scout-green pb-6 mb-8 flex justify-between items-end gap-4">
+        <div className="border-b-4 border-scout-green pb-6 mb-8 flex flex-col sm:flex-row print:flex-row justify-between items-start sm:items-end print:items-end gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-gray-900 uppercase tracking-tight font-heading">Demonstrativo Financeiro</h1>
             <p className="text-gray-500 font-bold text-sm tracking-wide mt-1">GRUPO ESCOTEIRO AMIZADE 66/SP</p>
           </div>
-          <div className="text-right shrink-0">
+          <div className="text-left sm:text-right print:text-right shrink-0">
             <p className="text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-lg text-gray-700 border border-gray-200">
               Período: {formatDate(startDate)} a {formatDate(endDate)}
             </p>
@@ -144,8 +160,10 @@ export default async function RelatorioFinanceiroPage({ searchParams }: Relatori
           </div>
         </div>
 
-        {/* Quadro de Resumo Consolidado (Dashboard Executivo) */}
-        <div className="grid grid-cols-3 gap-4 mb-10">
+        {/* Quadro de Resumo Consolidado (Dashboard Executivo).
+            Empilha no celular: em 3 colunas sobram ~90px por cartão, e um valor
+            como "R$ 12.345,67" não cabe. O print: mantém as 3 colunas no PDF. */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-4 mb-10">
           <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-center">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Receitas Liquidadas</p>
             <p className="text-lg font-black text-green-600 mt-1">{formatCurrency(receitasPagas)}</p>

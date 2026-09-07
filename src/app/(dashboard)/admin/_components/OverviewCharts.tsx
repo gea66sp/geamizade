@@ -1,14 +1,15 @@
 // src/app/admin/components/OverviewCharts.tsx
 "use client";
 
-import { 
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
-  Tooltip, ResponsiveContainer, Legend 
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend
 } from "recharts";
+import type { FinanceChartPoint, MemberChartPoint } from "@/src/types/dashboard";
 
 interface Props {
-  memberData: any[];
-  financeData: any[];
+  memberData: MemberChartPoint[];
+  financeData: FinanceChartPoint[];
 }
 
 export function OverviewCharts({ memberData, financeData }: Props) {

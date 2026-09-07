@@ -2,6 +2,7 @@ import prisma from "@/src/lib/prisma";
 import { redirect } from "next/navigation";
 import { getAuthUser } from "@/src/lib/auth";
 import PersonalizarForm from "./_components/PersonalizarForm";
+import type { StatItem } from "@/src/types/dashboard";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -55,14 +56,23 @@ export default async function PersonalizarPage() {
     testimonials: [],
   };
 
+  // `stats` é uma coluna Json no Prisma: o banco não garante forma nenhuma, e
+  // o tipo gerado (JsonValue) admite até null dentro do array. Normalizamos
+  // para array — mesma checagem da página pública — e assumimos a forma de
+  // StatItem, já que este painel é o único que escreve nessa coluna.
+  const normalizedInst = {
+    ...instSettings,
+    stats: (Array.isArray(instSettings.stats) ? instSettings.stats : []) as StatItem[],
+  };
+
   return (
     // Wrapper limpo: Apenas define o limite de largura, centraliza e adiciona a animação.
     // Toda a lógica de "card" e altura (height) agora está sendo gerenciada pelo próprio componente PersonalizarForm.
     <div className="max-w-7xl mx-auto w-full animate-fade-in-down">
-      <PersonalizarForm 
-        initialHome={homeSettings} 
-        initialFaqs={faqs} 
-        initialInst={instSettings} 
+      <PersonalizarForm
+        initialHome={homeSettings}
+        initialFaqs={faqs}
+        initialInst={normalizedInst}
       />
     </div>
   );

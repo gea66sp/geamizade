@@ -15,10 +15,16 @@ export default function InstallPrompt() {
     
     // Verifica se já está instalado (rodando em modo standalone)
     const isAlreadyInstalled = window.matchMedia("(display-mode: standalone)").matches || 
-                               ("standalone" in window.navigator && (window.navigator as any).standalone === true);
+                               ("standalone" in window.navigator &&
+                                 (window.navigator as Navigator & { standalone?: boolean }).standalone === true);
 
+    // Ler o ambiente do navegador (userAgent / display-mode) só é possível
+    // após a montagem: no servidor não existe `window`. É o caso legítimo de
+    // efeito — sincronizar com um sistema externo — que a própria regra cita.
+    /* eslint-disable react-hooks/set-state-in-effect */
     setIsIOS(isIosDevice);
     setIsStandalone(isAlreadyInstalled);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     // Se for iOS e não estiver instalado, mostra o aviso
     if (isIosDevice && !isAlreadyInstalled) {

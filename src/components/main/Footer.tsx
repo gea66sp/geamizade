@@ -1,6 +1,16 @@
+"use client";
+
 import Link from "next/link";
 
 export default function Footer() {
+  const handleAgendarVisita = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const email = (e.currentTarget.elements.namedItem("email-visita") as HTMLInputElement).value;
+    const mensagem = `Olá! Gostaria de agendar uma visita para conhecer o Grupo Escoteiro Amizade 66/SP.\n\nMeu e-mail: ${email}`;
+    window.open(`https://wa.me/551236227084?text=${encodeURIComponent(mensagem)}`, "_blank", "noopener,noreferrer");
+    e.currentTarget.reset();
+  };
+
   return (
     <footer id="contato" className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,10 +27,10 @@ export default function Footer() {
             </p>
             <div className="flex space-x-4">
               {/* Áreas de toque aumentadas e Acessibilidade (aria-label) garantida */}
-              <Link href="https://www.instagram.com/amizade66sp/" target="_blank" aria-label="Visitar Instagram do GE Amizade" className="w-11 h-11 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-scout-yellow hover:text-scout-dark hover:scale-110 transition-all duration-300 shadow-sm">
+              <Link href="https://www.instagram.com/amizade66sp/" target="_blank" rel="noopener noreferrer" aria-label="Visitar Instagram do GE Amizade" className="w-11 h-11 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-scout-yellow hover:text-scout-dark hover:scale-110 transition-all duration-300 shadow-sm">
                 <i className="fa-brands fa-instagram text-xl"></i>
               </Link>
-              <Link href="https://web.facebook.com/GEAmizade" target="_blank" aria-label="Visitar Facebook do GE Amizade" className="w-11 h-11 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-scout-yellow hover:text-scout-dark hover:scale-110 transition-all duration-300 shadow-sm">
+              <Link href="https://web.facebook.com/GEAmizade" target="_blank" rel="noopener noreferrer" aria-label="Visitar Facebook do GE Amizade" className="w-11 h-11 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-scout-yellow hover:text-scout-dark hover:scale-110 transition-all duration-300 shadow-sm">
                 <i className="fa-brands fa-facebook-f text-xl"></i>
               </Link>
             </div>
@@ -68,7 +78,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="https://wa.me/551236227084" target="_blank" className="group flex items-center gap-3 py-2 text-gray-400 hover:text-white transition-colors">
+                <a href="https://wa.me/551236227084" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-3 py-2 text-gray-400 hover:text-white transition-colors">
                   <i className="fa-brands fa-whatsapp text-scout-yellow text-lg w-4 text-center group-hover:scale-110 transition-transform"></i>
                   (12) 3622-7084
                 </a>
@@ -83,13 +93,14 @@ export default function Footer() {
               Venha conhecer nossa sede em um sábado de atividade. Mande uma mensagem para agendar!
             </p>
             {/* O focus-within faz o formulário inteiro acender quando o input é focado */}
-            <form className="flex shadow-sm rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-scout-yellow focus-within:ring-offset-2 focus-within:ring-offset-gray-900 transition-all">
+            <form onSubmit={handleAgendarVisita} className="flex shadow-sm rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-scout-yellow focus-within:ring-offset-2 focus-within:ring-offset-gray-900 transition-all">
               <label htmlFor="email-visita" className="sr-only">Seu melhor e-mail</label>
-              <input 
+              <input
                 id="email-visita"
-                type="email" 
-                placeholder="Seu melhor e-mail" 
-                className="bg-gray-800 text-white px-4 py-3 w-full focus:outline-none border-none text-sm placeholder-gray-500" 
+                name="email-visita"
+                type="email"
+                placeholder="Seu melhor e-mail"
+                className="bg-gray-800 text-white px-4 py-3 w-full focus:outline-none border-none text-sm placeholder-gray-500"
                 required
               />
               <button 
@@ -107,7 +118,7 @@ export default function Footer() {
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 text-center md:text-left">
           <p>&copy; {new Date().getFullYear()} Grupo Escoteiro Amizade 66/SP. Todos os direitos reservados.</p>
           <p>
-            Desenvolvido por: <a href="https://levbrands.com.br" target="_blank" aria-label="Visitar portfólio da LevBrands" className="text-gray-400 hover:text-scout-yellow font-semibold transition-colors">LevBrands</a>
+            Desenvolvido por: <a href="https://levbrands.com.br" target="_blank" rel="noopener noreferrer" aria-label="Visitar portfólio da LevBrands" className="text-gray-400 hover:text-scout-yellow font-semibold transition-colors">LevBrands</a>
           </p>
         </div>
       </div>

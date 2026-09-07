@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { checkoutItem, returnItem } from "../actions";
+import type { InventoryRow, UserOption } from "@/src/types/dashboard";
 
-export default function CheckoutModal({ isOpen, onClose, item, users }: { isOpen: boolean, onClose: () => void, item: any, users: any[] }) {
+export default function CheckoutModal({ isOpen, onClose, item, users }: { isOpen: boolean; onClose: () => void; item: InventoryRow | null; users: UserOption[] }) {
   const [userId, setUserId] = useState("");
   const [expectedReturn, setExpectedReturn] = useState("");
   const [isLoading, setIsLoading] = useState(false);

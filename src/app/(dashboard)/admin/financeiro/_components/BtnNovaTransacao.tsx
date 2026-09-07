@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import ModalNovaTransacao from "./ModalNovaTransacao";
+import type { TroopOption, UserOption } from "@/src/types/dashboard";
 
 // Agora tipamos corretamente para receber as tropas também!
-export default function BtnNovaTransacao({ users, troops }: { users: any[], troops: any[] }) {
+export default function BtnNovaTransacao({ users, troops }: { users: UserOption[]; troops: TroopOption[] }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

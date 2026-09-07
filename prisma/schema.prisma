@@ -4,7 +4,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Runtime: pooler em modo transaction (pgbouncer, porta 6543).
+  url       = env("DATABASE_URL")
+  // Migrações: pooler em modo session (porta 5432). O pgbouncer em modo
+  // transaction não suporta os advisory locks que o `prisma migrate` usa.
+  directUrl = env("DIRECT_URL")
 }
 
 // ==========================================
@@ -44,6 +48,24 @@ enum ItemCondition {
   GOOD
   FAIR
   DAMAGED
+}
+
+enum PostStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+}
+
+enum NotificationOrigin {
+  AUTO
+  MANUAL
+}
+
+enum NotificationRequestStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
 }
 
 // ==========================================
@@ -96,6 +118,10 @@ model User {
   emailVerified DateTime?
   image         String?   // Foto de perfil
   password      String?   // Senha (essencial para login por credenciais)
+  // Contas criadas por terceiros (ex: o chefe cadastrando um jovem) nascem com
+  // uma senha provisória que a própria pessoa precisa trocar no primeiro acesso.
+  // A barreira é aplicada no layout de cada área do dashboard.
+  mustChangePassword Boolean @default(false)
   phone         String?   // Telefone
   role          Role      @default(MEMBER)
   branch        Branch?   // Ramo atual do escoteiro/chefe
@@ -121,12 +147,22 @@ model User {
   subLedPatrols Patrol[]  @relation("PatrolSubLeader")
 
   // Relações com Módulos
-  progressions  Progression[]
   financials    FinancialTransaction[] @relation("UserTransactions")
-  eventRSVPs    EventRSVP[]
-  notifications Notification[]
-  blogPosts     BlogPost[]
+  eventRSVPs    EventRSVP[] @relation("EventAttendee")
+  rsvpsConfirmed EventRSVP[] @relation("EventRSVPConfirmedBy")
+  notifications Notification[] @relation("UserNotifications")
+  blogPosts     BlogPost[]  @relation("BlogPostAuthor")
+  reviewedPosts BlogPost[]  @relation("BlogPostReviewer")
   loans         ItemLoan[]  @relation("UserLoans")
+
+  // Módulo de Comunicação
+  sentNotifications           Notification[]        @relation("SentNotifications")
+  guardianCopyNotifications   Notification[]        @relation("GuardianCopies")
+  notificationRequests        NotificationRequest[] @relation("NotificationRequestsSent")
+  approvedNotificationRequests NotificationRequest[] @relation("NotificationRequestsApproved")
+
+  // Patrimônio sob responsabilidade individual
+  assignedInventory InventoryItem[] @relation("AssignedInventory")
 
   // Documentos Pessoais
   personalDocs  Document[] @relation("UserDocuments")
@@ -178,6 +214,7 @@ model Troop {
   blogPosts   BlogPost[]
   financials  FinancialTransaction[] @relation("TroopTransactions")
   inventory   InventoryItem[]        @relation("TroopInventory")
+  notifications Notification[]       @relation("TroopNotifications")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -204,6 +241,7 @@ model Patrol {
   financials  FinancialTransaction[] @relation("PatrolTransactions")
   inventory   InventoryItem[]        @relation("PatrolInventory")
   events      Event[]                @relation("PatrolEvents")
+  notificationRequests NotificationRequest[] @relation("PatrolNotificationRequests")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -213,20 +251,9 @@ model Patrol {
   @@index([subLeaderId])
 }
 
-model Progression {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  title      String   
-  category   String   
-  level      String?  
-  earnedDate DateTime? 
-  notes      String?  @db.Text
-
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
+// NOTA: o modelo `Progression` foi removido. Progressão escoteira e ficha
+// médica são responsabilidade do sistema nacional; aqui esses dados entram
+// como documento anexado (`Document` com `ownerId`), não como campo estruturado.
 
 // ==========================================
 // MÓDULO DE EVENTOS E CALENDÁRIO
@@ -240,6 +267,14 @@ model Event {
   endDate     DateTime
   location    String?
   isGlobal    Boolean  @default(false)
+
+  // Prazo para confirmar presença. Nulo = aceita até o início do evento.
+  rsvpDeadline DateTime?
+
+  // Carimbo do lembrete automático. É o que torna o job de cron idempotente:
+  // a Vercel pode invocar o mesmo job duas vezes, e sem isso o grupo inteiro
+  // receberia a notificação duplicada.
+  rsvpReminderSentAt DateTime?
   
   // Escopo do Evento
   troopId     String?
@@ -258,14 +293,31 @@ model Event {
 }
 
 model EventRSVP {
-  id        String   @id @default(cuid())
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status    Boolean  @default(true) 
+  id      String @id @default(cuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // O PARTICIPANTE (o jovem ou o adulto que vai ao evento)
+  userId  String
+  user    User   @relation("EventAttendee", fields: [userId], references: [id], onDelete: Cascade)
+
+  // true = vai, false = não vai.
+  // "Não respondeu" é representado pela AUSÊNCIA da linha — evita um terceiro
+  // estado ambíguo e mantém trivial a query de pendentes.
+  status  Boolean
+
+  // Quem registrou a resposta: o próprio participante ou o responsável legal.
+  confirmedById String?
+  confirmedBy   User?   @relation("EventRSVPConfirmedBy", fields: [confirmedById], references: [id], onDelete: SetNull)
+
+  // Trava da hierarquia: uma vez que o responsável decide, o jovem não sobrepõe.
+  isGuardianDecision Boolean @default(false)
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([eventId, userId])
+  @@index([eventId, status])
 }
 
 // ==========================================
@@ -325,13 +377,17 @@ model InventoryItem {
   patrolId        String?       // Material exclusivo de uma Patrulha?
   patrol          Patrol?       @relation("PatrolInventory", fields: [patrolId], references: [id])
 
+  assignedUserId  String?       // Membro responsável pelo material (carga individual)
+  assignedUser    User?         @relation("AssignedInventory", fields: [assignedUserId], references: [id])
+
   loans           ItemLoan[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  
+
   @@index([troopId])
   @@index([patrolId])
+  @@index([assignedUserId])
 }
 
 model ItemLoan {
@@ -406,20 +462,26 @@ model BlogPost {
   id        String   @id @default(cuid())
   title     String
   slug      String   @unique
-  content   String   @db.Text 
-  imageUrl  String?  
-  published Boolean  @default(false)
-  
+  content   String   @db.Text
+  imageUrl  String?
+
+  status          PostStatus @default(PUBLISHED)
+  reviewedById    String?
+  reviewedBy      User?      @relation("BlogPostReviewer", fields: [reviewedById], references: [id])
+  reviewedAt      DateTime?
+  rejectionReason String?    @db.Text
+
   authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
-  
-  troopId   String?  
+  author    User     @relation("BlogPostAuthor", fields: [authorId], references: [id])
+
+  troopId   String?
   troop     Troop?   @relation(fields: [troopId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([troopId]) 
+  @@index([troopId])
+  @@index([status])
 }
 
 // ==========================================
@@ -429,14 +491,77 @@ model BlogPost {
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
   title     String
   message   String   @db.Text
   isRead    Boolean  @default(false)
-  linkUrl   String?  
+  readAt    DateTime?
+  linkUrl   String?
+
+  origin    NotificationOrigin @default(MANUAL)
+
+  // Quem disparou (nulo nos gatilhos automáticos do sistema)
+  senderId  String?
+  sender    User?    @relation("SentNotifications", fields: [senderId], references: [id], onDelete: SetNull)
+
+  // Quando preenchido, esta linha é a CÓPIA entregue ao responsável legal
+  // referente ao jovem indicado — o título já vem prefixado com o nome dele.
+  forDependentId String?
+  forDependent   User?  @relation("GuardianCopies", fields: [forDependentId], references: [id], onDelete: SetNull)
+
+  // Envio manual que originou esta notificação (auditoria/outbox)
+  requestId String?
+  request   NotificationRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  // Tropa do destinatário (ou do jovem, nas cópias) no momento do envio.
+  // É o recorte usado pelo painel do chefe.
+  troopId   String?
+  troop     Troop?   @relation("TroopNotifications", fields: [troopId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([senderId])
+  @@index([troopId])
+  @@index([requestId])
+}
+
+// Todo envio manual nasce como um NotificationRequest, mesmo quando não precisa
+// de aprovação: ele é o registro de auditoria do que foi enviado, por quem e
+// para qual público. Monitores/Submonitores criam o pedido em PENDING_APPROVAL
+// e as notificações só são despachadas quando o chefe aprova.
+model NotificationRequest {
+  id      String @id @default(cuid())
+  title   String
+  message String @db.Text
+
+  senderId String
+  sender   User   @relation("NotificationRequestsSent", fields: [senderId], references: [id], onDelete: Cascade)
+
+  status NotificationRequestStatus @default(PENDING_APPROVAL)
+
+  audienceType     String   // "ALL" | "USERS" | "TROOP" | "PATROL"
+  troopId          String?
+  patrolId         String?
+  patrol           Patrol?  @relation("PatrolNotificationRequests", fields: [patrolId], references: [id], onDelete: SetNull)
+  targetUserIds    String[]
+  includeGuardians Boolean  @default(true)
+
+  approverId      String?
+  approver        User?     @relation("NotificationRequestsApproved", fields: [approverId], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  rejectionReason String?   @db.Text
+
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([senderId])
+  @@index([status])
+  @@index([patrolId])
+  @@index([troopId])
 }
 
 // ==========================================

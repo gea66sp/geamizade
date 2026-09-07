@@ -2,15 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { updateDocument } from "../actions";
+import type { AdminUserOption, DocumentDetailed } from "@/src/types/dashboard";
+import { getErrorMessage, isNextRedirectError } from "@/src/lib/errors";
 
-type AdminUser = { id: string; name: string | null; role: string };
+type AdminUser = AdminUserOption;
 type FolderBasic = { id: string; name: string; parentId: string | null };
-type DocumentDetailed = { 
-  id: string; title: string; description?: string | null; folderId: string | null;
-  fileUrl: string; createdAt: Date;
-  isPublic: boolean; isRestrictedView: boolean; isRestrictedEdit: boolean;
-  allowedViewers: { id: string }[]; allowedEditors: { id: string }[];
-};
 
 interface ModalEditarArquivoProps {
   isOpen: boolean;
@@ -57,19 +53,20 @@ export default function ModalEditarArquivo({ isOpen, onClose, document, adminUse
     try {
       await updateDocument(document!.id, document!.fileUrl, formData);
       onClose();
-    } catch (err: any) {
-      if (err.message === "NEXT_REDIRECT" || err.digest?.includes("NEXT_REDIRECT")) {
+    } catch (err) {
+      if (isNextRedirectError(err)) {
         onClose();
         return;
       }
-      alert(err.message || "Erro ao atualizar documento.");
+      alert(getErrorMessage(err, "Erro ao atualizar documento."));
     } finally {
       setIsSaving(false);
     }
   }
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: '2-digit', minute:'2-digit' }).format(date);
+  // Datas serializadas do Server Component chegam como string.
+  const formatDate = (date: Date | string) => {
+    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: '2-digit', minute:'2-digit' }).format(new Date(date));
   };
 
   // --- ÁRVORE DE DESTINO NO FORMULÁRIO ---

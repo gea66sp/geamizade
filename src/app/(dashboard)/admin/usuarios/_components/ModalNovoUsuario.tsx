@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import PasswordFields from "@/src/components/dashboard/PasswordFields";
 import { createNewUser } from "../actions";
 import { Role, Branch } from "@prisma/client";
 
@@ -20,6 +21,7 @@ interface ModalNovoUsuarioProps {
 
 export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, allUsers }: ModalNovoUsuarioProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [senhaValida, setSenhaValida] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   // Estados dos inputs dinâmicos
@@ -87,7 +89,13 @@ export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, all
 
     const formElement = event.currentTarget;
     const formData = new FormData(formElement);
-    
+
+    if (formData.get("password") !== formData.get("confirmPassword")) {
+      setIsLoading(false);
+      setMessage({ type: "error", text: "As senhas não conferem." });
+      return;
+    }
+
     const data = {
       name: formData.get("name") as string,
       email: formData.get("email") as string,
@@ -179,16 +187,12 @@ export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, all
               </div>
             </div>
 
-            {/* Senha */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-bold text-gray-700">Senha Temporária <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <i className="fa-solid fa-lock text-gray-400"></i>
-                </div>
-                <input type="password" name="password" required minLength={6} autoComplete="new-password" data-1p-ignore className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 transition-all placeholder:text-gray-400" placeholder="Mínimo 6 caracteres" />
-              </div>
-            </div>
+            <PasswordFields
+              label="Senha temporária"
+              confirmLabel="Repita a senha temporária"
+              hint="Entregue esta senha à pessoa. No primeiro acesso ela será obrigada a criar uma senha própria."
+              onValidityChange={setSenhaValida}
+            />
 
             {/* Cargo (Role) */}
             <div className="space-y-1.5">
@@ -313,7 +317,8 @@ export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, all
             </button>
             <button 
               type="submit" 
-              disabled={isLoading}
+              disabled={isLoading || !senhaValida}
+              title={!senhaValida ? "Preencha todos os requisitos da senha" : undefined}
               className="w-full sm:w-auto px-8 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
             >
               {isLoading ? (

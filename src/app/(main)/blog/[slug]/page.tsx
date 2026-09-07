@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: BlogDetailPageProps): Promise
   const { slug } = await params;
 
   const post = await prisma.blogPost.findFirst({
-    where: { slug, published: true },
+    where: { slug, status: "PUBLISHED" },
     select: {
       title: true,
       content: true,
@@ -56,7 +56,7 @@ export default async function BlogDetailPage({ params }: BlogDetailPageProps) {
   const { slug } = await params;
 
   const post = await prisma.blogPost.findFirst({
-    where: { slug, published: true },
+    where: { slug, status: "PUBLISHED" },
     include: {
       author: {
         select: {

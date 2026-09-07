@@ -6,9 +6,13 @@ import { deleteDocument, deleteFolder, createFolderInline, moveItem, renameFolde
 import ModalNovoArquivo from "./ModalNovoArquivo";
 import ModalEditarPasta from "./ModalEditarPasta";
 import ModalEditarArquivo from "./ModalEditarArquivo";
+import { getErrorMessage } from "@/src/lib/errors";
+import type { DocumentDetailed, FolderDetailed } from "@/src/types/dashboard";
 
-type Folder = { id: string; name: string; parentId: string | null; createdAt: Date };
-type Document = { id: string; title: string; folderId: string | null; fileUrl: string; createdAt: Date };
+// A page traz os campos de controle de acesso; usar os tipos completos evita
+// passar ao modal um objeto sem allowedViewers/allowedEditors.
+type Folder = FolderDetailed & { createdAt: Date };
+type Document = DocumentDetailed;
 type AdminUser = { id: string; name: string | null; role: string };
 
 export default function ExplorerTree({ folders: initialFolders, documents: initialDocuments, adminUsers }: { folders: Folder[], documents: Document[], adminUsers: AdminUser[] }) {
@@ -19,8 +23,8 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
   useEffect(() => { setDocuments(initialDocuments); }, [initialDocuments]);
 
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(["root"]));
-  const [editingDocument, setEditingDocument] = useState<any | null>(null);
-  const [editingFolder, setEditingFolder] = useState<any | null>(null);
+  const [editingDocument, setEditingDocument] = useState<DocumentDetailed | null>(null);
+  const [editingFolder, setEditingFolder] = useState<FolderDetailed | null>(null);
 
   const [creatingIn, setCreatingIn] = useState<string | null | undefined>(undefined);
   const [newFolderName, setNewFolderName] = useState("");
@@ -93,8 +97,8 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
       const newFolder = await createFolderInline(formData);
       setFolders(prev => [...prev, { ...newFolder, parentId: creatingIn, createdAt: new Date() } as Folder]);
       showToast("Pasta criada!", "success");
-    } catch (error: any) {
-      showToast(error.message || "Erro ao criar pasta.", "error");
+    } catch (error) {
+      showToast(getErrorMessage(error, "Erro ao criar pasta."), "error");
     } finally {
       setCreatingIn(undefined); setNewFolderName("");
     }
@@ -106,8 +110,8 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
       await renameFolderInline(renamingFolderId, renameValue.trim());
       setFolders(prev => prev.map(f => f.id === renamingFolderId ? { ...f, name: renameValue.trim() } : f));
       showToast("Pasta renomeada!", "success");
-    } catch (error: any) {
-      showToast(error.message || "Erro ao renomear.", "error");
+    } catch (error) {
+      showToast(getErrorMessage(error, "Erro ao renomear."), "error");
     } finally {
       setRenamingFolderId(null); setRenameValue("");
     }
@@ -146,7 +150,7 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
     });
   };
 
-  const formatDate = (date: Date) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
+  const formatDate = (date: Date | string) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
 
   const invalidMoveIds = useMemo(() => {
     const invalidIds = new Set<string>();
@@ -326,7 +330,7 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
                 
                 {/* BOTÕES DESKTOP */}
                 <div className="hidden lg:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                  <a href={`/portal-da-transparencia/arquivo/${doc.id}`} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-400 hover:text-scout-green hover:bg-scout-green/10 rounded-md transition-colors" title="Visualizar">
+                  <a href={`/api/documentos/${doc.id}`} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-400 hover:text-scout-green hover:bg-scout-green/10 rounded-md transition-colors" title="Visualizar">
                     <i className="fa-solid fa-eye text-sm"></i>
                   </a>
                   <button onClick={() => { setMovingItem({ id: doc.id, type: "document", name: doc.title }); setMoveTargetId(null); setExpandedMoveFolders(new Set(["root"])); }} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Mover">
@@ -354,7 +358,7 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
                     <>
                       <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpenMobileMenuId(null); }}></div>
                       <div className="absolute right-8 top-full mt-1 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 flex flex-col py-1.5 animate-fade-in-down origin-top-right">
-                        <a href={`/portal-da-transparencia/arquivo/${doc.id}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); setOpenMobileMenuId(null); }} className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 text-left font-medium">
+                        <a href={`/api/documentos/${doc.id}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); setOpenMobileMenuId(null); }} className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 text-left font-medium">
                           <i className="fa-solid fa-eye w-5 text-center text-scout-green"></i> Visualizar
                         </a>
                         <button onClick={(e) => handleMobileAction(e, () => { setMovingItem({ id: doc.id, type: "document", name: doc.title }); setMoveTargetId(null); setExpandedMoveFolders(new Set(["root"])); })} className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 text-left font-medium">
@@ -453,7 +457,7 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
         <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl flex flex-col max-h-[90vh]">
             <h3 className="font-heading font-bold text-gray-800 text-xl mb-1">Mover Item</h3>
-            <p className="text-sm text-gray-500 mb-5 truncate">Selecione o destino para "{movingItem.name}"</p>
+            <p className="text-sm text-gray-500 mb-5 truncate">Selecione o destino para &quot;{movingItem.name}&quot;</p>
             
             <div className="flex-1 overflow-y-auto border border-gray-200 rounded-xl p-2 bg-gray-50/50 mb-6 custom-scrollbar">
               <div 
@@ -495,8 +499,8 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
                     await moveItem(movingItem.id, movingItem.type, moveTargetId);
                     setExpandedFolders(prev => new Set(prev).add(moveTargetId || "root"));
                     showToast("Item movido com sucesso!", "success");
-                  } catch (err: any) {
-                    showToast(err.message || "Erro ao mover.", "error");
+                  } catch (err) {
+                    showToast(getErrorMessage(err, "Erro ao mover."), "error");
                   }
                   setMovingItem(null);
                 }}

@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import ModalEditarTransacao from "./ModalEditarTransacao";
 import { deleteTransaction } from "../actions";
+import type { TransactionRow, TroopOption, UserOption } from "@/src/types/dashboard";
 
 // <-- NOVO: Adicionado troops na tipagem
-export default function TransactionTable({ transactions, users, troops }: { transactions: any[], users: any[], troops: any[] }) {
-  const [editingTx, setEditingTx] = useState<any | null>(null);
+export default function TransactionTable({ transactions, users, troops }: { transactions: TransactionRow[]; users: UserOption[]; troops: TroopOption[] }) {
+  const [editingTx, setEditingTx] = useState<TransactionRow | null>(null);
   
   // Controle do Menu Mobile (3 pontinhos)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -23,7 +24,7 @@ export default function TransactionTable({ transactions, users, troops }: { tran
   }, []);
 
   const formatCurrency = (value: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-  const formatDate = (date: Date) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
+  const formatDate = (date: Date | string) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
 
   const handleMobileAction = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
@@ -59,7 +60,7 @@ export default function TransactionTable({ transactions, users, troops }: { tran
   };
 
   // <-- NOVO: Componente para mostrar a qual caixa pertence o dinheiro
-  const ScopeBadge = ({ tx }: { tx: any }) => {
+  const ScopeBadge = ({ tx }: { tx: TransactionRow }) => {
     if (tx.patrol) {
       return <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100"><i className="fa-solid fa-paw mr-1"></i> {tx.patrol.name}</span>;
     }

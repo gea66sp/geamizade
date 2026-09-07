@@ -1,15 +1,13 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/src/lib/auth";
 import { redirect } from "next/navigation";
 import AdminShell from "@/src/components/dashboard/admin/AdminShell";
-import prisma from "@/src/lib/prisma";
 import type { Metadata } from "next";
 import SessionKeeper from "@/src/components/SessionKeeper";
-import { cookies } from "next/headers"; // 👈 NOVO IMPORT AQUI
+import ForcePasswordChange from "@/src/components/dashboard/ForcePasswordChange";
+import { getDashboardSessionState, getHomeRouteForRole } from "@/src/lib/dashboardAccess";
 
 const BASE_URL = 'https://www.geamizade.org.br';
 
-const ALLOWED_ADMIN_ROLES = ["ADMIN", "DEVELOPER", "FINANCEIRO", "CHEFE"];
+const ALLOWED_ADMIN_ROLES = ["ADMIN", "DEVELOPER", "FINANCEIRO"];
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -25,53 +23,36 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const sessionState = await getDashboardSessionState();
 
-  if (!session || !session.user) {
+  if (!sessionState) {
     redirect("/login");
   }
 
-  // ==========================================
-  // LÓGICA DE SEGURANÇA: "LEMBRAR DE MIM" NO SERVIDOR
-  // ==========================================
-  const cookieStore = await cookies();
-  const isBrowserSessionActive = cookieStore.get("scout_active_session");
-  const rememberMe = (session.user as any).rememberMe;
-
-  // Se o usuário não quis ser lembrado e o navegador foi fechado (cookie de sessão sumiu)
-  if (rememberMe === false && !isBrowserSessionActive) {
-    // 🛡️ BARRAGEM: Retornamos APENAS a tela de logout. 
+  if (sessionState.needsSessionKeeper) {
+    // 🛡️ BARRAGEM: Retornamos APENAS a tela de logout.
     // O painel AdminShell NUNCA é renderizado, evitando o "piscar" de telas.
     return <SessionKeeper />;
   }
 
-  // ==========================================
-  // BUSCA DE DADOS EM TEMPO REAL (ANTI-CACHE)
-  // ==========================================
-  let freshUser = null;
-  
-  if (session.user.id) {
-    try {
-      freshUser = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { name: true, role: true, image: true }
-      });
-    } catch (error) {
-      console.error("Erro crítico ao buscar dados atualizados do usuário:", error);
-    }
+  // Conta com senha provisória: nenhuma página renderiza até a troca.
+  // Fica aqui, e não numa rota, porque assim não existe URL para contornar.
+  if (sessionState.needsPasswordChange) {
+    return <ForcePasswordChange userName={sessionState.userName} />;
   }
 
-  const userName = freshUser?.name || session.user.name;
-  const userRole = freshUser?.role || (session.user as { role?: string }).role;
-  const userImage = freshUser?.image || session.user.image || null;
+  const { userName, userRole, userImage } = sessionState;
 
   if (!userRole || !ALLOWED_ADMIN_ROLES.includes(userRole)) {
-    redirect("/dashboard/membros?error=unauthorized");
+    // Cada cargo tem sua própria área hoje (CHEFE -> /chefe, MEMBER -> /membro,
+    // RESPONSAVEL -> /responsavel); quem cair aqui por engano é mandado para a
+    // área correta em vez de para o site público.
+    redirect(getHomeRouteForRole(userRole));
   }
 
   return (
-    <AdminShell 
-      userName={userName} 
+    <AdminShell
+      userName={userName}
       userRole={userRole}
       userImage={userImage}
     >

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "./Sidebar"; // Ajuste o caminho se necessário
+import NotificationBell from "@/src/components/dashboard/NotificationBell";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -36,14 +37,19 @@ export default function AdminShell({ children, userName, userRole, userImage }: 
             GE Amizade
           </div>
           
-          <button 
-            onClick={() => setIsSidebarOpen(true)}
-            aria-label="Abrir menu administrativo"
-            aria-expanded={isSidebarOpen}
-            className="p-2 w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-scout-yellow transition-all"
-          >
-            <i className="fa-solid fa-bars text-xl"></i>
-          </button>
+          <div className="flex items-center gap-1">
+            {/* Sininho sempre acessível no mobile, sem precisar abrir a sidebar */}
+            <NotificationBell basePath="/admin" tone="dark" />
+
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Abrir menu administrativo"
+              aria-expanded={isSidebarOpen}
+              className="p-2 w-10 h-10 flex items-center justify-center rounded-lg bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-scout-yellow transition-all"
+            >
+              <i className="fa-solid fa-bars text-xl"></i>
+            </button>
+          </div>
         </header>
 
         {/* Área onde as páginas vão renderizar */}

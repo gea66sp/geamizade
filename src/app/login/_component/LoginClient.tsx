@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, LockKeyhole, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import ReCAPTCHA from "react-google-recaptcha";
+import { getHomeRouteForRole } from "@/src/lib/roleRouting";
 
 // ============================================================================
 // COMPONENTE DE ILUSTRAÇÃO (Barraca, Árvore e Fogueira)
@@ -98,7 +99,8 @@ export default function LoginClient() {
       recaptchaRef.current?.reset();
     } else {
       document.cookie = "scout_active_session=true; path=/;";
-      router.push("/admin");
+      const session = await getSession();
+      router.push(getHomeRouteForRole(session?.user?.role));
       router.refresh();
     }
   };

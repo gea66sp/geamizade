@@ -3,6 +3,23 @@
 import { useEffect, useState } from "react";
 import { getUserFullDetails } from "../actions";
 import Image from "next/image";
+import type { DependentTieRow, GuardianTieRow, PersonalDoc } from "@/src/types/dashboard";
+
+// Ficha completa devolvida por getUserFullDetails.
+type UserFullDetails = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  phone?: string | null;
+  image?: string | null;
+  role: string;
+  branch?: string | null;
+  createdAt: Date | string;
+  troop?: { id: string; name: string } | null;
+  guardianTies: GuardianTieRow[];
+  dependentTies: DependentTieRow[];
+  personalDocs: PersonalDoc[];
+};
 
 interface ModalVisualizarUsuarioProps {
   isOpen: boolean;
@@ -11,21 +28,22 @@ interface ModalVisualizarUsuarioProps {
 }
 
 export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: ModalVisualizarUsuarioProps) {
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<UserFullDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
   // A aba MEDICO foi substituida por DOCUMENTOS
   const [activeTab, setActiveTab] = useState<"GERAL" | "DOCUMENTOS" | "ESCOTEIRO">("GERAL");
 
+  // Quem renderiza passa uma `key` com o userId, então o componente remonta a
+  // cada usuário — o estado já nasce zerado e o efeito só busca os dados.
+  // setState dentro do .then é permitido pela regra (não é síncrono no corpo).
   useEffect(() => {
-    if (isOpen && userId) {
-      setIsLoading(true);
-      setActiveTab("GERAL"); 
-      getUserFullDetails(userId).then((res) => {
-        if (res.success) setUserData(res.user);
-        setIsLoading(false);
-      });
-    }
+    if (!isOpen || !userId) return;
+    getUserFullDetails(userId).then((res) => {
+      // A action devolve { success, user? }, então `user` pode vir ausente.
+      if (res.success) setUserData(res.user ?? null);
+      setIsLoading(false);
+    });
   }, [isOpen, userId]);
 
   if (!isOpen) return null;
@@ -143,7 +161,7 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                             <div>
                               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-3">Responsáveis Legais</label>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {userData.guardianTies.map((tie: any) => (
+                                {userData.guardianTies.map((tie: GuardianTieRow) => (
                                   <div key={tie.id} className="flex items-center gap-4 p-3 bg-white border border-gray-200 rounded-xl shadow-sm">
                                     <div className="w-10 h-10 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center shrink-0">
                                       <i className="fa-solid fa-user-shield"></i>
@@ -163,7 +181,7 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                             <div>
                               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-3">Jovens Sob Responsabilidade</label>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                {userData.dependentTies.map((tie: any) => (
+                                {userData.dependentTies.map((tie: DependentTieRow) => (
                                   <div key={tie.id} className="flex items-center gap-4 p-3 bg-white border border-gray-200 rounded-xl shadow-sm">
                                     <div className="w-10 h-10 bg-scout-green/10 text-scout-green rounded-full flex items-center justify-center shrink-0 font-bold">
                                       {tie.dependent.name?.charAt(0)}
@@ -200,10 +218,10 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {userData.personalDocs.map((doc: any) => (
+                        {userData.personalDocs.map((doc: PersonalDoc) => (
                           <a 
                             key={doc.id} 
-                            href={doc.fileUrl} 
+                            href={`/api/documentos/${doc.id}`} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="p-4 bg-white border border-gray-200 rounded-2xl shadow-sm flex items-start gap-4 hover:border-scout-green hover:shadow-md transition-all group cursor-pointer"
@@ -246,38 +264,9 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
                       </div>
                     </div>
 
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-100 pb-2">
-                        <i className="fa-solid fa-award text-scout-green"></i> Conquistas e Insígnias
-                      </h4>
-                      
-                      {userData.progressions.length === 0 ? (
-                        <div className="p-6 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                          <i className="fa-solid fa-medal text-2xl text-gray-300 mb-2"></i>
-                          <p className="text-sm font-bold text-gray-500">O livro de conquistas ainda está em branco.</p>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {userData.progressions.map((prog: any) => (
-                            <div key={prog.id} className="p-4 bg-white border border-gray-200 rounded-2xl shadow-sm flex items-start gap-4 hover:border-scout-green hover:shadow-md transition-all group">
-                              <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
-                                <i className="fa-solid fa-medal"></i>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h5 className="font-bold text-gray-800 truncate mb-1">{prog.title}</h5>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded uppercase tracking-wider">{prog.category}</span>
-                                  {prog.level && <span className="text-[10px] font-bold bg-scout-yellow/20 text-yellow-700 px-2 py-0.5 rounded">Nível {prog.level}</span>}
-                                </div>
-                                {prog.earnedDate && (
-                                  <p className="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-widest"><i className="fa-regular fa-calendar mr-1"></i> {new Date(prog.earnedDate).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {/* A progressão escoteira é responsabilidade do sistema
+                        nacional; aqui ela entra como documento anexado (aba
+                        DOCUMENTOS), não como trilha de insígnias. */}
                   </div>
                 )}
 

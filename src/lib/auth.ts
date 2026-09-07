@@ -38,16 +38,20 @@ export const authOptions: NextAuthOptions = {
         // ==========================================
         const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${credentials.captchaToken}`;
         
+        let recaptchaData: { success?: boolean; "error-codes"?: string[] };
         try {
           const recaptchaRes = await fetch(verifyUrl, { method: "POST" });
-          const recaptchaData = await recaptchaRes.json();
-
-          if (!recaptchaData.success) {
-            console.error("Erro no reCAPTCHA:", recaptchaData["error-codes"]);
-            throw new Error("Falha na verificação de segurança. Tente novamente.");
-          }
+          recaptchaData = await recaptchaRes.json();
         } catch (error) {
+          // Só falha de REDE cai aqui. Antes, o try envolvia também a checagem
+          // abaixo, então um captcha reprovado era relatado como erro de rede.
+          console.error("Erro de rede ao validar o reCAPTCHA:", error);
           throw new Error("Não foi possível validar o reCAPTCHA.");
+        }
+
+        if (!recaptchaData.success) {
+          console.error("Erro no reCAPTCHA:", recaptchaData["error-codes"]);
+          throw new Error("Falha na verificação de segurança. Tente novamente.");
         }
 
         // ==========================================
@@ -67,6 +71,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Senha incorreta.");
         }
 
+        // Os campos extras (role, branch, rememberMe) são reconhecidos porque
+        // src/types/next-auth.d.ts estende o tipo User do NextAuth.
         return {
           id: user.id,
           email: user.email,
@@ -74,32 +80,32 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           branch: user.branch,
           // Convertendo a string para boolean com segurança
-          rememberMe: credentials.remember === "true", 
-        } as any; // Cast para any para que o NextAuth aceite campos extras
+          rememberMe: credentials.remember === "true",
+        };
       }
     })
   ],
-  
+
   callbacks: {
     async jwt({ token, user }) {
       // 'user' só existe na primeira vez que a função roda (no momento do login)
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
-        token.branch = (user as any).branch;
+        token.role = user.role;
+        token.branch = user.branch;
         // Garantimos que a flag vá para o token de forma segura (forçando ser booleano)
-        token.rememberMe = (user as any).rememberMe === true; 
+        token.rememberMe = user.rememberMe === true;
       }
       return token;
     },
-    
+
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
-        (session.user as any).branch = token.branch;
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.branch = token.branch;
         // Disponibilizamos a escolha na sessão do Front-end
-        (session.user as any).rememberMe = token.rememberMe === true; 
+        session.user.rememberMe = token.rememberMe === true;
       }
       return session;
     },

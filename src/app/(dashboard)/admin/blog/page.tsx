@@ -6,7 +6,8 @@ import prisma from "@/src/lib/prisma";
 
 import BlogManager from "./_components/BlogManager";
 
-const ALLOWED_ROLES = ["ADMIN", "DEVELOPER", "FINANCEIRO", "CHEFE"] as const;
+// CHEFE não acessa mais /admin (gerencia o blog da própria tropa em /chefe/blog)
+const ALLOWED_ROLES = ["ADMIN", "DEVELOPER", "FINANCEIRO"] as const;
 
 export const metadata: Metadata = {
   title: "Blog | GE Amizade",

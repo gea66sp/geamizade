@@ -2,21 +2,28 @@
 
 import { useState } from "react";
 import { createTransaction } from "../actions";
+import type { TroopOption, UserOption } from "@/src/types/dashboard";
+import { getErrorMessage } from "@/src/lib/errors";
 
 interface ModalNovaTransacaoProps {
   isOpen: boolean;
   onClose: () => void;
-  users: { id: string; name: string | null; branch: string | null }[];
-  troops: any[]; // <-- NOVO: Recebe as tropas e patrulhas
+  users: UserOption[];
+  troops: TroopOption[]; // Recebe as tropas e suas patrulhas
+  /** Falso para o Chefe: o caixa geral do grupo é da Diretoria. */
+  allowGlobalScope?: boolean;
 }
 
-export default function ModalNovaTransacao({ isOpen, onClose, users, troops }: ModalNovaTransacaoProps) {
+export default function ModalNovaTransacao({ isOpen, onClose, users, troops, allowGlobalScope = true }: ModalNovaTransacaoProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [type, setType] = useState<"INCOME" | "EXPENSE">("INCOME");
   const [status, setStatus] = useState<"PENDING" | "PAID">("PENDING");
   
   // <-- NOVOS ESTADOS PARA O ESCOPO FINANCEIRO
-  const [scope, setScope] = useState<"GLOBAL" | "TROOP" | "PATROL">("GLOBAL");
+  // Sem o caixa geral disponível, o padrão passa a ser a tropa.
+  const [scope, setScope] = useState<"GLOBAL" | "TROOP" | "PATROL">(
+    allowGlobalScope ? "GLOBAL" : "TROOP"
+  );
   const [selectedTroopId, setSelectedTroopId] = useState("");
 
   if (!isOpen) return null;
@@ -35,10 +42,10 @@ export default function ModalNovaTransacao({ isOpen, onClose, users, troops }: M
       setSelectedTroopId("");
       setType("INCOME");
       setStatus("PENDING");
-    } catch (err: any) {
-      if (err.message !== "NEXT_REDIRECT") {
-        alert(err.message || "Erro ao salvar transação.");
-      }
+    } catch (err) {
+      // NEXT_REDIRECT é o "erro" que o Next lança ao redirecionar — não é falha.
+      const msg = getErrorMessage(err, "Erro ao salvar transação.");
+      if (msg !== "NEXT_REDIRECT") alert(msg);
     } finally {
       setIsSaving(false);
     }
@@ -143,11 +150,13 @@ export default function ModalNovaTransacao({ isOpen, onClose, users, troops }: M
               <label className="block text-sm font-bold text-gray-700">
                 Centro de Custo (Caixa) <span className="text-red-500">*</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <label className={`text-center py-2.5 rounded-lg font-bold cursor-pointer transition-all border ${scope === "GLOBAL" ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"}`}>
-                  <input type="radio" name="scope" value="GLOBAL" checked={scope === "GLOBAL"} onChange={() => {setScope("GLOBAL"); setSelectedTroopId("");}} className="hidden" />
-                  <i className="fa-solid fa-globe mb-1 block text-lg"></i> Geral
-                </label>
+              <div className={`grid grid-cols-1 gap-3 ${allowGlobalScope ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                {allowGlobalScope && (
+                  <label className={`text-center py-2.5 rounded-lg font-bold cursor-pointer transition-all border ${scope === "GLOBAL" ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"}`}>
+                    <input type="radio" name="scope" value="GLOBAL" checked={scope === "GLOBAL"} onChange={() => {setScope("GLOBAL"); setSelectedTroopId("");}} className="hidden" />
+                    <i className="fa-solid fa-globe mb-1 block text-lg"></i> Geral
+                  </label>
+                )}
                 <label className={`text-center py-2.5 rounded-lg font-bold cursor-pointer transition-all border ${scope === "TROOP" ? "bg-scout-green/10 border-scout-green/30 text-scout-green" : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"}`}>
                   <input type="radio" name="scope" value="TROOP" checked={scope === "TROOP"} onChange={() => {setScope("TROOP"); setSelectedTroopId("");}} className="hidden" />
                   <i className="fa-solid fa-tent mb-1 block text-lg"></i> Tropa
@@ -188,7 +197,7 @@ export default function ModalNovaTransacao({ isOpen, onClose, users, troops }: M
                   disabled={!selectedTroopId}
                 >
                   <option value="">{selectedTroopId ? "Selecione..." : "Escolha a Tropa primeiro"}</option>
-                  {currentPatrols.map((p: any) => (
+                  {currentPatrols.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
@@ -217,7 +226,7 @@ export default function ModalNovaTransacao({ isOpen, onClose, users, troops }: M
                 id="tx-status"
                 name="status" 
                 value={status} 
-                onChange={(e) => setStatus(e.target.value as any)} 
+                onChange={(e) => setStatus(e.target.value as "PENDING" | "PAID")} 
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 cursor-pointer font-bold transition-all"
               >
                 <option value="PENDING">⌛ Pendente (A Receber / A Pagar)</option>

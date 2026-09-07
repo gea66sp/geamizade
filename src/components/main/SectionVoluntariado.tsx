@@ -43,7 +43,7 @@ export default function SectionVoluntariado() {
   const btnSubmitColor = isJovem ? 'bg-scout-dark text-white hover:bg-gray-800' : 'bg-scout-yellow text-scout-dark hover:bg-yellow-400';
 
   return (
-    <section id="contato" className={`relative overflow-hidden transition-colors duration-700 ease-in-out ${bgColor} ${textColor} py-16 md:py-24 mt-12`}>
+    <section id="quero-ser-escoteiro" className={`relative overflow-hidden transition-colors duration-700 ease-in-out ${bgColor} ${textColor} py-16 md:py-24 mt-12`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Usamos grid apenas no desktop. No mobile, flex em coluna com os itens centralizados. */}

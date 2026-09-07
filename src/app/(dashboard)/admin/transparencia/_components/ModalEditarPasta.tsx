@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { updateFolder } from "../actions";
+import type { AdminUserOption, FolderDetailed } from "@/src/types/dashboard";
+import { getErrorMessage, isNextRedirectError } from "@/src/lib/errors";
 
-type AdminUser = { id: string; name: string | null; role: string };
-type FolderDetailed = { 
-  id: string; name: string; description?: string | null; 
-  isPublic: boolean; isRestrictedView: boolean; isRestrictedEdit: boolean;
-  allowedViewers: { id: string }[]; allowedEditors: { id: string }[];
-};
+// Tipos movidos para @/src/types/dashboard — eram declarados igualmente aqui,
+// no ModalEditarArquivo e no ExplorerTree.
+type AdminUser = AdminUserOption;
 
 interface ModalEditarPastaProps {
   isOpen: boolean;
@@ -34,8 +33,8 @@ export default function ModalEditarPasta({ isOpen, onClose, folder, adminUsers }
 
   if (!isOpen || !folder) return null;
 
-  const initialViewers = folder.allowedViewers.map(u => u.id);
-  const initialEditors = folder.allowedEditors.map(u => u.id);
+  const initialViewers = (folder.allowedViewers || []).map(u => u.id);
+  const initialEditors = (folder.allowedEditors || []).map(u => u.id);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,12 +44,12 @@ export default function ModalEditarPasta({ isOpen, onClose, folder, adminUsers }
     try {
       await updateFolder(folder!.id, formData);
       onClose(); // Fecha o modal após salvar
-    } catch (err: any) {
-      if (err.message === "NEXT_REDIRECT" || err.digest?.includes("NEXT_REDIRECT")) {
+    } catch (err) {
+      if (isNextRedirectError(err)) {
         onClose();
         return;
       }
-      alert(err.message || "Erro ao atualizar pasta.");
+      alert(getErrorMessage(err, "Erro ao atualizar pasta."));
     } finally {
       setIsSaving(false);
     }
@@ -83,6 +82,7 @@ export default function ModalEditarPasta({ isOpen, onClose, folder, adminUsers }
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Dados ocultos que a Server Action exige */}
           <input type="hidden" name="name" value={folder.name} />
+          <input type="hidden" name="parentId" value={folder.parentId || ""} />
           
           <div className="space-y-1.5">
             <label htmlFor="folder-description" className="block text-sm font-bold text-gray-700">Descrição da Pasta (Opcional)</label>

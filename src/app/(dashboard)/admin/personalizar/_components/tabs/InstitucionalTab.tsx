@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
+import type { BoardMemberForm, InstitutionalForm, StatItem, TestimonialForm } from "@/src/types/dashboard";
 
 interface InstitucionalTabProps {
   isActive: boolean;
-  instData: any;
-  setInstData: (data: any) => void;
+  instData: InstitutionalForm;
+  setInstData: (data: InstitutionalForm) => void;
   historyImageMethod: "KEEP" | "FILE" | "URL";
   setHistoryImageMethod: (method: "KEEP" | "FILE" | "URL") => void;
   historyImageFile: File | null;
@@ -31,30 +32,41 @@ export default function InstitucionalTab({
   // ==========================================
   // FUNÇÕES AUXILIARES
   // ==========================================
-  const handleArrayObjAdd = (field: string, defaultObj: any) => {
-    setInstData({ ...instData, [field]: [...(instData[field] || []), defaultObj] });
+  // Restringir os nomes de campo às chaves que de fato guardam arrays faz o
+  // compilador acusar um erro de digitação na chamada — antes, com `string`,
+  // "boardMember" (sem s) criaria silenciosamente um campo novo no objeto.
+  type ObjectArrayField = "stats" | "boardMembers" | "testimonials";
+  type StringArrayField = "historyParagraphs" | "valuesList";
+
+  const handleArrayObjAdd = (field: ObjectArrayField, defaultObj: Record<string, unknown>) => {
+    setInstData({ ...instData, [field]: [...(instData[field] ?? []), defaultObj] });
   };
-  const handleArrayObjUpdate = (field: string, index: number, prop: string, value: any) => {
-    const newArr = [...(instData[field] || [])];
+  const handleArrayObjUpdate = (
+    field: ObjectArrayField,
+    index: number,
+    prop: string,
+    value: string | number
+  ) => {
+    const newArr = [...(instData[field] ?? [])] as Record<string, unknown>[];
     newArr[index] = { ...newArr[index], [prop]: value };
     setInstData({ ...instData, [field]: newArr });
   };
-  const handleArrayObjRemove = (field: string, index: number) => {
-    const newArr = [...(instData[field] || [])];
+  const handleArrayObjRemove = (field: ObjectArrayField, index: number) => {
+    const newArr = [...(instData[field] ?? [])];
     newArr.splice(index, 1);
     setInstData({ ...instData, [field]: newArr });
   };
 
-  const handleArrayStringAdd = (field: string) => {
-    setInstData({ ...instData, [field]: [...(instData[field] || []), ""] });
+  const handleArrayStringAdd = (field: StringArrayField) => {
+    setInstData({ ...instData, [field]: [...(instData[field] ?? []), ""] });
   };
-  const handleArrayStringUpdate = (field: string, index: number, value: string) => {
-    const newArr = [...(instData[field] || [])];
+  const handleArrayStringUpdate = (field: StringArrayField, index: number, value: string) => {
+    const newArr = [...(instData[field] ?? [])];
     newArr[index] = value;
     setInstData({ ...instData, [field]: newArr });
   };
-  const handleArrayStringRemove = (field: string, index: number) => {
-    const newArr = [...(instData[field] || [])];
+  const handleArrayStringRemove = (field: StringArrayField, index: number) => {
+    const newArr = [...(instData[field] ?? [])];
     newArr.splice(index, 1);
     setInstData({ ...instData, [field]: newArr });
   };
@@ -98,7 +110,7 @@ export default function InstitucionalTab({
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {stats.map((stat: any, index: number) => (
+          {stats.map((stat: StatItem, index: number) => (
             <div key={index} className="flex flex-col sm:flex-row gap-3 bg-gray-50/50 p-4 rounded-2xl border border-gray-200 relative group">
               <input type="text" placeholder="Valor (Ex: 25)" value={stat.value} onChange={e => handleArrayObjUpdate("stats", index, "value", e.target.value)} className="w-full sm:w-1/3 px-4 py-3 rounded-xl border border-gray-200 font-bold text-gray-800 focus:bg-white focus:ring-2 focus:ring-scout-green/10 focus:border-scout-green focus:outline-none transition-all" />
               <input type="text" placeholder="Rótulo (Ex: Anos de História)" value={stat.label} onChange={e => handleArrayObjUpdate("stats", index, "label", e.target.value)} className="w-full sm:flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:bg-white focus:ring-2 focus:ring-scout-green/10 focus:border-scout-green focus:outline-none transition-all" />
@@ -306,7 +318,7 @@ export default function InstitucionalTab({
         )}
 
         <div className="space-y-6 pt-2">
-          {boardMembers.map((member: any, index: number) => (
+          {boardMembers.map((member: BoardMemberForm, index: number) => (
             <div key={index} className="p-5 md:p-6 bg-gray-50/50 border border-gray-200 rounded-3xl relative shadow-sm flex flex-col md:flex-row gap-6 md:gap-8 group">
               
               {/* Lado Esquerdo: Imagem e URL */}
@@ -377,7 +389,7 @@ export default function InstitucionalTab({
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-          {testimonials.map((testim: any, index: number) => (
+          {testimonials.map((testim: TestimonialForm, index: number) => (
             <div key={index} className="p-5 md:p-6 bg-gray-50/50 border border-gray-200 rounded-3xl shadow-sm space-y-4 relative group hover:border-gray-300 transition-colors">
               
               <div className="space-y-4 pr-10">

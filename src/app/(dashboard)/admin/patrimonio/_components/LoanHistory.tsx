@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import type { LoanRow } from "@/src/types/dashboard";
 
-export default function LoanHistory({ allLoans }: { allLoans: any[] }) {
+export default function LoanHistory({ allLoans }: { allLoans: LoanRow[] }) {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("ALL"); // ALL, ACTIVE, RETURNED, LATE
 
@@ -11,11 +12,11 @@ export default function LoanHistory({ allLoans }: { allLoans: any[] }) {
       // Busca pelo nome do item ou usuário
       const matchSearch = 
         loan.item.name.toLowerCase().includes(search.toLowerCase()) || 
-        loan.user.name.toLowerCase().includes(search.toLowerCase());
+        (loan.user.name ?? "").toLowerCase().includes(search.toLowerCase());
       
       // Checagem de Status
       const isReturned = !!loan.returnedAt;
-      const isLate = !isReturned && loan.expectedReturn && new Date(loan.expectedReturn) < new Date();
+      const isLate = !!(!isReturned && loan.expectedReturn && new Date(loan.expectedReturn) < new Date());
       
       let matchStatus = true;
       if (filterStatus === "ACTIVE") matchStatus = !isReturned && !isLate;
@@ -26,7 +27,7 @@ export default function LoanHistory({ allLoans }: { allLoans: any[] }) {
     });
   }, [allLoans, search, filterStatus]);
 
-  const getStatusBadge = (loan: any) => {
+  const getStatusBadge = (loan: LoanRow) => {
     if (loan.returnedAt) {
       return (
         <span className="flex w-fit items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm">

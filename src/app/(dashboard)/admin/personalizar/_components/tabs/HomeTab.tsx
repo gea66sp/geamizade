@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
+import type { HomeSettingsForm } from "@/src/types/dashboard";
 
 interface HomeTabProps {
   isActive: boolean;
-  homeData: any;
-  setHomeData: (data: any) => void;
+  homeData: HomeSettingsForm;
+  setHomeData: (data: HomeSettingsForm) => void;
   heroImageMethod: "KEEP" | "FILE" | "URL";
   setHeroImageMethod: (method: "KEEP" | "FILE" | "URL") => void;
   heroImageFile: File | null;
@@ -134,7 +135,7 @@ export default function HomeTab({
       <section className="space-y-6">
         <div className="flex items-center gap-3 border-b border-gray-200 pb-3">
           <i className="fa-solid fa-users text-gray-400 text-lg"></i>
-          <h3 className="text-base font-bold text-gray-700 uppercase tracking-widest">Seção "Sobre Nós"</h3>
+          <h3 className="text-base font-bold text-gray-700 uppercase tracking-widest">Seção &quot;Sobre Nós&quot;</h3>
         </div>
 
         <div className="space-y-1.5">

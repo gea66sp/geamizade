@@ -1,7 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Branch } from "@prisma/client";
 import { saveTroop } from "../actions";
+
+import type { TroopListRow, UserOption } from "@/src/types/dashboard";
+
+type TroopToEdit = TroopListRow;
+type ManagerOption = UserOption;
 
 export default function TroopFormModal({
   isOpen,
@@ -11,29 +17,24 @@ export default function TroopFormModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  troopToEdit?: any;
-  managers: any[];
+  troopToEdit?: TroopToEdit | null;
+  managers: ManagerOption[];
 }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    branch: "ESCOTEIRO",
-    description: "",
-    managerId: "",
+  const [formData, setFormData] = useState<{
+    name: string;
+    branch: Branch;
+    description: string;
+    managerId: string;
+  }>({
+    // Inicializado direto da prop; quem renderiza passa uma `key` que muda com
+    // a tropa selecionada, então o React remonta em vez de sincronizar via
+    // efeito (que gerava render em cascata).
+    name: troopToEdit?.name ?? "",
+    branch: troopToEdit?.branch ?? "ESCOTEIRO",
+    description: troopToEdit?.description ?? "",
+    managerId: troopToEdit?.managerId ?? "",
   });
-
-  useEffect(() => {
-    if (troopToEdit) {
-      setFormData({
-        name: troopToEdit.name || "",
-        branch: troopToEdit.branch || "ESCOTEIRO",
-        description: troopToEdit.description || "",
-        managerId: troopToEdit.managerId || "",
-      });
-    } else {
-      setFormData({ name: "", branch: "ESCOTEIRO", description: "", managerId: "" });
-    }
-  }, [troopToEdit, isOpen]);
 
   if (!isOpen) return null;
 
@@ -102,7 +103,7 @@ export default function TroopFormModal({
                 </div>
                 <select
                   value={formData.branch}
-                  onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, branch: e.target.value as Branch })}
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none transition-all font-bold text-gray-800 appearance-none cursor-pointer"
                 >
                   <option value="LOBINHO">Ramo Lobinho (Alcateia)</option>

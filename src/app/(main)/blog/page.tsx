@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function BlogPublicPage() {
   const posts = await prisma.blogPost.findMany({
-    where: { published: true },
+    where: { status: "PUBLISHED" },
     include: {
       author: {
         select: { name: true },

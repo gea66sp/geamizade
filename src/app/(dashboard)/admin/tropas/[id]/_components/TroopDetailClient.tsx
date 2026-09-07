@@ -1,27 +1,74 @@
 "use client";
 
 import { useState } from "react";
+import { Branch, ItemCondition, TransactionStatus, TransactionType } from "@prisma/client";
 import { toggleTroopMember, moveMemberToPatrol, setPatrolLeadership, deletePatrolInternal } from "../actions";
 import PatrolFormModal from "./PatrolFormModal";
 import Link from "next/link";
 
-export default function TroopDetailClient({ 
-  troop, 
+// Contrato explícito com a page: estes tipos espelham os `select`/`include` de
+// tropas/[id]/page.tsx. Declará-los aqui faz o compilador acusar se a consulta
+// deixar de trazer um campo que a tela usa.
+type PersonSummary = { id: string; name: string | null; image: string | null };
+type YouthSummary = PersonSummary & { role: string };
+
+type PatrolDetail = {
+  id: string;
+  name: string;
+  leaderId: string | null;
+  subLeaderId: string | null;
+  leader: PersonSummary | null;
+  subLeader: PersonSummary | null;
+  members: YouthSummary[];
+};
+
+type TroopDetail = {
+  id: string;
+  name: string;
+  branch: Branch;
+  manager: PersonSummary | null;
+  patrols: PatrolDetail[];
+  members: YouthSummary[];
+};
+
+type FinancialRow = {
+  id: string;
+  title: string;
+  amount: number; // já sanitizado de Decimal para number na page
+  type: TransactionType;
+  status: TransactionStatus;
+  dueDate: Date | string;
+  patrol: { name: string } | null;
+  user: { name: string | null } | null;
+};
+
+type InventoryRow = {
+  id: string;
+  name: string;
+  chargeNumber: string;
+  category: string;
+  quantity: number;
+  condition: ItemCondition;
+  patrol: { name: string } | null;
+};
+
+export default function TroopDetailClient({
+  troop,
   availableYouth,
   financials,
   inventory
-}: { 
-  troop: any; 
-  availableYouth: any[];
-  financials: any[];
-  inventory: any[];
+}: {
+  troop: TroopDetail;
+  availableYouth: PersonSummary[];
+  financials: FinancialRow[];
+  inventory: InventoryRow[];
 }) {
   const [activeTab, setActiveTab] = useState<"MEMBROS" | "FINANCEIRO" | "PATRIMONIO">("MEMBROS");
   const [isLoading, setIsLoading] = useState(false);
 
   // Estados para o Modal de Patrulha
   const [isPatrolModalOpen, setIsPatrolModalOpen] = useState(false);
-  const [patrolToEdit, setPatrolToEdit] = useState<any | null>(null);
+  const [patrolToEdit, setPatrolToEdit] = useState<PatrolDetail | null>(null);
 
   // ==========================================
   // LÓGICA DE ARRASTAR E SOLTAR (MEMBROS)
@@ -77,10 +124,10 @@ export default function TroopDetailClient({
   };
 
   const formatCurrency = (val: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
-  const formatDate = (date: Date) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
+  const formatDate = (date: Date | string) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(date));
 
   // Componente Reutilizável: Cartão do Jovem
-  const YouthCard = ({ member, patrolId = null }: { member: any, patrolId?: string | null }) => (
+  const YouthCard = ({ member, patrolId = null }: { member: YouthSummary; patrolId?: string | null }) => (
     <div 
       draggable 
       onDragStart={(e) => handleDragStart(e, member.id)}
@@ -89,7 +136,7 @@ export default function TroopDetailClient({
     >
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 overflow-hidden shrink-0">
-          {member.image ? <img src={member.image} alt={member.name} className="w-full h-full object-cover" /> : <i className="fa-solid fa-user text-xs"></i>}
+          {member.image ? <img src={member.image} alt={member.name ?? "Membro"} className="w-full h-full object-cover" /> : <i className="fa-solid fa-user text-xs"></i>}
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-bold text-gray-800 leading-tight">{member.name}</span>
@@ -159,7 +206,7 @@ export default function TroopDetailClient({
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
               {troop.members.length === 0 ? (
                 <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 font-medium text-sm bg-white/50">Nenhum jovem aguardando patrulha.</div>
-              ) : ( troop.members.map((m: any) => <YouthCard key={m.id} member={m} />) )}
+              ) : ( troop.members.map((m) => <YouthCard key={m.id} member={m} />) )}
             </div>
 
             <div className="mt-4 pt-4 border-t border-gray-200 shrink-0">
@@ -184,7 +231,7 @@ export default function TroopDetailClient({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {troop.patrols.map((patrol: any) => (
+              {troop.patrols.map((patrol) => (
                   <div key={patrol.id} className="bg-white border-2 border-transparent hover:border-amber-200 rounded-2xl shadow-sm transition-colors flex flex-col h-130 overflow-hidden" onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, patrol.id)}>
                     <div className="bg-amber-50/70 p-4 border-b border-amber-100 flex justify-between items-center shrink-0">
                       <div className="flex items-center gap-2">
@@ -202,14 +249,14 @@ export default function TroopDetailClient({
                         <i className="fa-solid fa-star text-amber-400 w-4 text-center text-xs"></i>
                         <select value={patrol.leaderId || ""} onChange={(e) => handleLeadershipChange(patrol.id, e.target.value || null, patrol.subLeaderId)} className="flex-1 text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded p-1.5 focus:outline-none focus:border-amber-400 cursor-pointer">
                           <option value="">Monitor / Primo (Não definido)</option>
-                          {patrol.members.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                          {patrol.members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                         </select>
                       </div>
                       <div className="flex items-center gap-2">
                         <i className="fa-regular fa-star text-gray-400 w-4 text-center text-xs"></i>
                         <select value={patrol.subLeaderId || ""} onChange={(e) => handleLeadershipChange(patrol.id, patrol.leaderId, e.target.value || null)} className="flex-1 text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded p-1.5 focus:outline-none focus:border-gray-400 cursor-pointer">
                           <option value="">Submonitor / Segundo (Não definido)</option>
-                          {patrol.members.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                          {patrol.members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                         </select>
                       </div>
                     </div>
@@ -217,7 +264,7 @@ export default function TroopDetailClient({
                       {patrol.members.length === 0 ? (
                         <div className="h-full flex items-center justify-center text-center p-6 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 font-medium text-xs bg-white/40">Arraste jovens aqui para vinculá-los</div>
                       ) : (
-                        patrol.members.map((m: any) => (
+                        patrol.members.map((m) => (
                           <div key={m.id} className="relative">
                             {patrol.leaderId === m.id && <i className="fa-solid fa-star absolute -left-1.5 -top-1.5 text-amber-400 z-10 text-xs drop-shadow-sm" title="Monitor"></i>}
                             {patrol.subLeaderId === m.id && <i className="fa-regular fa-star absolute -left-1.5 -top-1.5 text-gray-400 z-10 text-xs drop-shadow-sm bg-white rounded-full" title="Submonitor"></i>}
@@ -385,7 +432,7 @@ export default function TroopDetailClient({
       )}
 
       {isPatrolModalOpen && (
-        <PatrolFormModal isOpen={isPatrolModalOpen} onClose={() => setIsPatrolModalOpen(false)} patrolToEdit={patrolToEdit} troopId={troop.id} />
+        <PatrolFormModal key={patrolToEdit?.id ?? "nova"} isOpen={isPatrolModalOpen} onClose={() => setIsPatrolModalOpen(false)} patrolToEdit={patrolToEdit} troopId={troop.id} />
       )}
     </div>
   );

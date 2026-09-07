@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { dischargeInventoryItem } from "../actions";
+import type { InventoryRow } from "@/src/types/dashboard";
 
-export default function DischargeModal({ isOpen, onClose, item }: { isOpen: boolean, onClose: () => void, item: any }) {
+export default function DischargeModal({ isOpen, onClose, item }: { isOpen: boolean; onClose: () => void; item: InventoryRow | null }) {
   const [reason, setReason] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");

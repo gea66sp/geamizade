@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { getUserFullDetails, updateUser } from "../actions";
 import { Role, Branch } from "@prisma/client";
 import { useRouter } from "next/navigation";
+import type { DependentTieRow, GuardianTieRow } from "@/src/types/dashboard";
 
 interface UserCompact {
   id: string;
@@ -28,7 +29,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); 
   const [selectedRole, setSelectedRole] = useState<Role>("MEMBER");
   const [selectedBranch, setSelectedBranch] = useState<Branch | "">("");
   
@@ -45,7 +45,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
     if (isOpen && userId) {
       setIsFetching(true);
       setMessage(null);
-      setPassword(""); 
       
       getUserFullDetails(userId).then(res => {
         if (res.success && res.user) {
@@ -55,9 +54,9 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
           setSelectedBranch(res.user.branch || "");
           
           if (res.user.role === "MEMBER") {
-            setSelectedFamilyIds(res.user.guardianTies.map((t: any) => t.guardianId));
+            setSelectedFamilyIds(res.user.guardianTies.map((t: GuardianTieRow) => t.guardianId));
           } else if (res.user.role === "RESPONSAVEL") {
-            setSelectedFamilyIds(res.user.dependentTies.map((t: any) => t.dependentId));
+            setSelectedFamilyIds(res.user.dependentTies.map((t: DependentTieRow) => t.dependentId));
           } else {
             setSelectedFamilyIds([]);
           }
@@ -98,7 +97,6 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
 
     const data = {
       name, email,
-      ...(password ? { password } : {}),
       role: selectedRole,
       branch: (selectedBranch as Branch) || undefined,
       familyTieIds: selectedFamilyIds,
@@ -185,14 +183,16 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="block text-sm font-bold text-gray-700">Nova Senha <span className="text-gray-400 font-normal text-xs">(Opcional)</span></label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i className="fa-solid fa-lock text-gray-400"></i>
-                  </div>
-                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} minLength={6} autoComplete="new-password" data-1p-ignore className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 text-gray-800 transition-all placeholder:text-gray-400" placeholder="Digite para alterar" />
-                </div>
+              {/* A senha saiu daqui: existe uma ação dedicada ("Redefinir
+                  senha", ícone de chave na lista). Ter dois caminhos com
+                  regras diferentes — um forçando a troca no 1º acesso e outro
+                  não — só criaria inconsistência. */}
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-start gap-2">
+                <i className="fa-solid fa-key text-gray-400 mt-0.5"></i>
+                <p className="text-xs text-gray-600">
+                  Para alterar a senha, use <strong>Redefinir senha</strong> na lista de usuários.
+                  A pessoa será obrigada a criar uma senha própria no acesso seguinte.
+                </p>
               </div>
 
               <div className="space-y-1.5">

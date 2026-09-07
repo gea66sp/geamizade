@@ -4,6 +4,7 @@ import { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { getInventoryReportData, getLoansReportData } from "../actions";
+import { getErrorMessage } from "@/src/lib/errors";
 
 // Mapas de tradução para o PDF
 const CONDITION_MAP = {
@@ -46,7 +47,7 @@ export default function ReportModal({ isOpen, onClose }: { isOpen: boolean, onCl
         if (res.error || !res.data) throw new Error(res.error);
 
         const tableColumn = ["Nº Carga", "Material", "Categoria", "Qtd", "Condição", "Status / Empréstimo"];
-        const tableRows = res.data.map((item: any) => {
+        const tableRows = res.data.map((item) => {
           let statusStr = "Disponível";
           if (!item.isActive) {
             statusStr = `BAIXADO\nMotivo: ${item.dischargeReason}`;
@@ -88,7 +89,7 @@ export default function ReportModal({ isOpen, onClose }: { isOpen: boolean, onCl
         if (res.error || !res.data) throw new Error(res.error);
 
         const tableColumn = ["Material", "Nº Carga", "Responsável", "Retirada", "Prev. Devolução", "Devolução Real", "Status"];
-        const tableRows = res.data.map((loan: any) => {
+        const tableRows = res.data.map((loan) => {
           const isReturned = !!loan.returnedAt;
           const isLate = !isReturned && loan.expectedReturn && new Date(loan.expectedReturn) < new Date();
           
@@ -120,8 +121,8 @@ export default function ReportModal({ isOpen, onClose }: { isOpen: boolean, onCl
       }
 
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Erro ao gerar PDF");
+    } catch (err) {
+      setError(getErrorMessage(err, "Erro ao gerar PDF"));
     } finally {
       setIsLoading(false);
     }

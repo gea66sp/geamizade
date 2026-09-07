@@ -43,7 +43,7 @@ export default async function Home() {
 
   // 4. Busca as últimas 3 notícias publicadas no banco de dados
   const highlightedPosts = await prisma.blogPost.findMany({
-    where: { published: true },
+    where: { status: "PUBLISHED" },
     include: {
       troop: {
         select: { name: true },
@@ -93,7 +93,18 @@ export default async function Home() {
   ];
 
   // Define qual lista de notícias renderizar
-  const displayPosts = highlightedPosts.length > 0 ? highlightedPosts : fallbackNews;
+  // A home cai num conteúdo estático quando ainda não há post publicado, então
+  // a lista é a união das duas formas.
+  type HomePost = {
+    id: string;
+    title: string;
+    content: string;
+    imageUrl: string | null;
+    slug: string;
+    troop?: { name: string } | null;
+    isExternal?: boolean;
+  };
+  const displayPosts: HomePost[] = highlightedPosts.length > 0 ? highlightedPosts : fallbackNews;
 
   const faqSchema = {
     "@context": "https://schema.org",
@@ -133,7 +144,7 @@ export default async function Home() {
             {heroShortText}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full sm:w-auto">
-            <Link href="#contato" className="btn-primary">
+            <Link href="#quero-ser-escoteiro" className="btn-primary">
               <i className="fa-solid fa-map-location-dot"></i> Quero ser Escoteiro
             </Link>
             <Link href="#sobre" className="btn-outline-white">
@@ -207,7 +218,7 @@ export default async function Home() {
               <h3 className="font-heading font-bold text-2xl text-gray-800 mb-2">Ramo Lobinho</h3>
               <span className="inline-block bg-yellow-100/50 text-yellow-800 text-sm font-bold px-4 py-1.5 rounded-full mb-4 mx-auto">6,5 a 10 anos</span>
               <p className="text-gray-600 mb-6 text-sm grow">Focado na socialização e no aprender brincando, inspirado no Livro da Selva.</p>
-              <p className="font-bold text-yellow-600 italic mt-auto tracking-wide">"Melhor Possível"</p>
+              <p className="font-bold text-yellow-600 italic mt-auto tracking-wide">&quot;Melhor Possível&quot;</p>
             </div>
 
             {/* Ramo Escoteiro */}
@@ -218,7 +229,7 @@ export default async function Home() {
               <h3 className="font-heading font-bold text-2xl text-gray-800 mb-2">Ramo Escoteiro</h3>
               <span className="inline-block bg-green-100/50 text-green-800 text-sm font-bold px-4 py-1.5 rounded-full mb-4 mx-auto">11 a 14 anos</span>
               <p className="text-gray-600 mb-6 text-sm grow">Aventura, sistema de patrulhas e acampamentos. A fase da descoberta e amizade.</p>
-              <p className="font-bold text-green-700 italic mt-auto tracking-wide">"Sempre Alerta"</p>
+              <p className="font-bold text-green-700 italic mt-auto tracking-wide">&quot;Sempre Alerta&quot;</p>
             </div>
 
             {/* Ramo Sênior */}
@@ -229,7 +240,7 @@ export default async function Home() {
               <h3 className="font-heading font-bold text-2xl text-gray-800 mb-2">Ramo Sênior</h3>
               <span className="inline-block bg-red-100/50 text-red-800 text-sm font-bold px-4 py-1.5 rounded-full mb-4 mx-auto">15 a 17 anos</span>
               <p className="text-gray-600 mb-6 text-sm grow">Superação de limites, grandes desafios físicos e exploração. Autoconhecimento.</p>
-              <p className="font-bold text-red-800 italic mt-auto tracking-wide">"Sempre Alerta"</p>
+              <p className="font-bold text-red-800 italic mt-auto tracking-wide">&quot;Sempre Alerta&quot;</p>
             </div>
 
             {/* Ramo Pioneiro */}
@@ -240,7 +251,7 @@ export default async function Home() {
               <h3 className="font-heading font-bold text-2xl text-gray-800 mb-2">Ramo Pioneiro</h3>
               <span className="inline-block bg-red-100/50 text-red-700 text-sm font-bold px-4 py-1.5 rounded-full mb-4 mx-auto">18 a 21 anos</span>
               <p className="text-gray-600 mb-6 text-sm grow">Projeto de vida, integração na sociedade e forte ênfase no serviço ao próximo.</p>
-              <p className="font-bold text-red-600 italic mt-auto tracking-wide">"Servir"</p>
+              <p className="font-bold text-red-600 italic mt-auto tracking-wide">&quot;Servir&quot;</p>
             </div>
           </div>
         </div>
@@ -259,7 +270,7 @@ export default async function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {displayPosts.map((post: any) => (
+          {displayPosts.map((post: HomePost) => (
             <div key={post.id} className="card-news flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="relative w-full h-48 shrink-0">
                 <Image 

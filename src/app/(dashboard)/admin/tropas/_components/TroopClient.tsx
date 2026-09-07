@@ -4,10 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import TroopFormModal from "./TroopFormModal";
 import { deleteTroop } from "../actions";
+import type { TroopListRow, UserOption } from "@/src/types/dashboard";
 
-export default function TroopClient({ initialTroops, managers }: { initialTroops: any[], managers: any[] }) {
+export default function TroopClient({ initialTroops, managers }: { initialTroops: TroopListRow[]; managers: UserOption[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [troopToEdit, setTroopToEdit] = useState<any | null>(null);
+  const [troopToEdit, setTroopToEdit] = useState<TroopListRow | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleOpenNew = () => {
@@ -15,7 +16,7 @@ export default function TroopClient({ initialTroops, managers }: { initialTroops
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (troop: any) => {
+  const handleOpenEdit = (troop: TroopListRow) => {
     setTroopToEdit(troop);
     setIsModalOpen(true);
   };
@@ -136,6 +137,7 @@ export default function TroopClient({ initialTroops, managers }: { initialTroops
 
       {isModalOpen && (
         <TroopFormModal
+          key={troopToEdit?.id ?? "nova"}
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           troopToEdit={troopToEdit}

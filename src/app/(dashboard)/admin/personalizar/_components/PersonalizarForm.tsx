@@ -5,15 +5,16 @@ import { saveSiteSettings } from "../actions";
 import HomeTab from "./tabs/HomeTab";
 import FaqTab from "./tabs/FaqTab";
 import InstitucionalTab from "./tabs/InstitucionalTab";
+import type { FaqForm, HomeSettingsForm, InstitutionalForm } from "@/src/types/dashboard";
 
 export default function PersonalizarForm({ 
   initialHome, 
   initialFaqs, 
   initialInst 
 }: { 
-  initialHome: any, 
-  initialFaqs: any[], 
-  initialInst: any 
+  initialHome: HomeSettingsForm,
+  initialFaqs: FaqForm[],
+  initialInst: InstitutionalForm 
 }) {
   const [activeTab, setActiveTab] = useState("HOME");
   const [isSaving, setIsSaving] = useState(false);
@@ -159,7 +160,7 @@ export default function PersonalizarForm({
   }
 
   const addFaq = () => setFaqs([...faqs, { question: "", answer: "", isActive: true }]);
-  const updateFaq = (index: number, field: string, value: any) => {
+  const updateFaq = (index: number, field: string, value: string | boolean) => {
     const newFaqs = [...faqs];
     newFaqs[index] = { ...newFaqs[index], [field]: value };
     setFaqs(newFaqs);

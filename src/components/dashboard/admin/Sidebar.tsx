@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
+import NotificationBell from "@/src/components/dashboard/NotificationBell";
+
 interface SidebarProps {
   userName?: string | null;
   userRole?: string;
@@ -73,14 +75,19 @@ export default function Sidebar({
             </span>
           </Link>
 
-          {/* Botão de fechar (X) visível apenas no mobile */}
-          <button 
-            onClick={onClose} 
-            aria-label="Fechar menu"
-            className="md:hidden text-gray-400 hover:text-scout-yellow p-2 w-8 h-8 flex items-center justify-center rounded-md bg-white/5 hover:bg-white/10 transition-colors cursor-pointer shrink-0"
-          >
-            <i className="fa-solid fa-xmark text-lg"></i>
-          </button>
+          <div className={`flex items-center gap-1 ${isCollapsed ? "md:hidden" : ""}`}>
+            {/* Sininho de notificações (desktop expandido e mobile) */}
+            <NotificationBell basePath="/admin" tone="dark" onNavigate={onClose} />
+
+            {/* Botão de fechar (X) visível apenas no mobile */}
+            <button
+              onClick={onClose}
+              aria-label="Fechar menu"
+              className="md:hidden text-gray-400 hover:text-scout-yellow p-2 w-8 h-8 flex items-center justify-center rounded-md bg-white/5 hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+            >
+              <i className="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
         </div>
 
         {/* Navegação Principal */}
@@ -98,6 +105,20 @@ export default function Sidebar({
           >
             <i className={`fa-solid fa-house text-lg w-5 text-center transition-colors shrink-0 ${isExactActive("/admin") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
             <span className={`whitespace-nowrap ${isCollapsed ? "hidden" : "block"}`}>Início</span>
+          </Link>
+
+          <Link
+            href="/admin/notificacoes"
+            onClick={onClose}
+            title="Notificações"
+            className={`flex items-center px-6 py-3.5 transition-all duration-200 group border-l-4 ${
+              isActive("/admin/notificacoes")
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold"
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
+            } ${isCollapsed ? "md:px-0 md:justify-center gap-0" : "gap-3"}`}
+          >
+            <i className={`fa-solid fa-bell text-lg w-5 text-center transition-colors shrink-0 ${isActive("/admin/notificacoes") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
+            <span className={`whitespace-nowrap ${isCollapsed ? "hidden" : "block"}`}>Notificações</span>
           </Link>
 
           {/* Divisor Visual quando Recolhido / Texto quando Expandido */}

@@ -1,5 +1,6 @@
 import prisma from "@/src/lib/prisma";
 import type { Metadata } from "next";
+import type { StatItem } from "@/src/types/dashboard";
 
 export const metadata: Metadata = {
   title: "Institucional | Grupo Escoteiro Amizade 66/SP",
@@ -31,7 +32,8 @@ export default async function InstitucionalPage() {
     );
   }
 
-  const stats = Array.isArray(instData.stats) ? instData.stats : [];
+  // Coluna Json: o banco não garante forma. Este painel é o único escritor.
+  const stats = (Array.isArray(instData.stats) ? instData.stats : []) as StatItem[];
 
   return (
     <main className="bg-white w-full animate-fade-in">
@@ -92,7 +94,7 @@ export default async function InstitucionalPage() {
         <section className="bg-scout-green text-white relative z-10 shadow-lg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center divide-x-0 md:divide-x divide-white/20">
-              {stats.map((stat: any, i: number) => (
+              {stats.map((stat: StatItem, i: number) => (
                 <div key={i} className="flex flex-col items-center justify-center">
                   <p className="text-3xl md:text-5xl font-black mb-1 drop-shadow-sm">{stat.value}</p>
                   <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-scout-yellow">
@@ -250,7 +252,7 @@ export default async function InstitucionalPage() {
                   </div>
 
                   <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-8 italic flex-1">
-                    "{t.quote}"
+                    &quot;{t.quote}&quot;
                   </p>
 
                   <div className="flex items-center gap-4 mt-auto border-t border-gray-200 pt-5">

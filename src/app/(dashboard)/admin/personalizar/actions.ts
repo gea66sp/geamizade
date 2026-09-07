@@ -3,8 +3,54 @@
 import prisma from "@/src/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { put, del } from "@vercel/blob"; // Requer @vercel/blob instalado
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/src/lib/auth";
+
+// ==========================================
+// FORMATOS RECEBIDOS DO FORMULÁRIO
+// Estes blocos chegam como JSON dentro do FormData, então o JSON.parse não
+// tem como inferir o tipo. Declará-los aqui documenta o contrato entre o
+// PersonalizarForm e esta action — e os campos são tratados como opcionais
+// porque a origem é o cliente.
+// ==========================================
+type FaqPayload = { question?: string; answer?: string; isActive?: boolean };
+type BoardMemberPayload = { name?: string; role?: string; bio?: string; imageUrl?: string };
+type TestimonialPayload = {
+  authorName?: string;
+  authorRole?: string;
+  quote?: string;
+  rating?: number;
+};
+
+// ==========================================
+// SEGURANÇA: Esta action grava diretamente no site público
+// (Home, Institucional, FAQ). Assim como a página admin/personalizar
+// restringe o acesso a ADMIN, a action precisa revalidar isso de forma
+// independente, pois Server Actions são endpoints próprios e não herdam
+// a proteção do layout/página.
+// ==========================================
+async function getAuthorizedUser() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.email) {
+    throw new Error("Sua sessão expirou. Faça login novamente.");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true },
+  });
+
+  if (!user || user.role !== "ADMIN") {
+    throw new Error("Acesso negado. Apenas administradores podem personalizar o site.");
+  }
+
+  return user;
+}
 
 export async function saveSiteSettings(formData: FormData) {
+  await getAuthorizedUser();
+
   // ==========================================
   // 1. CONFIGURAÇÕES DA HOME PAGE
   // ==========================================
@@ -22,9 +68,12 @@ export async function saveSiteSettings(formData: FormData) {
       finalHeroImageUrl = blob.url;
     }
   } else if (heroImageMethod === "URL") {
-    const externalUrl = formData.get("heroImageUrl") as string;
-    if (finalHeroImageUrl?.includes("blob.vercel-storage.com")) await del(finalHeroImageUrl);
-    finalHeroImageUrl = externalUrl;
+    const externalUrl = (formData.get("heroImageUrl") as string | null)?.trim();
+    // Só substitui/apaga a imagem atual se uma nova URL válida foi realmente enviada.
+    if (externalUrl) {
+      if (finalHeroImageUrl?.includes("blob.vercel-storage.com")) await del(finalHeroImageUrl);
+      finalHeroImageUrl = externalUrl;
+    }
   }
 
   // --- LÓGICA DE IMAGEM: ABOUT ---
@@ -39,9 +88,12 @@ export async function saveSiteSettings(formData: FormData) {
       finalAboutImageUrl = blob.url;
     }
   } else if (aboutImageMethod === "URL") {
-    const externalUrl = formData.get("aboutImageUrl") as string;
-    if (finalAboutImageUrl?.includes("blob.vercel-storage.com")) await del(finalAboutImageUrl);
-    finalAboutImageUrl = externalUrl;
+    const externalUrl = (formData.get("aboutImageUrl") as string | null)?.trim();
+    // Só substitui/apaga a imagem atual se uma nova URL válida foi realmente enviada.
+    if (externalUrl) {
+      if (finalAboutImageUrl?.includes("blob.vercel-storage.com")) await del(finalAboutImageUrl);
+      finalAboutImageUrl = externalUrl;
+    }
   }
 
   // Salvar/Atualizar HomePageSettings
@@ -65,16 +117,16 @@ export async function saveSiteSettings(formData: FormData) {
   // ==========================================
   const faqsJson = formData.get("faqs") as string;
   if (faqsJson) {
-    const faqs = JSON.parse(faqsJson);
+    const faqs: FaqPayload[] = JSON.parse(faqsJson);
     
     await prisma.$transaction([
       prisma.faq.deleteMany({}),
       prisma.faq.createMany({
-        data: faqs.map((f: any, index: number) => ({
-          question: f.question,
-          answer: f.answer,
-          isActive: f.isActive,
-          order: index, 
+        data: faqs.map((f, index) => ({
+          question: f.question || "",
+          answer: f.answer || "",
+          isActive: f.isActive ?? true,
+          order: index,
         }))
       })
     ]);
@@ -97,17 +149,20 @@ export async function saveSiteSettings(formData: FormData) {
       finalHistoryImageUrl = blob.url;
     }
   } else if (historyImageMethod === "URL") {
-    const externalUrl = formData.get("historyImageUrl") as string;
-    if (finalHistoryImageUrl?.includes("blob.vercel-storage.com")) await del(finalHistoryImageUrl);
-    finalHistoryImageUrl = externalUrl;
+    const externalUrl = (formData.get("historyImageUrl") as string | null)?.trim();
+    // Só substitui/apaga a imagem atual se uma nova URL válida foi realmente enviada.
+    if (externalUrl) {
+      if (finalHistoryImageUrl?.includes("blob.vercel-storage.com")) await del(finalHistoryImageUrl);
+      finalHistoryImageUrl = externalUrl;
+    }
   }
 
   // Parse dos Arrays/JSON
   const statsData = JSON.parse((formData.get("stats") as string) || "[]");
   const historyParagraphsData = JSON.parse((formData.get("historyParagraphs") as string) || "[]");
   const valuesListData = JSON.parse((formData.get("valuesList") as string) || "[]");
-  const boardMembersData = JSON.parse((formData.get("boardMembers") as string) || "[]");
-  const testimonialsData = JSON.parse((formData.get("testimonials") as string) || "[]");
+  const boardMembersData: BoardMemberPayload[] = JSON.parse((formData.get("boardMembers") as string) || "[]");
+  const testimonialsData: TestimonialPayload[] = JSON.parse((formData.get("testimonials") as string) || "[]");
 
   const instData = {
     stats: statsData,
@@ -143,7 +198,7 @@ export async function saveSiteSettings(formData: FormData) {
       
       // Cria os novos Membros da Diretoria
       prisma.boardMember.createMany({
-        data: boardMembersData.map((member: any) => ({
+        data: boardMembersData.map((member) => ({
           pageId: instPageId as string,
           name: member.name || "",
           role: member.role || "",
@@ -154,7 +209,7 @@ export async function saveSiteSettings(formData: FormData) {
       
       // Cria os novos Depoimentos
       prisma.testimonial.createMany({
-        data: testimonialsData.map((testim: any) => ({
+        data: testimonialsData.map((testim) => ({
           pageId: instPageId as string,
           authorName: testim.authorName || "",
           authorRole: testim.authorRole || "",

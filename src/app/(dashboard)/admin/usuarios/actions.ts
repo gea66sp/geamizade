@@ -4,13 +4,22 @@ import prisma from "@/src/lib/prisma";
 import { hash } from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
-import { Role, Branch } from "@prisma/client";
+import { Prisma, Role, Branch } from "@prisma/client";
 import { del } from "@vercel/blob"; // Importação vital para a limpeza
+import { getPrismaErrorCode } from "@/src/lib/errors";
+import { canGrantRole } from "@/src/lib/userAccess";
+import { assertPasswordPolicy, describeMissingRequirements, isPasswordValid } from "@/src/lib/passwordPolicy";
+import { dispatchNotifications } from "@/src/lib/notifications";
 
 // ==========================================
 // CONFIGURAÇÕES DE SEGURANÇA
+// Quem entra nesta área do admin. O CHEFE tem o próprio caminho de cadastro
+// em /chefe/tropa, restrito a jovens da seção dele — ver src/lib/troopMembers.
+//
+// Qual CARGO cada um pode conceder é decidido por `canGrantRole`
+// (src/lib/userAccess.ts), que é uma lista de permissão, não de negação.
 // ==========================================
-const ALLOWED_MANAGERS = ["ADMIN", "DEVELOPER", "FINANCEIRO", "CHEFE"];
+const ALLOWED_MANAGERS = ["ADMIN", "DEVELOPER", "FINANCEIRO"];
 
 // ==========================================
 // CRIAR USUÁRIO
@@ -36,19 +45,20 @@ export async function createNewUser(formData: {
       return { success: false, error: "Acesso negado: Apenas a chefia e diretoria podem cadastrar novos membros." };
     }
 
-    // 2ª TRAVA: Apenas ADMIN/DEV pode criar outros ADMINS ou cargos financeiros
-    const restrictedRoles: Role[] = ["ADMIN", "DEVELOPER", "FINANCEIRO"];
-    if (currentUserRole !== "ADMIN" && currentUserRole !== "DEVELOPER" && restrictedRoles.includes(formData.role)) {
+    // 2ª TRAVA: o cargo pedido precisa estar na lista de permissão de quem pede
+    if (!canGrantRole(currentUserRole, formData.role)) {
       return { success: false, error: `Acesso negado: Você não tem permissão para conceder o cargo de ${formData.role}.` };
     }
 
     if (formData.email) {
-      const existingUser = await prisma.user.findUnique({ where: { email: formData.email } });
+      const existingUser = await prisma.user.findFirst({ where: { email: { equals: formData.email.trim(), mode: "insensitive" } } });
       if (existingUser) return { success: false, error: "Já existe uma conta registrada com este e-mail no grupo." };
     }
 
     let hashedPassword = null;
     if (formData.password) {
+      // Política única do sistema — ver src/lib/passwordPolicy.ts
+      assertPasswordPolicy(formData.password);
       hashedPassword = await hash(formData.password, 12);
     }
 
@@ -104,8 +114,7 @@ export async function getUserFullDetails(userId: string) {
       include: {
         guardianTies: { include: { guardian: true } },
         dependentTies: { include: { dependent: true } },
-        personalDocs: { orderBy: { createdAt: 'desc' } }, 
-        progressions: { orderBy: { earnedDate: 'desc' } },
+        personalDocs: { orderBy: { createdAt: 'desc' } },
         financials: { orderBy: { dueDate: 'desc' }, take: 5 },
         troop: true,
         managedTroops: true,
@@ -147,19 +156,18 @@ export async function updateUser(userId: string, formData: {
       return { success: false, error: "Apenas a gestão do grupo pode alterar os dados de outros membros." };
     }
 
-    const restrictedRoles: Role[] = ["ADMIN", "DEVELOPER", "FINANCEIRO"];
-    if (currentUserRole !== "ADMIN" && currentUserRole !== "DEVELOPER" && restrictedRoles.includes(formData.role)) {
+    if (!canGrantRole(currentUserRole, formData.role)) {
       return { success: false, error: `Você não possui autoridade para definir o cargo de ${formData.role}.` };
     }
 
     if (formData.email) {
-      const existingUser = await prisma.user.findUnique({ where: { email: formData.email } });
+      const existingUser = await prisma.user.findFirst({ where: { email: { equals: formData.email.trim(), mode: "insensitive" } } });
       if (existingUser && existingUser.id !== userId) {
         return { success: false, error: "Este e-mail já está sendo utilizado por outro membro." };
       }
     }
 
-    let updateData: any = {
+    const updateData: Prisma.UserUpdateInput = {
       name: formData.name.trim(),
       email: formData.email.trim(),
       role: formData.role,
@@ -167,6 +175,7 @@ export async function updateUser(userId: string, formData: {
     };
 
     if (formData.password && formData.password.trim().length > 0) {
+      assertPasswordPolicy(formData.password);
       updateData.password = await hash(formData.password, 12);
     }
 
@@ -243,11 +252,11 @@ export async function deleteUser(userId: string) {
     });
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Erro ao excluir usuário:", error);
     
     // Tratamento específico de erro de Chave Estrangeira do Prisma (P2003)
-    if (error.code === 'P2003') {
+    if (getPrismaErrorCode(error) === 'P2003') {
       return { 
         success: false, 
         error: "Bloqueio do Sistema: Este membro possui mensalidades, recibos ou materiais do almoxarifado atrelados ao nome dele. Remova esses vínculos ou repasse-os para outro responsável antes de excluir o cadastro." 
@@ -255,5 +264,73 @@ export async function deleteUser(userId: string) {
     }
     
     return { success: false, error: "Erro crítico ao tentar remover o usuário." };
+  }
+}
+// ==========================================
+// REDEFINIR SENHA DE OUTRO USUÁRIO (DIRETORIA)
+// ==========================================
+// Restrito a ADMIN/DEVELOPER ou membros da Diretoria — é a operação que dá
+// acesso à conta de outra pessoa, então não acompanha `ALLOWED_MANAGERS`
+// (que inclui FINANCEIRO).
+//
+// A conta redefinida fica com `mustChangePassword: true`: quem redefiniu
+// entrega uma senha provisória e o próprio dono escolhe a definitiva no
+// primeiro acesso. Assim ninguém da Diretoria fica conhecendo a senha de uso.
+export async function resetUserPassword(userId: string, newPassword: string) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return { success: false, error: "Sessão expirada. Faça login novamente." };
+    }
+
+    const actor = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, role: true, branch: true },
+    });
+
+    const isDiretoria =
+      actor?.role === "ADMIN" || actor?.role === "DEVELOPER" || actor?.branch === "DIRETORIA";
+
+    if (!isDiretoria) {
+      return {
+        success: false,
+        error: "Acesso negado: apenas a Diretoria pode redefinir a senha de outro usuário.",
+      };
+    }
+
+    // A validação da tela é conveniência; esta aqui é a barreira.
+    if (!isPasswordValid(newPassword)) {
+      return { success: false, error: describeMissingRequirements(newPassword) };
+    }
+
+    const target = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true },
+    });
+    if (!target) return { success: false, error: "Usuário não encontrado." };
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: await hash(newPassword, 12),
+        mustChangePassword: true,
+      },
+    });
+
+    // A pessoa precisa saber que a senha dela mudou — se não foi ela quem
+    // pediu, é sinal de que algo está errado e ela deve procurar a Diretoria.
+    await dispatchNotifications({
+      recipientUserIds: [userId],
+      title: "Sua senha foi redefinida",
+      message: `A Diretoria definiu uma nova senha provisória para a sua conta. No próximo acesso você precisará criar uma senha própria. Se não solicitou isso, procure a Diretoria.`,
+      origin: "AUTO",
+      senderId: actor.id,
+      includeGuardians: false,
+    });
+
+    return { success: true, userName: target.name };
+  } catch (error) {
+    console.error("Erro ao redefinir senha:", error);
+    return { success: false, error: "Falha ao redefinir a senha." };
   }
 }

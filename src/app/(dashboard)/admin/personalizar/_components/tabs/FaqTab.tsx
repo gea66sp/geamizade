@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
+import type { FaqForm } from "@/src/types/dashboard";
 
 interface FaqTabProps {
   isActive: boolean;
-  faqs: any[];
+  faqs: FaqForm[];
   addFaq: () => void;
-  updateFaq: (index: number, field: string, value: any) => void;
+  updateFaq: (index: number, field: string, value: string | boolean) => void;
   removeFaq: (index: number) => void;
 }
 

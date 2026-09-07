@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { savePatrolInternal } from "../actions";
 
 export default function PatrolFormModal({
@@ -11,19 +11,14 @@ export default function PatrolFormModal({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  patrolToEdit?: any;
+  patrolToEdit?: { id: string; name: string } | null;
   troopId: string;
 }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [name, setName] = useState("");
-
-  useEffect(() => {
-    if (patrolToEdit) {
-      setName(patrolToEdit.name || "");
-    } else {
-      setName("");
-    }
-  }, [patrolToEdit, isOpen]);
+  // Estado inicializado direto da prop: quem renderiza passa uma `key` que muda
+  // com a patrulha selecionada, então o React remonta e o formulário nunca
+  // exibe o resto do item anterior.
+  const [name, setName] = useState(patrolToEdit?.name ?? "");
 
   if (!isOpen) return null;
 

@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { updateTransaction } from "../actions";
+import type { TransactionRow, TroopOption, UserOption } from "@/src/types/dashboard";
+import { getErrorMessage } from "@/src/lib/errors";
 
 interface ModalEditarTransacaoProps {
-  transaction: any;
+  transaction: TransactionRow | null;
   isOpen: boolean;
   onClose: () => void;
-  users: { id: string; name: string | null; branch: string | null }[];
-  troops: any[]; // <-- NOVO: Recebendo as tropas para o seletor
+  users: UserOption[];
+  troops: TroopOption[]; // Tropas (com patrulhas) para o seletor de escopo
 }
 
 export default function ModalEditarTransacao({ transaction, isOpen, onClose, users, troops }: ModalEditarTransacaoProps) {
@@ -31,7 +33,7 @@ export default function ModalEditarTransacao({ transaction, isOpen, onClose, use
       if (transaction.patrolId) {
         setScope("PATROL");
         // Precisamos achar qual a tropa dona dessa patrulha para abrir o select certo
-        const parentTroop = troops.find(t => t.patrols.some((p: any) => p.id === transaction.patrolId));
+        const parentTroop = troops.find(t => t.patrols?.some((p) => p.id === transaction.patrolId));
         setSelectedTroopId(parentTroop ? parentTroop.id : "");
         setSelectedPatrolId(transaction.patrolId);
       } else if (transaction.troopId) {
@@ -49,7 +51,7 @@ export default function ModalEditarTransacao({ transaction, isOpen, onClose, use
   if (!isOpen || !transaction) return null;
 
   // Formata data do banco (Date) para o input type="date" (YYYY-MM-DD)
-  const formatDateForInput = (date: Date | null) => {
+  const formatDateForInput = (date: Date | string | null | undefined) => {
     if (!date) return "";
     return new Date(date).toISOString().split("T")[0];
   };
@@ -58,12 +60,15 @@ export default function ModalEditarTransacao({ transaction, isOpen, onClose, use
     e.preventDefault();
     setIsSaving(true);
     const formData = new FormData(e.currentTarget);
-    
+    if (!transaction) return;
+
     try {
       await updateTransaction(transaction.id, formData);
       onClose();
-    } catch (err: any) {
-      if (err.message !== "NEXT_REDIRECT") alert(err.message || "Erro ao editar transação.");
+    } catch (err) {
+      // NEXT_REDIRECT é o "erro" que o Next lança ao redirecionar — não é falha.
+      const msg = getErrorMessage(err, "Erro ao editar transação.");
+      if (msg !== "NEXT_REDIRECT") alert(msg);
     } finally {
       setIsSaving(false);
     }
@@ -207,7 +212,7 @@ export default function ModalEditarTransacao({ transaction, isOpen, onClose, use
                   disabled={!selectedTroopId}
                 >
                   <option value="">{selectedTroopId ? "Selecione..." : "Escolha a Tropa primeiro"}</option>
-                  {currentPatrols.map((p: any) => (
+                  {currentPatrols.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
@@ -234,7 +239,7 @@ export default function ModalEditarTransacao({ transaction, isOpen, onClose, use
                 id="edit-tx-status"
                 name="status" 
                 value={status} 
-                onChange={(e) => setStatus(e.target.value as any)} 
+                onChange={(e) => setStatus(e.target.value as "PENDING" | "PAID" | "CANCELLED")} 
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 cursor-pointer font-bold transition-all"
               >
                 <option value="PENDING">⌛ Pendente</option>

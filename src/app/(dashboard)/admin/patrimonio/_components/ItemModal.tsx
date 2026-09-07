@@ -1,55 +1,48 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { ItemCondition } from "@prisma/client";
 import { saveInventoryItem } from "../actions";
+import type { InventoryRow, TroopOption } from "@/src/types/dashboard";
 
-export default function ItemModal({ isOpen, onClose, item, troops }: { isOpen: boolean, onClose: () => void, item: any, troops: any[] }) {
+// Opção do select de "Responsável pelo material" — mesmo shape que
+// patrimonio/page.tsx já busca para os demais selects da tela.
+type UserOption = { id: string; name: string | null };
+
+export default function ItemModal({ isOpen, onClose, item, troops, users = [] }: { isOpen: boolean; onClose: () => void; item: InventoryRow | null; troops: TroopOption[]; users?: UserOption[] }) {
+  // Inicializado direto da prop; quem renderiza passa uma `key` que muda com o
+  // item selecionado, então o React remonta em vez de sincronizar via efeito.
   const [formData, setFormData] = useState({
-    chargeNumber: "",
-    name: "",
-    category: "",
-    quantity: 1,
-    condition: "GOOD",
-    notes: "",
-    troopId: "",
-    patrolId: ""
+    chargeNumber: item?.chargeNumber ?? "",
+    name: item?.name ?? "",
+    category: item?.category ?? "",
+    quantity: item?.quantity ?? 1,
+    condition: (item?.condition ?? "GOOD") as string,
+    notes: item?.notes ?? "",
+    troopId: item?.troopId ?? "",
+    patrolId: item?.patrolId ?? "",
+    assignedUserId: item?.assignedUserId ?? "",
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (item) {
-      setFormData({
-        chargeNumber: item.chargeNumber || "",
-        name: item.name,
-        category: item.category,
-        quantity: item.quantity,
-        condition: item.condition,
-        notes: item.notes || "",
-        troopId: item.troopId || "",
-        patrolId: item.patrolId || "",
-      });
-    } else {
-      setFormData({ 
-        chargeNumber: "", name: "", category: "", quantity: 1, condition: "GOOD", notes: "", troopId: "", patrolId: "" 
-      });
-    }
-    setError("");
-  }, [item, isOpen]);
 
   if (!isOpen) return null;
 
   // Lógica para mostrar as patrulhas apenas se a tropa selecionada possuir patrulhas
   const selectedTroopData = troops.find(t => t.id === formData.troopId);
-  const currentPatrols = selectedTroopData ? selectedTroopData.patrols : [];
+  const currentPatrols = selectedTroopData?.patrols ?? [];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
     
-    const res = await saveInventoryItem({ id: item?.id, ...formData } as any);
+    const res = await saveInventoryItem({
+      id: item?.id,
+      ...formData,
+      condition: formData.condition as ItemCondition,
+    });
     setIsLoading(false);
     
     if (res.error) setError(res.error); 
@@ -155,15 +148,30 @@ export default function ItemModal({ isOpen, onClose, item, troops }: { isOpen: b
 
                 <div className="space-y-1.5">
                   <label className="block text-sm font-bold text-gray-700">Sub-alocação (Patrulha)</label>
-                  <select 
-                    value={formData.patrolId} 
+                  <select
+                    value={formData.patrolId}
                     onChange={e => setFormData({...formData, patrolId: e.target.value})}
                     disabled={!formData.troopId} // Só ativa se tiver Tropa selecionada
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none transition-all text-sm font-bold text-gray-800 cursor-pointer disabled:opacity-50 disabled:bg-gray-100"
                   >
                     <option value="">{formData.troopId ? "Tropa Inteira (Uso Comum)" : "Selecione uma Seção primeiro..."}</option>
-                    {currentPatrols.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {currentPatrols.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700">Responsável pelo material (carga individual)</label>
+                  <select
+                    value={formData.assignedUserId}
+                    onChange={e => setFormData({...formData, assignedUserId: e.target.value})}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none transition-all text-sm font-bold text-gray-800 cursor-pointer"
+                  >
+                    <option value="">Ninguém (material coletivo)</option>
+                    {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  </select>
+                  <p className="text-xs text-gray-500">
+                    Ao definir um responsável, ele recebe uma notificação automática sobre o material.
+                  </p>
                 </div>
 
               </div>

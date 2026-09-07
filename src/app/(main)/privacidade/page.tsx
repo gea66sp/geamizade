@@ -57,8 +57,8 @@ export default function PrivacyPage() {
                 <ul className="list-policy">
                   <li>Dados pessoais (Nome, E-mail, Telefone);</li>
                   <li>Vínculos familiares (Pai/Mãe/Responsável);</li>
-                  <li>Ramos escoteiros e progressão jovem;</li>
-                  <li>Fichas médicas (exclusivo para segurança em atividades).</li>
+                  <li>Ramo escoteiro, tropa e patrulha;</li>
+                  <li>Documentos enviados por você (fichas médicas, autorizações e carteirinha, exclusivos para segurança em atividades).</li>
                 </ul>
               </div>
               <div className="space-y-4">
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
                   <i className="fa-solid fa-chart-line text-gray-400"></i> Estatísticos
                 </span>
                 <p className="text-sm text-gray-600 leading-relaxed font-medium">
-                  Através do Google Analytics, coletamos dados anônimos de acesso para entender quais seções do site são mais úteis. Só são ativados se você clicar em "Aceitar Todos".
+                  Através do Google Analytics, coletamos dados anônimos de acesso para entender quais seções do site são mais úteis. Só são ativados se você clicar em &quot;Aceitar Todos&quot;.
                 </p>
               </div>
             </div>

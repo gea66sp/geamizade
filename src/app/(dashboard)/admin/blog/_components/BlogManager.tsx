@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 
 import {
+  approveBlogPost,
   createBlogPost,
   deleteBlogPost,
-  setBlogPostPublication,
+  rejectBlogPost,
+  setBlogPostStatus,
   updateBlogPost,
 } from "../actions";
 
@@ -17,13 +19,16 @@ type TroopOption = {
   branch: string;
 };
 
+type PostStatusValue = "DRAFT" | "PENDING_REVIEW" | "PUBLISHED" | "REJECTED";
+
 type BlogPostItem = {
   id: string;
   title: string;
   slug: string;
   content: string;
   imageUrl: string | null;
-  published: boolean;
+  status: PostStatusValue;
+  rejectionReason: string | null;
   troopId: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -58,10 +63,26 @@ type PostDraft = {
   content: string;
   imageUrl: string;
   troopId: string;
-  published: boolean;
+  status: "DRAFT" | "PUBLISHED";
 };
 
 const INITIAL_CONTENT = "<p><br/></p>";
+
+const STATUS_META: Record<PostStatusValue, { label: string; className: string }> = {
+  DRAFT: { label: "Rascunho", className: "bg-amber-50 text-amber-700 border border-amber-200" },
+  PENDING_REVIEW: { label: "Aguardando Aprovação", className: "bg-blue-50 text-blue-700 border border-blue-200" },
+  PUBLISHED: { label: "Publicado", className: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+  REJECTED: { label: "Rejeitado", className: "bg-red-50 text-red-700 border border-red-200" },
+};
+
+function StatusBadge({ status }: { status: PostStatusValue }) {
+  const meta = STATUS_META[status];
+  return (
+    <span className={`text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-widest ${meta.className}`}>
+      {meta.label}
+    </span>
+  );
+}
 
 function toSlug(value: string): string {
   return value
@@ -87,7 +108,7 @@ function createEmptyDraft(): PostDraft {
     content: INITIAL_CONTENT,
     imageUrl: "",
     troopId: "",
-    published: false,
+    status: "DRAFT",
   };
 }
 
@@ -113,7 +134,7 @@ export default function BlogManager({
 
   const [posts, setPosts] = useState<BlogPostItem[]>(initialPosts);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "PUBLISHED" | "DRAFT">("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | PostStatusValue>("ALL");
   const [troopFilter, setTroopFilter] = useState("ALL");
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -152,11 +173,10 @@ export default function BlogManager({
       const query = search.trim().toLowerCase();
 
       const matchesSearch = query.length === 0 || text.includes(query);
-      const matchesStatus =
-        statusFilter === "ALL" ||
-        (statusFilter === "PUBLISHED" ? post.published : !post.published);
+      const matchesStatus = statusFilter === "ALL" || post.status === statusFilter;
       const matchesTroop =
-        troopFilter === "ALL" || (post.troopId && post.troopId === troopFilter);
+        troopFilter === "ALL" ||
+        (troopFilter === "" ? !post.troopId : post.troopId === troopFilter);
 
       return matchesSearch && matchesStatus && matchesTroop;
     });
@@ -176,7 +196,7 @@ export default function BlogManager({
       content: post.content,
       imageUrl: post.imageUrl ?? "",
       troopId: post.troopId ?? "",
-      published: post.published,
+      status: post.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
     });
     setSlugTouched(true);
     setIsFormOpen(true);
@@ -265,7 +285,7 @@ export default function BlogManager({
         slug: draft.slug,
         content: htmlContent,
         imageUrl: draft.imageUrl || null,
-        published: draft.published,
+        status: draft.status,
         troopId: draft.troopId || null,
       };
 
@@ -293,7 +313,8 @@ export default function BlogManager({
   };
 
   const togglePublication = async (post: BlogPostItem) => {
-    const result = await setBlogPostPublication(post.id, !post.published);
+    const nextStatus = post.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
+    const result = await setBlogPostStatus(post.id, nextStatus);
     if (!result.success) {
       setToast({
         type: "error",
@@ -304,8 +325,35 @@ export default function BlogManager({
 
     setToast({
       type: "success",
-      message: !post.published ? "Publicação liberada no site." : "Publicação retornou para rascunho.",
+      message: nextStatus === "PUBLISHED" ? "Publicação liberada no site." : "Publicação retornou para rascunho.",
     });
+    router.refresh();
+  };
+
+  const approvePost = async (post: BlogPostItem) => {
+    const result = await approveBlogPost(post.id);
+    if (!result.success) {
+      setToast({ type: "error", message: result.error || "Não foi possível aprovar a publicação." });
+      return;
+    }
+    setToast({ type: "success", message: "Publicação aprovada e liberada no site." });
+    router.refresh();
+  };
+
+  const rejectPost = async (post: BlogPostItem) => {
+    const reason = window.prompt("Explique o motivo da rejeição (o autor vai ver esta mensagem):");
+    if (reason === null) return;
+    if (!reason.trim()) {
+      setToast({ type: "error", message: "Informe o motivo da rejeição." });
+      return;
+    }
+
+    const result = await rejectBlogPost(post.id, reason);
+    if (!result.success) {
+      setToast({ type: "error", message: result.error || "Não foi possível rejeitar a publicação." });
+      return;
+    }
+    setToast({ type: "success", message: "Publicação rejeitada." });
     router.refresh();
   };
 
@@ -335,7 +383,8 @@ export default function BlogManager({
       slug: draft.slug || toSlug(draft.title || "publicacao"),
       content: editorRef.current?.innerHTML || draft.content || INITIAL_CONTENT,
       imageUrl: draft.imageUrl || null,
-      published: draft.published,
+      status: draft.status,
+      rejectionReason: null,
       troopId: draft.troopId || null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -415,12 +464,14 @@ export default function BlogManager({
         <div className="flex flex-col sm:flex-row gap-3">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as "ALL" | "PUBLISHED" | "DRAFT")}
+            onChange={(e) => setStatusFilter(e.target.value as "ALL" | PostStatusValue)}
             className="cursor-pointer px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold text-gray-700 focus:bg-white focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green outline-none"
           >
             <option value="ALL">Todos os Status</option>
             <option value="PUBLISHED">Publicados</option>
             <option value="DRAFT">Rascunhos</option>
+            <option value="PENDING_REVIEW">Aguardando Aprovação</option>
+            <option value="REJECTED">Rejeitados</option>
           </select>
 
           <select
@@ -451,15 +502,7 @@ export default function BlogManager({
               <div className="p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="font-heading text-lg font-bold text-gray-800 leading-tight">{post.title}</h3>
-                  <span
-                    className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-widest ${
-                      post.published
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-amber-50 text-amber-700 border border-amber-200"
-                    }`}
-                  >
-                    {post.published ? "Publicado" : "Rascunho"}
-                  </span>
+                  <StatusBadge status={post.status} />
                 </div>
 
                 <p className="text-xs font-medium text-gray-500">
@@ -467,6 +510,13 @@ export default function BlogManager({
                 </p>
 
                 <p className="text-sm text-gray-600 line-clamp-3">{extractTextFromHtml(post.content)}</p>
+
+                {post.status === "REJECTED" && post.rejectionReason && (
+                  <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">
+                    <i className="fa-solid fa-circle-exclamation mr-1.5"></i>
+                    {post.rejectionReason}
+                  </p>
+                )}
 
                 <div className="flex flex-wrap gap-2">
                   <span className="text-[11px] bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-bold">
@@ -490,17 +540,34 @@ export default function BlogManager({
                   >
                     <i className="fa-solid fa-eye mr-1.5"></i>Prévia
                   </button>
-                  <button
-                    onClick={() => togglePublication(post)}
-                    className={`cursor-pointer py-2 rounded-xl text-sm font-bold border ${
-                      post.published
-                        ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-                        : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
-                    }`}
-                  >
-                    <i className={`fa-solid ${post.published ? "fa-box-archive" : "fa-paper-plane"} mr-1.5`}></i>
-                    {post.published ? "Rascunho" : "Publicar"}
-                  </button>
+                  {post.status === "PENDING_REVIEW" ? (
+                    <>
+                      <button
+                        onClick={() => approvePost(post)}
+                        className="cursor-pointer py-2 rounded-xl text-sm font-bold bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                      >
+                        <i className="fa-solid fa-check mr-1.5"></i>Aprovar
+                      </button>
+                      <button
+                        onClick={() => rejectPost(post)}
+                        className="cursor-pointer py-2 rounded-xl text-sm font-bold bg-red-50 border border-red-200 text-red-700 hover:bg-red-100"
+                      >
+                        <i className="fa-solid fa-xmark mr-1.5"></i>Rejeitar
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => togglePublication(post)}
+                      className={`cursor-pointer py-2 rounded-xl text-sm font-bold border ${
+                        post.status === "PUBLISHED"
+                          ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+                          : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                      }`}
+                    >
+                      <i className={`fa-solid ${post.status === "PUBLISHED" ? "fa-box-archive" : "fa-paper-plane"} mr-1.5`}></i>
+                      {post.status === "PUBLISHED" ? "Rascunho" : "Publicar"}
+                    </button>
+                  )}
                   <button
                     onClick={() => removePost(post)}
                     className="cursor-pointer py-2 rounded-xl text-sm font-bold bg-red-50 border border-red-200 text-red-700 hover:bg-red-100"
@@ -544,19 +611,16 @@ export default function BlogManager({
                   </div>
                 </td>
                 <td className="p-4 align-top">
-                  <span
-                    className={`inline-flex text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-widest ${
-                      post.published
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-amber-50 text-amber-700 border border-amber-200"
-                    }`}
-                  >
-                    {post.published ? "Publicado" : "Rascunho"}
-                  </span>
+                  <StatusBadge status={post.status} />
+                  {post.status === "REJECTED" && post.rejectionReason && (
+                    <p className="text-[11px] text-red-600 mt-1.5 max-w-40" title={post.rejectionReason}>
+                      {post.rejectionReason}
+                    </p>
+                  )}
                 </td>
                 <td className="p-4 align-top text-xs text-gray-500 font-medium">{formatDate(post.updatedAt)}</td>
                 <td className="p-4 align-top">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-2 flex-wrap">
                     <button
                       onClick={() => setPreviewPost(post)}
                       className="cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"
@@ -569,17 +633,34 @@ export default function BlogManager({
                     >
                       <i className="fa-solid fa-pen mr-1"></i>Editar
                     </button>
-                    <button
-                      onClick={() => togglePublication(post)}
-                      className={`cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border ${
-                        post.published
-                          ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                          : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                      }`}
-                    >
-                      <i className={`fa-solid ${post.published ? "fa-box-archive" : "fa-paper-plane"} mr-1`}></i>
-                      {post.published ? "Rascunho" : "Publicar"}
-                    </button>
+                    {post.status === "PENDING_REVIEW" ? (
+                      <>
+                        <button
+                          onClick={() => approvePost(post)}
+                          className="cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        >
+                          <i className="fa-solid fa-check mr-1"></i>Aprovar
+                        </button>
+                        <button
+                          onClick={() => rejectPost(post)}
+                          className="cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                        >
+                          <i className="fa-solid fa-xmark mr-1"></i>Rejeitar
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => togglePublication(post)}
+                        className={`cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border ${
+                          post.status === "PUBLISHED"
+                            ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                            : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        }`}
+                      >
+                        <i className={`fa-solid ${post.status === "PUBLISHED" ? "fa-box-archive" : "fa-paper-plane"} mr-1`}></i>
+                        {post.status === "PUBLISHED" ? "Rascunho" : "Publicar"}
+                      </button>
+                    )}
                     <button
                       onClick={() => removePost(post)}
                       className="cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
@@ -783,8 +864,8 @@ export default function BlogManager({
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input
                         type="checkbox"
-                        checked={draft.published}
-                        onChange={(e) => setDraft((prev) => ({ ...prev, published: e.target.checked }))}
+                        checked={draft.status === "PUBLISHED"}
+                        onChange={(e) => setDraft((prev) => ({ ...prev, status: e.target.checked ? "PUBLISHED" : "DRAFT" }))}
                         className="mt-1 w-5 h-5 rounded border-gray-300 text-scout-green focus:ring-scout-green"
                       />
                       <div>
@@ -875,15 +956,7 @@ function PreviewModal({ post, onClose }: { post: BlogPostItem; onClose: () => vo
 
           <header className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              <span
-                className={`text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-widest ${
-                  post.published
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-amber-50 text-amber-700 border border-amber-200"
-                }`}
-              >
-                {post.published ? "Publicado" : "Rascunho"}
-              </span>
+              <StatusBadge status={post.status} />
               <span className="text-[11px] bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full font-bold">
                 {post.troop ? post.troop.name : "Geral do Grupo"}
               </span>

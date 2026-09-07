@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { createDocument } from "../actions";
+import { getErrorMessage, isNextRedirectError } from "@/src/lib/errors";
+import { BLOB_ACCESS } from "@/src/lib/blobAccess";
 import { upload } from "@vercel/blob/client"; // NOVO IMPORT AQUI
 
 type Folder = { id: string; name: string; parentId: string | null };
@@ -56,7 +58,10 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
     try {
       // 2. FAZ O UPLOAD DIRETO DO NAVEGADOR PARA O VERCEL BLOB
       const blob = await upload(`transparencia/arquivos/${file.name}`, file, {
-        access: 'public',
+        // Quem decide o acesso são as rotas: a pública serve só `isPublic`,
+        // e /api/documentos/[id] confere a lista do documento. BLOB_ACCESS
+        // vira "private" quando o store privado existir (src/lib/blobAccess).
+        access: BLOB_ACCESS,
         handleUploadUrl: '/api/upload', // O endpoint que autoriza o upload
       });
 
@@ -67,9 +72,9 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
       // 4. CHAMA A SERVER ACTION
       await createDocument(formData);
       onClose(); // Fecha o modal após salvar
-    } catch (err: any) {
-      if (err.message === "NEXT_REDIRECT") return; 
-      alert(err.message || "Erro inesperado ao enviar o documento.");
+    } catch (err) {
+      if (isNextRedirectError(err)) return;
+      alert(getErrorMessage(err, "Erro inesperado ao enviar o documento."));
     } finally {
       setIsUploading(false);
     }

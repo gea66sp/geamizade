@@ -6,16 +6,22 @@ import { revalidatePath } from "next/cache";
 
 import { authOptions } from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
+import { getUniqueSlug, normalizeImageUrl, sanitizeRichHtml, stripHtml } from "@/src/lib/blogPost";
 
+// Estas actions são usadas tanto por /admin/blog (org-wide) quanto por
+// /chefe/blog (recortado à própria tropa) — CHEFE continua na lista, mas com
+// posse por tropa verificada em cada ação (veja isOwnTroop/assertCanActOnPost).
 const ALLOWED_ROLES = ["ADMIN", "DEVELOPER", "FINANCEIRO", "CHEFE"] as const;
 const BLOB_HOST_FRAGMENT = "blob.vercel-storage.com";
+
+type PostStatusInput = "DRAFT" | "PUBLISHED";
 
 type BlogPayload = {
   title: string;
   slug?: string;
   content: string;
   imageUrl?: string | null;
-  published: boolean;
+  status: PostStatusInput;
   troopId?: string | null;
 };
 
@@ -33,7 +39,7 @@ async function getAuthorizedUser() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: true },
+    select: { id: true, role: true, managedTroops: { select: { id: true } } },
   });
 
   if (!user) {
@@ -47,50 +53,19 @@ async function getAuthorizedUser() {
   return user;
 }
 
-function toSlug(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+type AuthorizedUser = Awaited<ReturnType<typeof getAuthorizedUser>>;
+
+// ADMIN/DEVELOPER/FINANCEIRO enxergam e gerenciam o blog do grupo inteiro.
+// CHEFE só pode agir sobre posts atribuídos a uma tropa que ele gerencia.
+function isOwnTroop(user: AuthorizedUser, troopId: string | null) {
+  if (user.role !== "CHEFE") return true;
+  return !!troopId && user.managedTroops.some((t) => t.id === troopId);
 }
 
-function stripHtml(value: string): string {
-  return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function sanitizeRichHtml(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, "")
-    .replace(/\son\w+="[^"]*"/gi, "")
-    .replace(/\son\w+='[^']*'/gi, "")
-    .replace(/javascript:/gi, "");
-}
-
-function normalizeImageUrl(urlValue: string | null | undefined) {
-  if (!urlValue) return null;
-
-  const trimmed = urlValue.trim();
-  if (!trimmed) return null;
-
-  let parsed: URL;
-  try {
-    parsed = new URL(trimmed);
-  } catch {
-    throw new Error("A URL da imagem de capa é inválida.");
+function assertCanActOnPost(user: AuthorizedUser, post: { troopId: string | null }) {
+  if (!isOwnTroop(user, post.troopId)) {
+    throw new Error("Acesso negado: esta publicação não pertence a uma tropa que você gerencia.");
   }
-
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    throw new Error("A URL da imagem deve começar com http:// ou https://.");
-  }
-
-  return trimmed;
 }
 
 async function assertTroopExists(troopId: string | null | undefined) {
@@ -106,29 +81,7 @@ async function assertTroopExists(troopId: string | null | undefined) {
   }
 }
 
-async function getUniqueSlug(baseValue: string, postIdToIgnore?: string) {
-  const seed = toSlug(baseValue);
-  const baseSlug = seed.length > 0 ? seed : "publicacao";
-
-  let candidate = baseSlug;
-  let index = 1;
-
-  while (true) {
-    const existing = await prisma.blogPost.findUnique({
-      where: { slug: candidate },
-      select: { id: true },
-    });
-
-    if (!existing || existing.id === postIdToIgnore) {
-      return candidate;
-    }
-
-    index += 1;
-    candidate = `${baseSlug}-${index}`;
-  }
-}
-
-function validatePayload(payload: BlogPayload) {
+function validatePayload(user: AuthorizedUser, payload: BlogPayload) {
   if (!payload.title || payload.title.trim().length < 3) {
     throw new Error("O título deve ter pelo menos 3 caracteres.");
   }
@@ -139,12 +92,19 @@ function validatePayload(payload: BlogPayload) {
     throw new Error("O conteúdo da publicação está muito curto.");
   }
 
+  const troopId = payload.troopId?.trim() ? payload.troopId.trim() : null;
+
+  // CHEFE só publica pela própria tropa — nunca "Geral do Grupo" nem outra tropa.
+  if (user.role === "CHEFE" && !isOwnTroop(user, troopId)) {
+    throw new Error("Você só pode publicar notícias em uma tropa que você gerencia.");
+  }
+
   return {
     title: payload.title.trim(),
     sanitizedHtml,
     imageUrl: normalizeImageUrl(payload.imageUrl),
-    published: payload.published === true,
-    troopId: payload.troopId?.trim() ? payload.troopId.trim() : null,
+    status: payload.status === "PUBLISHED" ? ("PUBLISHED" as const) : ("DRAFT" as const),
+    troopId,
   };
 }
 
@@ -159,6 +119,8 @@ async function safelyDeleteBlob(url: string | null) {
 
 function revalidateBlogSurfaces(slugs: string[] = []) {
   revalidatePath("/admin/blog");
+  revalidatePath("/chefe/blog");
+  revalidatePath("/membro/blog");
   revalidatePath("/");
   revalidatePath("/blog");
   for (const slug of slugs) {
@@ -169,7 +131,7 @@ function revalidateBlogSurfaces(slugs: string[] = []) {
 export async function createBlogPost(payload: BlogPayload): Promise<BlogActionResult> {
   try {
     const user = await getAuthorizedUser();
-    const parsed = validatePayload(payload);
+    const parsed = validatePayload(user, payload);
 
     await assertTroopExists(parsed.troopId);
 
@@ -181,7 +143,7 @@ export async function createBlogPost(payload: BlogPayload): Promise<BlogActionRe
         slug,
         content: parsed.sanitizedHtml,
         imageUrl: parsed.imageUrl,
-        published: parsed.published,
+        status: parsed.status,
         troopId: parsed.troopId,
         authorId: user.id,
       },
@@ -203,18 +165,20 @@ export async function createBlogPost(payload: BlogPayload): Promise<BlogActionRe
 
 export async function updateBlogPost(postId: string, payload: BlogPayload): Promise<BlogActionResult> {
   try {
-    await getAuthorizedUser();
+    const user = await getAuthorizedUser();
 
     const existingPost = await prisma.blogPost.findUnique({
       where: { id: postId },
-      select: { id: true, imageUrl: true, slug: true },
+      select: { id: true, imageUrl: true, slug: true, troopId: true },
     });
 
     if (!existingPost) {
       throw new Error("A publicação selecionada não foi encontrada.");
     }
 
-    const parsed = validatePayload(payload);
+    assertCanActOnPost(user, existingPost);
+
+    const parsed = validatePayload(user, payload);
     await assertTroopExists(parsed.troopId);
 
     const slug = await getUniqueSlug(payload.slug?.trim() || parsed.title, postId);
@@ -230,7 +194,7 @@ export async function updateBlogPost(postId: string, payload: BlogPayload): Prom
         slug,
         content: parsed.sanitizedHtml,
         imageUrl: parsed.imageUrl,
-        published: parsed.published,
+        status: parsed.status,
         troopId: parsed.troopId,
       },
     });
@@ -251,16 +215,18 @@ export async function updateBlogPost(postId: string, payload: BlogPayload): Prom
 
 export async function deleteBlogPost(postId: string): Promise<BlogActionResult> {
   try {
-    await getAuthorizedUser();
+    const user = await getAuthorizedUser();
 
     const existingPost = await prisma.blogPost.findUnique({
       where: { id: postId },
-      select: { id: true, imageUrl: true, slug: true },
+      select: { id: true, imageUrl: true, slug: true, troopId: true },
     });
 
     if (!existingPost) {
       throw new Error("A publicação já foi removida ou não existe mais.");
     }
+
+    assertCanActOnPost(user, existingPost);
 
     await safelyDeleteBlob(existingPost.imageUrl);
 
@@ -282,16 +248,33 @@ export async function deleteBlogPost(postId: string): Promise<BlogActionResult> 
   }
 }
 
-export async function setBlogPostPublication(
+// Alterna Rascunho <-> Publicado num post que já existe (não usado para
+// posts PENDING_REVIEW — esses passam por approveBlogPost/rejectBlogPost).
+export async function setBlogPostStatus(
   postId: string,
-  published: boolean
+  status: PostStatusInput
 ): Promise<BlogActionResult> {
   try {
-    await getAuthorizedUser();
+    const user = await getAuthorizedUser();
+
+    const existingPost = await prisma.blogPost.findUnique({
+      where: { id: postId },
+      select: { slug: true, troopId: true, status: true },
+    });
+
+    if (!existingPost) {
+      throw new Error("A publicação selecionada não foi encontrada.");
+    }
+
+    assertCanActOnPost(user, existingPost);
+
+    if (existingPost.status === "PENDING_REVIEW") {
+      throw new Error("Esta publicação está aguardando aprovação — use Aprovar ou Rejeitar.");
+    }
 
     const post = await prisma.blogPost.update({
       where: { id: postId },
-      data: { published },
+      data: { status },
       select: { slug: true },
     });
 
@@ -305,6 +288,93 @@ export async function setBlogPostPublication(
         error instanceof Error
           ? error.message
           : "Falha inesperada ao alterar o status da publicação.",
+    };
+  }
+}
+
+export async function approveBlogPost(postId: string): Promise<BlogActionResult> {
+  try {
+    const user = await getAuthorizedUser();
+
+    const existingPost = await prisma.blogPost.findUnique({
+      where: { id: postId },
+      select: { slug: true, troopId: true, status: true },
+    });
+
+    if (!existingPost) {
+      throw new Error("A publicação selecionada não foi encontrada.");
+    }
+
+    assertCanActOnPost(user, existingPost);
+
+    if (existingPost.status !== "PENDING_REVIEW") {
+      throw new Error("Esta publicação não está aguardando aprovação.");
+    }
+
+    const post = await prisma.blogPost.update({
+      where: { id: postId },
+      data: {
+        status: "PUBLISHED",
+        reviewedById: user.id,
+        reviewedAt: new Date(),
+        rejectionReason: null,
+      },
+      select: { slug: true },
+    });
+
+    revalidateBlogSurfaces([post.slug]);
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao aprovar publicação:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Falha inesperada ao aprovar a publicação.",
+    };
+  }
+}
+
+export async function rejectBlogPost(postId: string, reason: string): Promise<BlogActionResult> {
+  try {
+    const user = await getAuthorizedUser();
+
+    const trimmedReason = reason?.trim();
+    if (!trimmedReason) {
+      throw new Error("Informe o motivo da rejeição para o autor.");
+    }
+
+    const existingPost = await prisma.blogPost.findUnique({
+      where: { id: postId },
+      select: { slug: true, troopId: true, status: true },
+    });
+
+    if (!existingPost) {
+      throw new Error("A publicação selecionada não foi encontrada.");
+    }
+
+    assertCanActOnPost(user, existingPost);
+
+    if (existingPost.status !== "PENDING_REVIEW") {
+      throw new Error("Esta publicação não está aguardando aprovação.");
+    }
+
+    const post = await prisma.blogPost.update({
+      where: { id: postId },
+      data: {
+        status: "REJECTED",
+        reviewedById: user.id,
+        reviewedAt: new Date(),
+        rejectionReason: trimmedReason,
+      },
+      select: { slug: true },
+    });
+
+    revalidateBlogSurfaces([post.slug]);
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao rejeitar publicação:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Falha inesperada ao rejeitar a publicação.",
     };
   }
 }
