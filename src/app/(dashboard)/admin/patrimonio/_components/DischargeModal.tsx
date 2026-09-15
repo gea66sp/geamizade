@@ -34,7 +34,7 @@ export default function DischargeModal({ isOpen, onClose, item }: { isOpen: bool
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl relative">
+      <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl relative">
         
         {/* ==========================================
             CABEÇALHO DO MODAL (ESTILO ALERTA)

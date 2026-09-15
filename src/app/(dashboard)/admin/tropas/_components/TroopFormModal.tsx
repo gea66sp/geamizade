@@ -56,7 +56,7 @@ export default function TroopFormModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl flex flex-col relative overflow-hidden">
+      <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl flex flex-col relative overflow-hidden max-h-[90vh]">
         
         <div className="flex justify-between items-start p-6 md:p-8 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-4">

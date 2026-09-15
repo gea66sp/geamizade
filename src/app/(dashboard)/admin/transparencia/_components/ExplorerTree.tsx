@@ -516,7 +516,7 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
       {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
       {confirmDialog && (
         <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center max-h-[90vh] overflow-y-auto">
             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 border-4 border-red-100">
               <i className="fa-solid fa-triangle-exclamation text-2xl"></i>
             </div>

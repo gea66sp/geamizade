@@ -21,7 +21,7 @@ export default function ModalRelatorio({ isOpen, onClose }: { isOpen: boolean; o
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 z-100 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl">
+      <div className="bg-white rounded-2xl p-6 md:p-8 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-heading text-xl font-bold text-gray-800 flex items-center gap-2">
             <i className="fa-solid fa-file-pdf text-red-500"></i> Gerar Relatório

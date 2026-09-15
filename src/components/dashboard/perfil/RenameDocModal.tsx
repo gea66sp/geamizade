@@ -47,7 +47,7 @@ export default function RenameDocModal({ document, onClose }: RenameDocModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col animate-scale-in">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[90vh] overflow-y-auto flex flex-col animate-scale-in">
         <div className="p-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
           <h3 className="font-bold text-gray-800 flex items-center gap-2">
             <i className="fa-solid fa-pen text-blue-500"></i> Renomear Documento

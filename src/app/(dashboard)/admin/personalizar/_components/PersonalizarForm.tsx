@@ -313,7 +313,7 @@ export default function PersonalizarForm({
       {/* MODAL DE CONFIRMAÇÃO */}
       {showConfirmDiscard && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-sm text-center">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-sm text-center max-h-[90vh] overflow-y-auto">
              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 border-4 border-red-100">
               <i className="fa-solid fa-rotate-left text-2xl"></i>
             </div>

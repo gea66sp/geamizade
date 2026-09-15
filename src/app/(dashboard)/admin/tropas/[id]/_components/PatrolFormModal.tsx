@@ -43,7 +43,7 @@ export default function PatrolFormModal({
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 z-150 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden relative">
+      <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl max-h-[90vh] overflow-y-auto relative">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
           <h3 className="font-heading text-lg font-bold text-gray-800 flex items-center gap-2">
             <i className="fa-solid fa-paw text-amber-500"></i>

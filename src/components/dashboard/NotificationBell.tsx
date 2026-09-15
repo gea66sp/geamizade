@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -32,7 +33,13 @@ interface NotificationBellProps {
   onNavigate?: () => void;
 }
 
+type PanelPosition = { top: number; left: number; width: number; maxHeight: number };
+
 const POLL_INTERVAL_MS = 60_000;
+
+/** Largura ideal do painel no desktop e respiro mínimo até a borda da tela. */
+const PANEL_MAX_WIDTH = 384;
+const VIEWPORT_MARGIN = 8;
 
 function formatRelative(value: Date | string) {
   const date = new Date(value);
@@ -54,8 +61,11 @@ function formatRelative(value: Date | string) {
 export default function NotificationBell({ basePath, tone = "dark", onNavigate }: NotificationBellProps) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState<PanelPosition | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [items, setItems] = useState<InboxItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -82,14 +92,70 @@ export default function NotificationBell({ basePath, tone = "dark", onNavigate }
     };
   }, [refreshCount]);
 
-  // Fecha ao clicar fora ou apertar Esc.
+  // O painel é montado em portal no <body>, então a posição precisa ser
+  // calculada: o sininho aparece tanto na barra do topo (encostado na direita
+  // da tela) quanto dentro da sidebar de 256px encostada na ESQUERDA. Alinhar
+  // sempre pela direita jogava o painel para fora nesse segundo caso.
+  const updatePosition = useCallback(() => {
+    const trigger = buttonRef.current;
+    if (!trigger) return;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
+
+    const width = Math.min(PANEL_MAX_WIDTH, viewportWidth - VIEWPORT_MARGIN * 2);
+    // Preferência: borda direita do painel alinhada com a do sininho. O clamp
+    // traz de volta para dentro da tela quando isso não cabe.
+    const preferredLeft = rect.right - width;
+    const left = Math.min(
+      Math.max(preferredLeft, VIEWPORT_MARGIN),
+      viewportWidth - width - VIEWPORT_MARGIN
+    );
+
+    const top = rect.bottom + VIEWPORT_MARGIN;
+    const maxHeight = Math.max(200, viewportHeight - top - VIEWPORT_MARGIN);
+
+    setPosition({ top, left, width, maxHeight });
+  }, []);
+
+  // useLayoutEffect: posiciona antes da pintura, senão o painel pisca no
+  // canto errado por um frame.
+  useLayoutEffect(() => {
+    if (isOpen) updatePosition();
+  }, [isOpen, updatePosition]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onResize = () => updatePosition();
+    // capture: pega o scroll de qualquer container interno, não só o da janela.
+    // Rolar a própria lista não move o sininho, então ignoramos esse caso —
+    // senão haveria um setState por frame enquanto o usuário rola o painel.
+    const onScroll = (event: Event) => {
+      if (panelRef.current?.contains(event.target as Node)) return;
+      updatePosition();
+    };
+
+    window.addEventListener("resize", onResize);
+    window.addEventListener("scroll", onScroll, true);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onScroll, true);
+    };
+  }, [isOpen, updatePosition]);
+
+  // Fecha ao clicar fora ou apertar Esc. O painel vive fora de containerRef
+  // (está no <body>), então precisa ser checado à parte — sem isso o mousedown
+  // desmontaria o painel antes de o click chegar no item.
   useEffect(() => {
     if (!isOpen) return;
 
     const onPointerDown = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setIsOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsOpen(false);
@@ -119,7 +185,10 @@ export default function NotificationBell({ basePath, tone = "dark", onNavigate }
   const toggleOpen = async () => {
     const next = !isOpen;
     setIsOpen(next);
-    if (next) await loadInbox();
+    if (next) {
+      updatePosition();
+      await loadInbox();
+    }
   };
 
   const handleItemClick = async (item: InboxItem) => {
@@ -152,9 +221,106 @@ export default function NotificationBell({ basePath, tone = "dark", onNavigate }
       ? "text-gray-300 hover:text-scout-yellow hover:bg-white/10"
       : "text-gray-500 hover:text-scout-green hover:bg-gray-100";
 
+  const panel = (
+    <div
+      ref={panelRef}
+      style={
+        position
+          ? { top: position.top, left: position.left, width: position.width, maxHeight: position.maxHeight }
+          : { top: -9999, left: -9999 }
+      }
+      className="fixed z-100 flex flex-col bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-fade-in"
+    >
+      <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100 bg-gray-50 shrink-0">
+        <h3 className="font-heading font-bold text-gray-800 text-sm min-w-0">
+          Notificações
+          {unreadCount > 0 && (
+            <span className="ml-2 text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
+              {unreadCount} nova(s)
+            </span>
+          )}
+        </h3>
+        {unreadCount > 0 && (
+          <button
+            onClick={handleMarkAll}
+            className="cursor-pointer text-[11px] font-bold text-scout-green hover:text-green-700 transition-colors shrink-0"
+          >
+            Marcar todas como lidas
+          </button>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
+        {isLoading ? (
+          <div className="p-8 text-center text-gray-400">
+            <i className="fa-solid fa-circle-notch fa-spin text-2xl"></i>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="p-8 text-center">
+            <i className="fa-regular fa-bell-slash text-3xl text-gray-200 mb-2"></i>
+            <p className="text-xs text-gray-500 font-medium">Você não tem notificações.</p>
+          </div>
+        ) : (
+          items.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleItemClick(item)}
+              className={`w-full text-left px-4 py-3 border-b border-gray-50 last:border-0 transition-colors cursor-pointer ${
+                item.isRead ? "bg-white hover:bg-gray-50" : "bg-scout-yellow/10 hover:bg-scout-yellow/20"
+              }`}
+            >
+              <div className="flex items-start gap-2.5">
+                <span
+                  className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
+                    item.isRead ? "bg-transparent" : "bg-red-500"
+                  }`}
+                  aria-hidden="true"
+                />
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={`text-sm leading-snug ${
+                      item.isRead ? "font-medium text-gray-600" : "font-bold text-gray-900"
+                    }`}
+                  >
+                    {item.title}
+                  </p>
+                  <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{item.message}</p>
+
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                    {item.forDependentId && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100">
+                        Cópia · responsável
+                      </span>
+                    )}
+                    <span className="text-[10px] text-gray-400 font-semibold">
+                      {formatRelative(item.createdAt)}
+                      {item.sender?.name ? ` · ${item.sender.name}` : ""}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </button>
+          ))
+        )}
+      </div>
+
+      <Link
+        href={`${basePath}/notificacoes`}
+        onClick={() => {
+          setIsOpen(false);
+          onNavigate?.();
+        }}
+        className="shrink-0 text-center text-xs font-bold text-gray-500 hover:text-scout-green py-3 border-t border-gray-100 bg-gray-50 transition-colors"
+      >
+        Ver todas as notificações <i className="fa-solid fa-arrow-right ml-1"></i>
+      </Link>
+    </div>
+  );
+
   return (
     <div ref={containerRef} className="relative shrink-0">
       <button
+        ref={buttonRef}
         onClick={toggleOpen}
         aria-label={unreadCount > 0 ? `Notificações (${unreadCount} não lidas)` : "Notificações"}
         aria-expanded={isOpen}
@@ -170,96 +336,12 @@ export default function NotificationBell({ basePath, tone = "dark", onNavigate }
         )}
       </button>
 
-      {/* w-80 fixo estourava a borda esquerda em telas de ~320-360px: o dropdown
-          é ancorado pela direita, então crescia para fora da tela. A largura
-          agora acompanha a viewport, com teto no desktop. */}
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-sm sm:w-96 sm:max-w-none max-h-[70vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 overflow-hidden animate-fade-in">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50 shrink-0">
-            <h3 className="font-heading font-bold text-gray-800 text-sm">
-              Notificações
-              {unreadCount > 0 && (
-                <span className="ml-2 text-[10px] font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
-                  {unreadCount} nova(s)
-                </span>
-              )}
-            </h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={handleMarkAll}
-                className="cursor-pointer text-[11px] font-bold text-scout-green hover:text-green-700 transition-colors"
-              >
-                Marcar todas como lidas
-              </button>
-            )}
-          </div>
-
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            {isLoading ? (
-              <div className="p-8 text-center text-gray-400">
-                <i className="fa-solid fa-circle-notch fa-spin text-2xl"></i>
-              </div>
-            ) : items.length === 0 ? (
-              <div className="p-8 text-center">
-                <i className="fa-regular fa-bell-slash text-3xl text-gray-200 mb-2"></i>
-                <p className="text-xs text-gray-500 font-medium">Você não tem notificações.</p>
-              </div>
-            ) : (
-              items.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleItemClick(item)}
-                  className={`w-full text-left px-4 py-3 border-b border-gray-50 last:border-0 transition-colors cursor-pointer ${
-                    item.isRead ? "bg-white hover:bg-gray-50" : "bg-scout-yellow/10 hover:bg-scout-yellow/20"
-                  }`}
-                >
-                  <div className="flex items-start gap-2.5">
-                    <span
-                      className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
-                        item.isRead ? "bg-transparent" : "bg-red-500"
-                      }`}
-                      aria-hidden="true"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className={`text-sm leading-snug ${
-                          item.isRead ? "font-medium text-gray-600" : "font-bold text-gray-900"
-                        }`}
-                      >
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{item.message}</p>
-
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                        {item.forDependentId && (
-                          <span className="text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-100">
-                            Cópia · responsável
-                          </span>
-                        )}
-                        <span className="text-[10px] text-gray-400 font-semibold">
-                          {formatRelative(item.createdAt)}
-                          {item.sender?.name ? ` · ${item.sender.name}` : ""}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
-
-          <Link
-            href={`${basePath}/notificacoes`}
-            onClick={() => {
-              setIsOpen(false);
-              onNavigate?.();
-            }}
-            className="shrink-0 text-center text-xs font-bold text-gray-500 hover:text-scout-green py-3 border-t border-gray-100 bg-gray-50 transition-colors"
-          >
-            Ver todas as notificações <i className="fa-solid fa-arrow-right ml-1"></i>
-          </Link>
-        </div>
-      )}
+      {/* Portal no <body>: a sidebar tem translate-x-* (que vira bloco de
+          contenção de 'fixed') e o AdminShell envolve o header mobile num
+          container com overflow-hidden (que recorta filhos absolutos). Só
+          saindo da árvore dá para o painel ficar inteiro na tela nos seis
+          pontos onde o sininho é montado. */}
+      {isOpen && typeof document !== "undefined" && createPortal(panel, document.body)}
     </div>
   );
 }

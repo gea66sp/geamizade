@@ -43,7 +43,7 @@ export default function ModalExcluirUsuario({ isOpen, onClose, userId, userName 
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl relative text-center">
+      <div className="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md shadow-2xl relative text-center max-h-[90vh] overflow-y-auto">
         
         <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5">
           <i className="fa-solid fa-triangle-exclamation text-4xl"></i>

@@ -285,12 +285,12 @@ export default function TroopDetailClient({
       ========================================== */}
       {activeTab === "FINANCEIRO" && (
         <div className="animate-fade-in space-y-6">
-          <div className="flex justify-between items-center bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
              <div>
                 <h2 className="font-bold text-gray-800 text-lg">Caixas Vinculados</h2>
                 <p className="text-sm text-gray-500">Histórico de mensalidades, vaquinhas e despesas da Seção.</p>
              </div>
-             <Link href="/admin/financeiro" className="px-4 py-2 bg-blue-50 text-blue-600 font-bold rounded-xl hover:bg-blue-100 transition-colors text-sm">
+             <Link href="/admin/financeiro" className="px-4 py-2 bg-blue-50 text-blue-600 font-bold rounded-xl hover:bg-blue-100 transition-colors text-sm shrink-0 text-center">
                Ir para Módulo Financeiro
              </Link>
           </div>
@@ -359,12 +359,12 @@ export default function TroopDetailClient({
       ========================================== */}
       {activeTab === "PATRIMONIO" && (
         <div className="animate-fade-in space-y-6">
-          <div className="flex justify-between items-center bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
              <div>
                 <h2 className="font-bold text-gray-800 text-lg">Materiais Alocados</h2>
                 <p className="text-sm text-gray-500">Tendas, ferramentas e materiais de campo desta Seção.</p>
              </div>
-             <Link href="/admin/patrimonio" className="px-4 py-2 bg-indigo-50 text-indigo-600 font-bold rounded-xl hover:bg-indigo-100 transition-colors text-sm">
+             <Link href="/admin/patrimonio" className="px-4 py-2 bg-indigo-50 text-indigo-600 font-bold rounded-xl hover:bg-indigo-100 transition-colors text-sm shrink-0 text-center">
                Ir para Almoxarifado
              </Link>
           </div>

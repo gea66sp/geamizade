@@ -67,7 +67,7 @@ export default function UploadDocModal({ isOpen, onClose, userId }: UploadDocMod
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col animate-scale-in">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
         
         {/* Cabeçalho do Modal */}
         <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50">
@@ -81,7 +81,7 @@ export default function UploadDocModal({ isOpen, onClose, userId }: UploadDocMod
         </div>
 
         {/* Formulário */}
-        <form action={handleUpload} className="p-5 space-y-5">
+        <form action={handleUpload} className="p-5 space-y-5 overflow-y-auto custom-scrollbar">
           {error && (
             <div className="p-3 bg-red-50 text-red-600 text-sm font-bold rounded-lg border border-red-100 flex items-center gap-2">
               <i className="fa-solid fa-triangle-exclamation"></i> {error}

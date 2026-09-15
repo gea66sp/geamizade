@@ -42,7 +42,7 @@ export default function DeleteDocModal({ document, onClose }: DeleteDocModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col animate-scale-in">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[90vh] overflow-y-auto flex flex-col animate-scale-in">
         <div className="p-6 text-center space-y-4">
           <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto text-2xl">
             <i className="fa-solid fa-triangle-exclamation"></i>
