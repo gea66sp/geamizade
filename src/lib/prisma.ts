@@ -1,8 +1,21 @@
 import { PrismaClient } from '@prisma/client'
 
-// Cria uma função que retorna uma nova instância do PrismaClient
+function getDevelopmentDatabaseUrl() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl || process.env.NODE_ENV === "production") return undefined;
+
+  const separator = databaseUrl.includes("?") ? "&" : "?";
+  return `${databaseUrl}${separator}connection_limit=1&pool_timeout=20`;
+}
+
 const prismaClientSingleton = () => {
-  return new PrismaClient()
+  const developmentDatabaseUrl = getDevelopmentDatabaseUrl();
+
+  return new PrismaClient(
+    developmentDatabaseUrl
+      ? { datasources: { db: { url: developmentDatabaseUrl } } }
+      : undefined,
+  )
 }
 
 // Declara o prismaGlobal no escopo global para que o TypeScript reconheça

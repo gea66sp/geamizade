@@ -244,6 +244,20 @@ export default function Sidebar({
             <i className={`fa-solid fa-newspaper text-lg w-5 text-center transition-colors shrink-0 ${isActive("/admin/blog") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
             <span className={`whitespace-nowrap ${isCollapsed ? "hidden" : "block"}`}>Notícias / Blog</span>
           </Link>
+
+          <Link
+            href="/admin/empresas-parceiras"
+            onClick={onClose}
+            title="Empresas parceiras"
+            className={`flex items-center px-6 py-3.5 transition-all duration-200 group border-l-4 ${
+              isActive("/admin/empresas-parceiras")
+                ? "border-scout-yellow bg-white/5 text-scout-yellow font-bold"
+                : "border-transparent text-gray-400 hover:bg-white/5 hover:text-white"
+            } ${isCollapsed ? "md:px-0 md:justify-center gap-0" : "gap-3"}`}
+          >
+            <i className={`fa-solid fa-handshake text-lg w-5 text-center transition-colors shrink-0 ${isActive("/admin/empresas-parceiras") ? "text-scout-yellow" : "text-gray-500 group-hover:text-white"}`}></i>
+            <span className={`whitespace-nowrap ${isCollapsed ? "hidden" : "block"}`}>Empresas parceiras</span>
+          </Link>
         </nav>
 
         {/* Rodapé da Sidebar: Usuário e Sair */}
