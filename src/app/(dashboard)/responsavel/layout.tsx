@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/responsavel/calendario", label: "Calendário", icon: "fa-calendar-days" },
   { href: "/responsavel/notificacoes", label: "Notificações", icon: "fa-bell" },
   { href: "/responsavel/perfil", label: "Meu Perfil", icon: "fa-user" },
+  { href: "/responsavel/tutoriais", label: "Tutoriais", icon: "fa-circle-question" },
 ];
 
 export default async function ResponsavelLayout({

@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/chefe/patrimonio", label: "Patrimônio", icon: "fa-boxes-stacked" },
   { href: "/chefe/notificacoes", label: "Notificações", icon: "fa-bell" },
   { href: "/chefe/blog", label: "Blog da Tropa", icon: "fa-newspaper" },
+  { href: "/chefe/tutoriais", label: "Tutoriais", icon: "fa-circle-question" },
 ];
 
 export default function ChefeSidebar({

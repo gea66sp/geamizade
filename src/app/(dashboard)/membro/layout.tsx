@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/membro/notificacoes", label: "Notificações", icon: "fa-bell" },
   { href: "/membro/blog", label: "Minhas Publicações", icon: "fa-newspaper" },
   { href: "/membro/perfil", label: "Meu Perfil", icon: "fa-user" },
+  { href: "/membro/tutoriais", label: "Tutoriais", icon: "fa-circle-question" },
 ];
 
 export default async function MembroLayout({
