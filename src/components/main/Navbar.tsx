@@ -68,7 +68,7 @@ export default function Navbar() {
       {/* Menu Mobile Dropdown (Com transição suave CSS) */}
       <div 
         className={`md:hidden bg-scout-dark shadow-inner overflow-hidden transition-all duration-300 ease-in-out ${
-          isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          isMobileMenuOpen ? "max-h-[32rem] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         {/* Adicionado padding interno superior e inferior para respiro visual */}
