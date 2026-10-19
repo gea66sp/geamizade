@@ -44,6 +44,7 @@ export default function Navbar() {
             <Link href="/blog" className="hover:text-scout-yellow transition-colors font-semibold">Notícias</Link>
             <Link href="/portal-da-transparencia" className="hover:text-scout-yellow transition-colors font-semibold">Portal da Transparência</Link>
             <Link href="/tropas" className="hover:text-scout-yellow transition-colors font-semibold">Tropas</Link>
+            <Link href="/empresas-parceiras" className="hover:text-scout-yellow transition-colors font-semibold">Parceiros</Link>
             <Link href="#contato" className="bg-scout-yellow text-scout-dark px-6 py-2.5 rounded-full font-bold hover:bg-yellow-400 transition-all transform hover:scale-105 shadow-md active:scale-95">
               Junte-se a nós
             </Link>
@@ -86,6 +87,9 @@ export default function Navbar() {
           </Link>
           <Link href="/tropas" onClick={closeMenu} className="block py-3 px-3 text-white hover:text-scout-yellow hover:bg-white/5 rounded-lg transition-colors font-semibold">
             Tropas
+          </Link>
+          <Link href="/empresas-parceiras" onClick={closeMenu} className="block py-3 px-3 text-white hover:text-scout-yellow hover:bg-white/5 rounded-lg transition-colors font-semibold">
+            Empresas parceiras
           </Link>
           <Link href="#contato" onClick={closeMenu} className="block mt-6 text-center bg-scout-yellow text-scout-dark px-5 py-4 rounded-xl font-bold shadow-lg hover:bg-yellow-400 active:bg-yellow-500 transition-colors">
             Junte-se a nós
