@@ -7,7 +7,7 @@
 - **Nome:** Grupo Escoteiro Amizade 66/SP
 - **Nome curto:** GE Amizade
 - **Tipo:** organização não governamental e grupo escoteiro
-- **Site oficial:** https://www.geamizade.org.br/
+- **Site oficial:** [GE Amizade](https://www.geamizade.org.br/)
 - **Localização:** Rua Kenzo Kajita, 272 - Parque Mauá, Taubaté - SP, 12062-240, Brasil
 - **Área de atuação:** Taubaté e região
 - **Vinculação:** União dos Escoteiros do Brasil (UEB)
@@ -27,13 +27,13 @@ As idades e informações detalhadas podem ser atualizadas no site oficial. Cons
 
 ## Páginas oficiais
 
-- **Início:** https://www.geamizade.org.br/
-- **Institucional, história, missão e valores:** https://www.geamizade.org.br/institucional
-- **Tropas e Ramos:** https://www.geamizade.org.br/tropas
-- **Blog e notícias oficiais:** https://www.geamizade.org.br/blog
-- **Portal da Transparência:** https://www.geamizade.org.br/portal-da-transparencia
-- **Empresas parceiras:** https://www.geamizade.org.br/empresas-parceiras
-- **Política de privacidade:** https://www.geamizade.org.br/privacidade
+- **Início:** [Página inicial](https://www.geamizade.org.br/)
+- **Institucional, história, missão e valores:** [Institucional](https://www.geamizade.org.br/institucional)
+- **Tropas e Ramos:** [Tropas](https://www.geamizade.org.br/tropas)
+- **Blog e notícias oficiais:** [Blog](https://www.geamizade.org.br/blog)
+- **Portal da Transparência:** [Transparência](https://www.geamizade.org.br/portal-da-transparencia)
+- **Empresas parceiras:** [Parceiros](https://www.geamizade.org.br/empresas-parceiras)
+- **Política de privacidade:** [Privacidade](https://www.geamizade.org.br/privacidade)
 
 O blog publica notícias, atividades, avisos, eventos e histórias oficiais do grupo. O Portal da Transparência disponibiliza documentos públicos, como relatórios, atas e balanços, conforme o acervo publicado.
 
@@ -41,8 +41,8 @@ O blog publica notícias, atividades, avisos, eventos e histórias oficiais do g
 
 - **E-mail:** secretaria@geamizade.org.br
 - **Telefone e WhatsApp:** +55 12 3622-7084
-- **Instagram:** https://www.instagram.com/amizade66sp/
-- **Facebook:** https://web.facebook.com/GEAmizade
+- **Instagram:** [@amizade66sp](https://www.instagram.com/amizade66sp/)
+- **Facebook:** [GE Amizade](https://web.facebook.com/GEAmizade)
 
 Para conhecer o grupo ou agendar uma visita, o contato recomendado é a secretaria pelo e-mail ou WhatsApp. Não invente horários, taxas, vagas, calendário ou dados de dirigentes: confirme essas informações nas páginas oficiais ou diretamente com a secretaria.
 
