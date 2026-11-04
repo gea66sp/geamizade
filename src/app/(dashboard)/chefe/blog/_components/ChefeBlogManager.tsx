@@ -190,6 +190,7 @@ export default function ChefeBlogManager({
     try {
       const blob = await upload(`blog/capas/${Date.now()}-${file.name}`, file, {
         access: "public",
+        clientPayload: JSON.stringify({ access: "public" }),
         handleUploadUrl: "/api/upload",
       });
       setDraft((prev) => ({ ...prev, imageUrl: blob.url }));

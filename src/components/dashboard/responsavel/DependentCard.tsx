@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import type { DependentSummary } from "@/src/lib/guardian";
+import { getUserImageSrc } from "@/src/lib/userImage";
 
 const brl = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
@@ -16,9 +17,9 @@ export default function DependentCard({ dependent }: { dependent: DependentSumma
       className="flex items-center gap-4 p-5 rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all group"
     >
       <div className="w-14 h-14 rounded-full bg-scout-green/10 text-scout-green flex items-center justify-center font-black text-xl shrink-0 overflow-hidden border border-scout-green/20">
-        {dependent.image ? (
+        {getUserImageSrc(dependent.id, dependent.image) ? (
           // eslint-disable-next-line @next/next/no-img-element -- avatar vindo de URL externa/blob
-          <img src={dependent.image} alt={dependent.name ?? "Dependente"} className="w-full h-full object-cover" />
+          <img src={getUserImageSrc(dependent.id, dependent.image) ?? undefined} alt={dependent.name ?? "Dependente"} className="w-full h-full object-cover" />
         ) : (
           (dependent.name?.charAt(0) ?? "?").toUpperCase()
         )}

@@ -10,9 +10,10 @@ interface ChefeShellProps {
   userName?: string | null;
   userRole?: string;
   userImage?: string | null;
+  userId?: string | null;
 }
 
-export default function ChefeShell({ children, userName, userRole, userImage }: ChefeShellProps) {
+export default function ChefeShell({ children, userName, userRole, userImage, userId }: ChefeShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -21,6 +22,7 @@ export default function ChefeShell({ children, userName, userRole, userImage }: 
         userName={userName}
         userRole={userRole}
         userImage={userImage}
+        userId={userId}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />

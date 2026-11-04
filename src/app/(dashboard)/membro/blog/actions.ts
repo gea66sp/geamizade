@@ -1,12 +1,12 @@
 "use server";
 
-import { del } from "@vercel/blob";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 
 import { authOptions } from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 import { getUniqueSlug, normalizeImageUrl, sanitizeRichHtml, stripHtml } from "@/src/lib/blogPost";
+import { deleteBlob } from "@/src/lib/blobAccess";
 
 const BLOB_HOST_FRAGMENT = "blob.vercel-storage.com";
 
@@ -69,7 +69,7 @@ function validatePayload(payload: MemberPostPayload) {
 async function safelyDeleteBlob(url: string | null) {
   if (!url || !url.includes(BLOB_HOST_FRAGMENT)) return;
   try {
-    await del(url);
+    await deleteBlob(url);
   } catch (error) {
     console.warn("Falha ao remover imagem antiga no Vercel Blob. Prosseguindo com a operação.", error);
   }

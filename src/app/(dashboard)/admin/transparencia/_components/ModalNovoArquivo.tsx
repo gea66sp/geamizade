@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { createDocument } from "../actions";
 import { getErrorMessage, isNextRedirectError } from "@/src/lib/errors";
-import { BLOB_ACCESS } from "@/src/lib/blobAccess";
 import { upload } from "@vercel/blob/client"; // NOVO IMPORT AQUI
 
 type Folder = { id: string; name: string; parentId: string | null };
@@ -60,7 +59,8 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
       const blob = await upload(`transparencia/arquivos/${file.name}`, file, {
         // Quem decide o acesso são as rotas: a pública serve só `isPublic`,
         // e /api/documentos/[id] confere a lista do documento.
-        access: BLOB_ACCESS,
+        access: isPublic ? "public" : "private",
+        clientPayload: JSON.stringify({ access: isPublic ? "public" : "private" }),
         handleUploadUrl: '/api/upload', // O endpoint que autoriza o upload
       });
 

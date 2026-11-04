@@ -3,6 +3,7 @@ import ExplorerTree from "./_components/ExplorerTree";
 import StorageAlert from "./_components/StorageAlert"; 
 import { FolderTree, Server } from "lucide-react"; // Importação dos ícones leves
 import type { Metadata } from "next";
+import { getBlobStorageUsage } from "@/src/lib/blobAccess";
 
 export const metadata: Metadata = {
   title: "Transparência | GE Amizade 66SP",
@@ -36,7 +37,11 @@ export default async function TransparenciaDashboardPage() {
   // ==========================================
   // CÁLCULO DE ARMAZENAMENTO
   // ==========================================
-  const totalBytes = allDocuments.reduce((acc, doc) => acc + doc.size, 0);
+  const [publicBytes, privateBytes] = await Promise.all([
+    getBlobStorageUsage("public"),
+    getBlobStorageUsage("private"),
+  ]);
+  const totalBytes = publicBytes + privateBytes;
   const usedMB = (totalBytes / (1024 * 1024)).toFixed(2);
   const limitGB = 1; // Ajuste este limite conforme o seu plano do Vercel Blob
   const limitMB = limitGB * 1024;

@@ -1,12 +1,12 @@
 "use server";
 
-import { del } from "@vercel/blob";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 
 import { authOptions } from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
 import { getUniqueSlug, normalizeImageUrl, sanitizeRichHtml, stripHtml } from "@/src/lib/blogPost";
+import { deleteBlob } from "@/src/lib/blobAccess";
 
 // Estas actions são usadas tanto por /admin/blog (org-wide) quanto por
 // /chefe/blog (recortado à própria tropa) — CHEFE continua na lista, mas com
@@ -111,7 +111,7 @@ function validatePayload(user: AuthorizedUser, payload: BlogPayload) {
 async function safelyDeleteBlob(url: string | null) {
   if (!url || !url.includes(BLOB_HOST_FRAGMENT)) return;
   try {
-    await del(url);
+    await deleteBlob(url);
   } catch (error) {
     console.warn("Falha ao remover imagem antiga no Vercel Blob. Prosseguindo com a operação.", error);
   }

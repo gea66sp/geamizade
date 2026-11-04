@@ -193,7 +193,7 @@ export default function NotificationManagerTable({
 
               <div className="flex flex-wrap gap-1.5">
                 <span
-                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${ORIGIN_META[item.origin].className}`}
+                  className={`inline-flex items-center whitespace-nowrap text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${ORIGIN_META[item.origin].className}`}
                 >
                   {ORIGIN_META[item.origin].label}
                 </span>
@@ -270,7 +270,7 @@ export default function NotificationManagerTable({
 
                   <td className="p-4 align-top">
                     <span
-                      className={`text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${ORIGIN_META[item.origin].className}`}
+                      className={`inline-flex items-center whitespace-nowrap text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider ${ORIGIN_META[item.origin].className}`}
                     >
                       <i className={`fa-solid ${ORIGIN_META[item.origin].icon} mr-1`}></i>
                       {ORIGIN_META[item.origin].label}

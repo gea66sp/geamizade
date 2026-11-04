@@ -1,12 +1,11 @@
 "use server";
 
-import { del, put } from "@vercel/blob";
 import { revalidatePath } from "next/cache";
 
 import { getErrorMessage } from "@/src/lib/errors";
 import { assertIsGuardianOf, getViewerContext } from "@/src/lib/guardian";
 import prisma from "@/src/lib/prisma";
-import { BLOB_ACCESS } from "@/src/lib/blobAccess";
+import { deleteBlob, putBlob } from "@/src/lib/blobAccess";
 
 // Server Actions da área do responsável. Cada uma revalida a sessão e chama
 // assertIsGuardianOf ANTES de tocar o banco — actions são endpoints próprios e
@@ -49,7 +48,7 @@ export async function uploadDependentDocumentAction(dependentId: string, formDat
 
     const filename = `documentos_pessoais/${dependentId}-${Date.now()}-${file.name.replace(/\s/g, "_")}`;
     // Leitura pela rota autenticada /api/documentos/[id].
-    const blob = await put(filename, file, { access: BLOB_ACCESS });
+    const blob = await putBlob(filename, file, "private");
 
     try {
       await prisma.document.create({
@@ -69,7 +68,7 @@ export async function uploadDependentDocumentAction(dependentId: string, formDat
       // Sem registro no banco o arquivo ficaria órfão, consumindo storage sem
       // nenhum vínculo — remove antes de propagar.
       try {
-        await del(blob.url);
+        await deleteBlob(blob.url);
       } catch (e) {
         console.warn("Falha ao limpar arquivo órfão após erro no banco:", e);
       }
@@ -129,7 +128,7 @@ export async function deleteDependentDocumentAction(documentId: string) {
 
     if (document.fileUrl) {
       try {
-        await del(document.fileUrl);
+        await deleteBlob(document.fileUrl);
       } catch (e) {
         console.warn("Arquivo já não existia no Vercel Blob.", e);
       }

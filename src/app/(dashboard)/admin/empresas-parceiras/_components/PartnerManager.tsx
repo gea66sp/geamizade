@@ -90,6 +90,7 @@ export default function PartnerManager({
     try {
       const blob = await upload(`parceiros/logos/${Date.now()}-${file.name}`, file, {
         access: "public",
+        clientPayload: JSON.stringify({ access: "public" }),
         handleUploadUrl: "/api/upload",
       });
       setDraft((current) => ({ ...current, logoUrl: blob.url }));

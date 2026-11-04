@@ -25,7 +25,7 @@ async function main() {
   // 3. Cria o usuário Admin no banco
   const admin = await prisma.user.create({
     data: {
-      name: 'Gustavo (Admin)',
+      name: 'Admin (Admin)',
       email: adminEmail,
       password: hashedPassword, // Salvamos o Hash, nunca a senha em texto limpo!
       role: 'ADMIN',

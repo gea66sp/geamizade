@@ -8,6 +8,7 @@ import RenameDocModal from "./RenameDocModal";
 import DeleteDocModal from "./DeleteDocModal";
 import PasswordFields from "@/src/components/dashboard/PasswordFields";
 import type { PersonalDoc, ProfileData } from "@/src/types/dashboard";
+import { getUserImageSrc } from "@/src/lib/userImage";
 
 type ProfileFormProps = {
   initialData: ProfileData; 
@@ -24,7 +25,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
   const [docToDelete, setDocToDelete] = useState<PersonalDoc | null>(null);
   
   // Estado para o preview instantâneo da foto de perfil e erro de validação
-  const [imagePreview, setImagePreview] = useState<string | null>(initialData.image || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(getUserImageSrc(initialData.id, initialData.image));
   const [imageError, setImageError] = useState<string>("");
 
   const MAX_IMAGE_SIZE = 1 * 1024 * 1024; // Limite rigoroso de 1 MB em bytes

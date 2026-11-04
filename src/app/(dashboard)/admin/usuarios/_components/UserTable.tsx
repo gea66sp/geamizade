@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Role, Branch } from "@prisma/client";
 import Image from "next/image";
 import ModalNovoUsuario from "./ModalNovoUsuario";
@@ -8,6 +8,7 @@ import ModalVisualizarUsuario from "./ModalVisualizarUsuario";
 import ModalEditarUsuario from "./ModalEditarUsuario"; 
 import ModalExcluirUsuario from "./ModalExcluirUsuario";
 import ModalRedefinirSenha from "./ModalRedefinirSenha"; 
+import { getUserImageSrc } from "@/src/lib/userImage";
 
 interface User {
   id: string;
@@ -151,7 +152,7 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
               <div key={user.id} className="p-4 bg-white hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="shrink-0 h-12 w-12 rounded-full border-2 border-gray-100 shadow-sm overflow-hidden bg-scout-green/10 flex items-center justify-center text-scout-green font-bold text-lg">
-                    {user.image ? <Image className="h-full w-full object-cover" src={user.image} alt={user.name || "User"} width={48} height={48} /> : user.name?.charAt(0).toUpperCase() || "?"}
+                    {user.image ? <Image unoptimized className="h-full w-full object-cover" src={getUserImageSrc(user.id, user.image) ?? user.image} alt={user.name || "User"} width={48} height={48} /> : user.name?.charAt(0).toUpperCase() || "?"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-bold text-gray-900 truncate">{user.name || "Sem nome"}</h4>
@@ -167,12 +168,15 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button onClick={() => handleAction('VIEW', user.id)} className="cursor-pointer flex items-center justify-center gap-1 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-xs font-bold transition-colors">
                     <i className="fa-solid fa-eye"></i> Ver
                   </button>
                   <button onClick={() => handleAction('EDIT', user.id)} className="cursor-pointer flex items-center justify-center gap-1 py-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-bold transition-colors">
                     <i className="fa-solid fa-pen"></i> Editar
+                  </button>
+                  <button onClick={() => handleAction('RESET', user.id)} className="cursor-pointer flex items-center justify-center gap-1 py-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-xs font-bold transition-colors">
+                    <i className="fa-solid fa-key"></i> Senha
                   </button>
                   <button onClick={() => handleAction('DELETE', user.id)} className="cursor-pointer flex items-center justify-center gap-1 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition-colors">
                     <i className="fa-solid fa-trash-can"></i> Excluir
@@ -206,7 +210,7 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-4">
                         <div className="shrink-0 h-10 w-10 rounded-full border border-gray-200 shadow-sm overflow-hidden bg-scout-green/10 flex items-center justify-center text-scout-green font-bold">
-                          {user.image ? <Image className="h-full w-full object-cover" src={user.image} alt="" width={40} height={40} /> : user.name?.charAt(0).toUpperCase() || "?"}
+                          {user.image ? <Image unoptimized className="h-full w-full object-cover" src={getUserImageSrc(user.id, user.image) ?? user.image} alt="" width={40} height={40} /> : user.name?.charAt(0).toUpperCase() || "?"}
                         </div>
                         <div>
                           <div className="text-sm font-bold text-gray-900">{user.name || "Sem nome"}</div>

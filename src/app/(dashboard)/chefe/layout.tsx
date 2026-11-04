@@ -52,7 +52,7 @@ export default async function ChefeLayout({
     : 0;
 
   return (
-    <ChefeShell userName={userName} userRole={userRole} userImage={userImage}>
+    <ChefeShell userName={userName} userRole={userRole} userImage={userImage} userId={userId}>
       {managedTroopsCount === 0 ? (
         <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white rounded-3xl border border-gray-200 px-4 text-center">
           <div className="w-20 h-20 mx-auto mb-5 flex items-center justify-center rounded-full bg-gray-50 border border-gray-200 shadow-sm">

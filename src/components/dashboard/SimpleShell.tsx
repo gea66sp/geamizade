@@ -7,6 +7,7 @@ import { signOut } from "next-auth/react";
 
 import NotificationBell from "@/src/components/dashboard/NotificationBell";
 import BrandMark from "@/src/components/BrandMark";
+import { getUserImageSrc } from "@/src/lib/userImage";
 
 type NavItem = {
   href: string;
@@ -23,6 +24,7 @@ interface SimpleShellProps {
   userName?: string | null;
   userRole?: string;
   userImage?: string | null;
+  userId?: string | null;
 }
 
 // Shell enxuto e parametrizável, reaproveitado pelas áreas de membro e
@@ -36,6 +38,7 @@ export default function SimpleShell({
   userName = "Usuário",
   userRole = "",
   userImage = null,
+  userId,
 }: SimpleShellProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
@@ -125,7 +128,7 @@ export default function SimpleShell({
       <div className="flex items-center gap-3 max-w-5xl mx-auto w-full px-4 md:px-6 pt-6">
         <div className="w-9 h-9 rounded-full bg-scout-green flex items-center justify-center text-scout-yellow font-bold uppercase shrink-0 overflow-hidden border border-scout-green/50">
           {userImage ? (
-            <img src={userImage} alt={userName || "Usuário"} className="w-full h-full object-cover" />
+            <img src={getUserImageSrc(userId ?? "", userImage) ?? userImage} alt={userName || "Usuário"} className="w-full h-full object-cover" />
           ) : (
             userName?.charAt(0) || "U"
           )}

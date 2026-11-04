@@ -10,9 +10,10 @@ interface AdminShellProps {
   userName?: string | null;
   userRole?: string;
   userImage?: string | null; // ADICIONADO: Nova prop para a imagem de perfil
+  userId?: string | null;
 }
 
-export default function AdminShell({ children, userName, userRole, userImage }: AdminShellProps) {
+export default function AdminShell({ children, userName, userRole, userImage, userId }: AdminShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -24,6 +25,7 @@ export default function AdminShell({ children, userName, userRole, userImage }: 
         userName={userName} 
         userRole={userRole}
         userImage={userImage} // REPASSADO: A imagem desce para a Sidebar
+        userId={userId}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />

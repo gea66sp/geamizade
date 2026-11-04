@@ -47,14 +47,14 @@ export default async function MembroLayout({
     return <ForcePasswordChange userName={sessionState.userName} />;
   }
 
-  const { userName, userRole, userImage } = sessionState;
+  const { userName, userRole, userImage, userId } = sessionState;
 
   if (userRole !== "MEMBER") {
     redirect(getHomeRouteForRole(userRole));
   }
 
   return (
-    <SimpleShell title="GE Amizade" homeHref="/membro" navItems={NAV_ITEMS} userName={userName} userRole={userRole} userImage={userImage}>
+    <SimpleShell title="GE Amizade" homeHref="/membro" navItems={NAV_ITEMS} userName={userName} userRole={userRole} userImage={userImage} userId={userId}>
       {children}
     </SimpleShell>
   );

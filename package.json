@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "blob:migrate": "node --env-file=.env node_modules/tsx/dist/cli.mjs scripts/migrate-blob-access.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -2,20 +2,40 @@ import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth"; // Verifique se o caminho do seu auth está correto
+import { getBlobToken, type BlobAccess } from "@/src/lib/blobAccess";
 
 export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
+  const requestedPayload =
+    body.type === "blob.generate-client-token"
+      ? body.payload.clientPayload
+      : body.payload.tokenPayload;
+  let requestedAccess: BlobAccess = "public";
+
+  if (requestedPayload) {
+    try {
+      const payload = JSON.parse(requestedPayload) as { access?: BlobAccess };
+      if (payload.access === "private") requestedAccess = "private";
+    } catch {
+      return NextResponse.json({ error: "Payload de upload inválido." }, { status: 400 });
+    }
+  }
 
   try {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async () => {
+      token: getBlobToken(requestedAccess),
+      onBeforeGenerateToken: async (_pathname, clientPayload) => {
         // SEGURANÇA: Verifica se a pessoa que está tentando fazer upload está logada
         const session = await getServerSession(authOptions);
         
         if (!session?.user?.email) {
           throw new Error('Acesso negado: Apenas usuários logados podem fazer upload.');
+        }
+
+        if (clientPayload !== requestedPayload) {
+          throw new Error("Payload de upload inconsistente.");
         }
 
         return {
@@ -36,6 +56,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           maximumSizeInBytes: 500 * 1024 * 1024,
           tokenPayload: JSON.stringify({
             userId: session.user.email,
+            access: requestedAccess,
           }),
         };
       },

@@ -1,11 +1,11 @@
 "use server";
 
-import { del } from "@vercel/blob";
 import prisma from "@/src/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { isAllowedBlobUrl } from "@/src/lib/blobAccess";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
+import { copyBlob, deleteBlob, isPrivateBlobUrl } from "@/src/lib/blobAccess";
 
 // ==========================================
 // CONFIGURAÇÕES E GRUPOS DE ACESSO
@@ -263,7 +263,7 @@ export async function deleteFolder(id: string) {
   const urlsToDelete = documentsToDelete.map(doc => doc.fileUrl);
   if (urlsToDelete.length > 0) {
     try {
-      await del(urlsToDelete);
+      await deleteBlob(urlsToDelete);
     } catch (e) {
       console.error("Aviso: Falha ao remover alguns arquivos físicos do Vercel Blob. Prosseguindo com o banco...", e);
     }
@@ -300,6 +300,9 @@ export async function createDocument(formData: FormData) {
   }
   if (!isAllowedBlobUrl(fileUrl)) {
     throw new Error("A URL do documento não pertence ao armazenamento autorizado.");
+  }
+  if (isPrivateBlobUrl(fileUrl) === isPublic) {
+    throw new Error("O arquivo não está no armazenamento compatível com sua visibilidade.");
   }
 
   if (folderId) {
@@ -359,21 +362,27 @@ export async function updateDocument(id: string, formData: FormData) {
 
   let finalFileUrl = document.fileUrl;
   let finalSize = document.size;
+  let oldFileUrlToDelete: string | null = null;
 
   // Substituição física do arquivo se um novo upload foi realizado no cliente
   if (newFileUrl && newFileUrl !== document.fileUrl) {
     if (!isAllowedBlobUrl(newFileUrl)) {
       throw new Error("A URL do novo documento não pertence ao armazenamento autorizado.");
     }
-
-    try {
-      await del(document.fileUrl);
-    } catch (e) {
-      console.warn("Arquivo antigo não localizado no servidor de armazenamento, aplicando o novo link...", e);
+    if (isPrivateBlobUrl(newFileUrl) === isPublic) {
+      throw new Error("O novo arquivo não está no armazenamento compatível com sua visibilidade.");
     }
     
     finalFileUrl = newFileUrl;
     finalSize = newFileSize;
+    oldFileUrlToDelete = document.fileUrl;
+  } else if (isPrivateBlobUrl(document.fileUrl) === isPublic) {
+    finalFileUrl = await copyBlob(
+      document.fileUrl,
+      `transparencia/migrated-${document.id}-${Date.now()}`,
+      isPublic ? "public" : "private",
+    );
+    oldFileUrlToDelete = document.fileUrl;
   }
 
   await prisma.$transaction([
@@ -398,6 +407,14 @@ export async function updateDocument(id: string, formData: FormData) {
     })
   ]);
 
+  if (oldFileUrlToDelete) {
+    try {
+      await deleteBlob(oldFileUrlToDelete);
+    } catch (error) {
+      console.warn("Documento atualizado, mas o arquivo antigo não foi removido.", error);
+    }
+  }
+
   revalidatePath("/admin/transparencia");
 }
 
@@ -414,7 +431,7 @@ export async function deleteDocument(id: string) {
   await verifyEditPermission(user, document.isRestrictedEdit, document.allowedEditors.map(e => e.id));
 
   try {
-    await del(document.fileUrl);
+    await deleteBlob(document.fileUrl);
   } catch (e) {
     console.error("Erro ao remover o arquivo físico do Vercel Blob:", e);
   }

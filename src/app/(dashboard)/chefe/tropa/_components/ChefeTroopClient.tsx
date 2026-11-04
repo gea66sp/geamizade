@@ -9,6 +9,7 @@ import {
 } from "@/src/app/(dashboard)/admin/tropas/[id]/actions";
 import PatrolFormModal from "@/src/app/(dashboard)/admin/tropas/[id]/_components/PatrolFormModal";
 import MembroFormModal, { type MembroParaEditar } from "@/src/components/dashboard/chefe/MembroFormModal";
+import { getUserImageSrc } from "@/src/lib/userImage";
 
 type Member = {
   id: string;
@@ -117,7 +118,7 @@ export default function ChefeTroopClient({
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 overflow-hidden shrink-0">
           {member.image ? (
-            <img src={member.image} alt={member.name ?? ""} className="w-full h-full object-cover" />
+            <img src={getUserImageSrc(member.id, member.image) ?? undefined} alt={member.name ?? ""} className="w-full h-full object-cover" />
           ) : (
             <i className="fa-solid fa-user text-xs"></i>
           )}

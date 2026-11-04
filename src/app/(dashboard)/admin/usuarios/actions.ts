@@ -5,7 +5,7 @@ import { hash } from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
 import { Prisma, Role, Branch } from "@prisma/client";
-import { del } from "@vercel/blob"; // Importação vital para a limpeza
+import { deleteBlob } from "@/src/lib/blobAccess";
 import { getPrismaErrorCode } from "@/src/lib/errors";
 import { canGrantRole } from "@/src/lib/userAccess";
 import { assertPasswordPolicy, describeMissingRequirements, isPasswordValid } from "@/src/lib/passwordPolicy";
@@ -235,12 +235,12 @@ export async function deleteUser(userId: string) {
     // 2. Limpeza Física (Vercel Blob)
     try {
       if (userToDelete.image && userToDelete.image.includes('blob.vercel-storage')) {
-        await del(userToDelete.image);
+        await deleteBlob(userToDelete.image);
       }
       
       const docUrls = userToDelete.personalDocs.map(doc => doc.fileUrl);
       if (docUrls.length > 0) {
-        await del(docUrls);
+        await deleteBlob(docUrls);
       }
     } catch (blobError) {
       console.warn("Falha ao apagar arquivos da nuvem. Prosseguindo com deleção do banco...", blobError);

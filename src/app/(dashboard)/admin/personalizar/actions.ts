@@ -2,9 +2,9 @@
 
 import prisma from "@/src/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { put, del } from "@vercel/blob"; // Requer @vercel/blob instalado
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
+import { deleteBlob, putBlob } from "@/src/lib/blobAccess";
 
 // ==========================================
 // FORMATOS RECEBIDOS DO FORMULÁRIO
@@ -63,15 +63,15 @@ export async function saveSiteSettings(formData: FormData) {
   if (heroImageMethod === "FILE") {
     const file = formData.get("heroImageFile") as File;
     if (file && file.size > 0) {
-      if (finalHeroImageUrl?.includes("blob.vercel-storage.com")) await del(finalHeroImageUrl);
-      const blob = await put(`site/hero-${Date.now()}-${file.name}`, file, { access: "public" });
+      if (finalHeroImageUrl?.includes("blob.vercel-storage.com")) await deleteBlob(finalHeroImageUrl);
+      const blob = await putBlob(`site/hero-${Date.now()}-${file.name}`, file, "public");
       finalHeroImageUrl = blob.url;
     }
   } else if (heroImageMethod === "URL") {
     const externalUrl = (formData.get("heroImageUrl") as string | null)?.trim();
     // Só substitui/apaga a imagem atual se uma nova URL válida foi realmente enviada.
     if (externalUrl) {
-      if (finalHeroImageUrl?.includes("blob.vercel-storage.com")) await del(finalHeroImageUrl);
+      if (finalHeroImageUrl?.includes("blob.vercel-storage.com")) await deleteBlob(finalHeroImageUrl);
       finalHeroImageUrl = externalUrl;
     }
   }
@@ -83,15 +83,15 @@ export async function saveSiteSettings(formData: FormData) {
   if (aboutImageMethod === "FILE") {
     const file = formData.get("aboutImageFile") as File;
     if (file && file.size > 0) {
-      if (finalAboutImageUrl?.includes("blob.vercel-storage.com")) await del(finalAboutImageUrl);
-      const blob = await put(`site/about-${Date.now()}-${file.name}`, file, { access: "public" });
+      if (finalAboutImageUrl?.includes("blob.vercel-storage.com")) await deleteBlob(finalAboutImageUrl);
+      const blob = await putBlob(`site/about-${Date.now()}-${file.name}`, file, "public");
       finalAboutImageUrl = blob.url;
     }
   } else if (aboutImageMethod === "URL") {
     const externalUrl = (formData.get("aboutImageUrl") as string | null)?.trim();
     // Só substitui/apaga a imagem atual se uma nova URL válida foi realmente enviada.
     if (externalUrl) {
-      if (finalAboutImageUrl?.includes("blob.vercel-storage.com")) await del(finalAboutImageUrl);
+      if (finalAboutImageUrl?.includes("blob.vercel-storage.com")) await deleteBlob(finalAboutImageUrl);
       finalAboutImageUrl = externalUrl;
     }
   }
@@ -144,15 +144,15 @@ export async function saveSiteSettings(formData: FormData) {
   if (historyImageMethod === "FILE") {
     const file = formData.get("historyImageFile") as File;
     if (file && file.size > 0) {
-      if (finalHistoryImageUrl?.includes("blob.vercel-storage.com")) await del(finalHistoryImageUrl);
-      const blob = await put(`site/history-${Date.now()}-${file.name}`, file, { access: "public" });
+      if (finalHistoryImageUrl?.includes("blob.vercel-storage.com")) await deleteBlob(finalHistoryImageUrl);
+      const blob = await putBlob(`site/history-${Date.now()}-${file.name}`, file, "public");
       finalHistoryImageUrl = blob.url;
     }
   } else if (historyImageMethod === "URL") {
     const externalUrl = (formData.get("historyImageUrl") as string | null)?.trim();
     // Só substitui/apaga a imagem atual se uma nova URL válida foi realmente enviada.
     if (externalUrl) {
-      if (finalHistoryImageUrl?.includes("blob.vercel-storage.com")) await del(finalHistoryImageUrl);
+      if (finalHistoryImageUrl?.includes("blob.vercel-storage.com")) await deleteBlob(finalHistoryImageUrl);
       finalHistoryImageUrl = externalUrl;
     }
   }

@@ -3,12 +3,11 @@
 import prisma from "@/src/lib/prisma";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
-import { put, del } from "@vercel/blob";
 import { getServerSession } from "next-auth";
 import { Prisma } from "@prisma/client";
 import { authOptions } from "@/src/lib/auth";
 import { getErrorMessage } from "@/src/lib/errors";
-import { BLOB_ACCESS } from "@/src/lib/blobAccess";
+import { deleteBlob, isAllowedBlobUrl, putBlob } from "@/src/lib/blobAccess";
 import { assertPasswordPolicy, describeMissingRequirements, isPasswordValid } from "@/src/lib/passwordPolicy";
 
 // ==========================================
@@ -66,10 +65,10 @@ export async function updateProfile(formData: FormData) {
       }
 
       const filename = `avatars/${userId}-${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
-      const blob = await put(filename, imageFile, { access: 'public' });
+      const blob = await putBlob(filename, imageFile, "private");
       userUpdateData.image = blob.url;
 
-      if (currentUser.image && currentUser.image.includes('public.blob.vercel-storage.com')) {
+      if (currentUser.image && isAllowedBlobUrl(currentUser.image)) {
         oldImageToDelete = currentUser.image;
       }
     }
@@ -96,7 +95,7 @@ export async function updateProfile(formData: FormData) {
     // Só agora, com a troca confirmada no banco, apaga a imagem antiga do Blob
     // para não gerar custo de armazenamento fantasma nem deixar referência quebrada.
     if (oldImageToDelete) {
-      try { await del(oldImageToDelete); } catch (e) { console.warn("Erro ao apagar avatar antigo:", e); }
+      try {       await deleteBlob(oldImageToDelete); } catch (e) { console.warn("Erro ao apagar avatar antigo:", e); }
     }
 
     revalidatePath("/perfil");
@@ -138,7 +137,7 @@ export async function uploadPersonalDocument(formData: FormData) {
     // Aqui entram fichas médicas, autorizações e carteirinhas. O download
     // passa por /api/documentos/[id], que confere dono, responsável legal ou
     // gestão. O acesso direto ao Blob depende da configuração do store.
-    const blob = await put(filename, file, { access: BLOB_ACCESS });
+    const blob = await putBlob(filename, file, "private");
 
     try {
       await prisma.document.create({
@@ -154,7 +153,7 @@ export async function uploadPersonalDocument(formData: FormData) {
     } catch (dbError) {
       // Se o registro não pôde ser criado, remove o arquivo já enviado para não
       // deixá-lo órfão (consumindo armazenamento sem nenhum vínculo no banco).
-      try { await del(blob.url); } catch (e) { console.warn("Erro ao limpar arquivo órfão após falha no banco:", e); }
+      try { await deleteBlob(blob.url); } catch (e) { console.warn("Erro ao limpar arquivo órfão após falha no banco:", e); }
       throw dbError;
     }
 
@@ -206,7 +205,7 @@ export async function deletePersonalDocument(documentId: string) {
     }
 
     if (document.fileUrl) {
-      try { await del(document.fileUrl); } catch (e) { console.warn("Arquivo já não existia no Vercel Blob.", e); }
+      try { await deleteBlob(document.fileUrl); } catch (e) { console.warn("Arquivo já não existia no Vercel Blob.", e); }
     }
 
     await prisma.document.delete({

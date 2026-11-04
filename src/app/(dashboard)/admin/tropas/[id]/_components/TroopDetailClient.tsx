@@ -5,6 +5,7 @@ import { Branch, ItemCondition, TransactionStatus, TransactionType } from "@pris
 import { toggleTroopMember, moveMemberToPatrol, setPatrolLeadership, deletePatrolInternal } from "../actions";
 import PatrolFormModal from "./PatrolFormModal";
 import Link from "next/link";
+import { getUserImageSrc } from "@/src/lib/userImage";
 
 // Contrato explícito com a page: estes tipos espelham os `select`/`include` de
 // tropas/[id]/page.tsx. Declará-los aqui faz o compilador acusar se a consulta
@@ -136,7 +137,7 @@ export default function TroopDetailClient({
     >
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 overflow-hidden shrink-0">
-          {member.image ? <img src={member.image} alt={member.name ?? "Membro"} className="w-full h-full object-cover" /> : <i className="fa-solid fa-user text-xs"></i>}
+          {member.image ? <img src={getUserImageSrc(member.id, member.image) ?? undefined} alt={member.name ?? "Membro"} className="w-full h-full object-cover" /> : <i className="fa-solid fa-user text-xs"></i>}
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-bold text-gray-800 leading-tight">{member.name}</span>

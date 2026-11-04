@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getUserFullDetails } from "../actions";
 import Image from "next/image";
 import type { DependentTieRow, GuardianTieRow, PersonalDoc } from "@/src/types/dashboard";
+import { getUserImageSrc } from "@/src/lib/userImage";
 
 // Ficha completa devolvida por getUserFullDetails.
 type UserFullDetails = {
@@ -61,7 +62,7 @@ export default function ModalVisualizarUsuario({ isOpen, onClose, userId }: Moda
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 pt-2">
             <div className="w-20 h-20 md:w-24 md:h-24 bg-white border-4 border-white shadow-md text-scout-green rounded-full flex items-center justify-center shrink-0 overflow-hidden text-3xl font-black relative">
               {userData?.image ? (
-                <Image className="h-full w-full object-cover" src={userData.image} alt="Foto" width={96} height={96} />
+                <Image unoptimized className="h-full w-full object-cover" src={getUserImageSrc(userData.id, userData.image) ?? userData.image} alt="Foto" width={96} height={96} />
               ) : (
                 userData?.name?.charAt(0).toUpperCase() || <i className="fa-solid fa-user"></i>
               )}

@@ -47,14 +47,14 @@ export default async function ResponsavelLayout({
     return <ForcePasswordChange userName={sessionState.userName} />;
   }
 
-  const { userName, userRole, userImage } = sessionState;
+  const { userName, userRole, userImage, userId } = sessionState;
 
   if (userRole !== "RESPONSAVEL") {
     redirect(getHomeRouteForRole(userRole));
   }
 
   return (
-    <SimpleShell title="GE Amizade" homeHref="/responsavel" navItems={NAV_ITEMS} userName={userName} userRole={userRole} userImage={userImage}>
+    <SimpleShell title="GE Amizade" homeHref="/responsavel" navItems={NAV_ITEMS} userName={userName} userRole={userRole} userImage={userImage} userId={userId}>
       {children}
     </SimpleShell>
   );

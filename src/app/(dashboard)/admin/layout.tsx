@@ -41,7 +41,7 @@ export default async function AdminLayout({
     return <ForcePasswordChange userName={sessionState.userName} />;
   }
 
-  const { userName, userRole, userImage } = sessionState;
+  const { userName, userRole, userImage, userId } = sessionState;
 
   if (!userRole || !ALLOWED_ADMIN_ROLES.includes(userRole)) {
     // Cada cargo tem sua própria área hoje (CHEFE -> /chefe, MEMBER -> /membro,
@@ -55,6 +55,7 @@ export default async function AdminLayout({
       userName={userName}
       userRole={userRole}
       userImage={userImage}
+      userId={userId}
     >
       {children}
     </AdminShell>

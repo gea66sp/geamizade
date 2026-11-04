@@ -7,11 +7,13 @@ import { signOut } from "next-auth/react";
 
 import NotificationBell from "@/src/components/dashboard/NotificationBell";
 import BrandMark from "@/src/components/BrandMark";
+import { getUserImageSrc } from "@/src/lib/userImage";
 
 interface SidebarProps {
   userName?: string | null;
   userRole?: string;
   userImage?: string | null;
+  userId?: string | null;
   isOpen?: boolean; 
   onClose?: () => void; 
 }
@@ -20,6 +22,7 @@ export default function Sidebar({
   userName = "Chefe", 
   userRole = "ADMIN", 
   userImage = null, 
+  userId,
   isOpen = false, 
   onClose 
 }: SidebarProps) {
@@ -288,7 +291,7 @@ export default function Sidebar({
               
               <div className="w-10 h-10 rounded-full bg-scout-green flex items-center justify-center text-scout-yellow font-bold uppercase shadow-inner shrink-0 transition-transform group-hover:scale-105 overflow-hidden border border-scout-green/50">
                 {userImage ? (
-                  <img src={userImage} alt={userName || "Usuário"} className="w-full h-full object-cover" />
+                  <img src={getUserImageSrc(userId ?? "", userImage) ?? userImage} alt={userName || "Usuário"} className="w-full h-full object-cover" />
                 ) : (
                   userName?.charAt(0) || "U"
                 )}

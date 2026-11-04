@@ -1,10 +1,10 @@
 "use server";
 
-import { del } from "@vercel/blob";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { authOptions } from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
+import { deleteBlob } from "@/src/lib/blobAccess";
 
 const ALLOWED_ROLES = new Set(["ADMIN", "DEVELOPER", "FINANCEIRO"]);
 const BLOB_HOST_SUFFIX = ".blob.vercel-storage.com";
@@ -125,7 +125,7 @@ export async function updatePartnerCompany(id: string, formData: FormData) {
 
   await prisma.partnerCompany.update({ where: { id }, data });
   if (current.logoUrl && current.logoUrl !== data.logoUrl && current.logoUrl.includes(BLOB_HOST_SUFFIX)) {
-    await del(current.logoUrl);
+    await deleteBlob(current.logoUrl);
   }
 
   revalidatePath("/admin/empresas-parceiras");
@@ -138,7 +138,7 @@ export async function deletePartnerCompany(id: string) {
   if (!company) throw new Error("Empresa parceira não encontrada.");
 
   await prisma.partnerCompany.delete({ where: { id } });
-  if (company.logoUrl?.includes(BLOB_HOST_SUFFIX)) await del(company.logoUrl);
+  if (company.logoUrl?.includes(BLOB_HOST_SUFFIX)) await deleteBlob(company.logoUrl);
 
   revalidatePath("/admin/empresas-parceiras");
   revalidatePath("/empresas-parceiras");

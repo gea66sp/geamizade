@@ -135,7 +135,7 @@ export default function NotificationList({ initialItems }: { initialItems: Inbox
 
                     <div className="flex flex-wrap items-center gap-2 mt-3">
                       <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${originMeta.className}`}
+                        className={`inline-flex items-center whitespace-nowrap text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${originMeta.className}`}
                       >
                         <i className={`fa-solid ${originMeta.icon} mr-1`}></i>
                         {originMeta.label}
