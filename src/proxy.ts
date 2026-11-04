@@ -4,9 +4,10 @@
 //
 // Aqui só validamos que existe sessão. A checagem de CARGO fica no layout.tsx
 // de cada área do dashboard e, de novo, dentro de cada Server Action.
-import { withAuth } from "next-auth/middleware";
+import { NextFetchEvent, NextResponse } from "next/server";
+import { withAuth, type NextRequestWithAuth } from "next-auth/middleware";
 
-export default withAuth({
+const authMiddleware = withAuth({
   pages: {
     signIn: "/login",
   },
@@ -18,8 +19,28 @@ export default withAuth({
   },
 });
 
+export default function proxy(request: NextRequestWithAuth, event: NextFetchEvent) {
+  const { pathname, searchParams } = request.nextUrl;
+  const isKnownSpamQuery =
+    pathname === "/" &&
+    searchParams.has("e") &&
+    searchParams.has("channel") &&
+    searchParams.has("from");
+
+  if (isKnownSpamQuery) {
+    return NextResponse.redirect(new URL("/", request.url), 308);
+  }
+
+  if (pathname === "/") {
+    return NextResponse.next();
+  }
+
+  return authMiddleware(request, event);
+}
+
 export const config = {
   matcher: [
+    "/",
     "/admin",        
     "/admin/:path*",
     "/chefe",
