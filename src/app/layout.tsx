@@ -95,37 +95,48 @@ export const metadata: Metadata = {
   },
 };
 
-// Estrutura de Dados Estruturados (Schema.org) - Usando array para LocalBusiness e NGO
-const schema = [
-  {
-    "@context": "https://schema.org",
-    "@type": ["LocalBusiness", "NGO"], 
-    "@id": `${BASE_URL}/institucional`,
-    "name": "GE AMIZADE - Grupo Escoteiro Amizade 66/SP",
-    "url": BASE_URL,
-    "logo": `${BASE_URL}/simbolo.jpg`,
-    "image": `${BASE_URL}/hero-image.jpg`,
-    "description": "Grupo Escoteiro em Taubaté focado no desenvolvimento de jovens através do Método Escoteiro.",
-    "telephone": "+55 12 3622-7084", 
-    "priceRange": "$", 
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "Rua Kenzo Kajita, 272", 
-      "addressLocality": "Taubaté",
-      "addressRegion": "SP",
-      "postalCode": "12062-240", 
-      "addressCountry": "BR"
-    },
-    "areaServed": {
-      "@type": "City",
-      "name": "Taubaté",
-    },
-    "sameAs": [
-      "https://www.instagram.com/amizade66sp/",
-      "https://www.facebook.com/GEAmizade/",
-    ]
-  }
-];
+const schema = {
+  "@context": "https://schema.org",
+  "@type": "NGO",
+  "@id": `${BASE_URL}/#organization`,
+  "name": "Grupo Escoteiro Amizade 66/SP",
+  "alternateName": "GE Amizade",
+  "url": BASE_URL,
+  "logo": `${BASE_URL}/simbolo.jpg`,
+  "image": `${BASE_URL}/hero-image.jpg`,
+  "description": "Grupo escoteiro em Taubaté dedicado ao desenvolvimento de jovens por meio do Método Escoteiro, atividades ao ar livre, valores éticos e serviço.",
+  "email": "secretaria@geamizade.org.br",
+  "telephone": "+55 12 3622-7084",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Rua Kenzo Kajita, 272 - Parque Mauá",
+    "addressLocality": "Taubaté",
+    "addressRegion": "SP",
+    "postalCode": "12062-240",
+    "addressCountry": "BR",
+  },
+  "areaServed": {
+    "@type": "City",
+    "name": "Taubaté",
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer service",
+    "email": "secretaria@geamizade.org.br",
+    "telephone": "+55 12 3622-7084",
+    "availableLanguage": "pt-BR",
+  },
+  "sameAs": [
+    "https://www.instagram.com/amizade66sp/",
+    "https://web.facebook.com/GEAmizade",
+  ],
+  "knowsAbout": [
+    "Escotismo",
+    "Educação não formal",
+    "Atividades ao ar livre",
+    "Desenvolvimento de jovens",
+  ],
+};
 
 export default function RootLayout({
   children,
@@ -139,10 +150,7 @@ export default function RootLayout({
           rel="stylesheet" 
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
         />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       </head>
       <body className={`${openSans.variable} ${montserrat.variable} font-sans text-gray-800 bg-gray-50 flex flex-col min-h-screen antialiased`}>
         <Providers> {/* 👈 Providers envolvendo o conteúdo */}

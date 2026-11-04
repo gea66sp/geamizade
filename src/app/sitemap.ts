@@ -1,62 +1,64 @@
 import { MetadataRoute } from 'next';
-import prisma from "@/src/lib/prisma";
+import prisma from '@/src/lib/prisma';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // ATENÇÃO: Certifique-se de que não haja barra no final da URL base
-  const baseUrl = 'https://www.geamizade.org.br'; 
+  const baseUrl = 'https://www.geamizade.org.br';
 
-  // 1. Definição das rotas estáticas públicas
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly', // O site tem notícias e eventos, logo muda com frequência
+      changeFrequency: 'weekly',
       priority: 1.0,
     },
     {
       url: `${baseUrl}/blog`,
-      lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
       url: `${baseUrl}/portal-da-transparencia`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly', // Revalida a cada 60s, o Google deve olhar sempre
+      changeFrequency: 'weekly',
       priority: 0.8,
     },
     {
       url: `${baseUrl}/institucional`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly', // Revalida a cada 60s, o Google deve olhar sempre
-      priority: 0.5,
+      changeFrequency: 'monthly',
+      priority: 0.8,
     },
     {
-      url: `${baseUrl}/login`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly', // Uma tela de login quase nunca muda
-      priority: 0.5,
+      url: `${baseUrl}/tropas`,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/empresas-parceiras`,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/privacidade`,
+      changeFrequency: 'yearly',
+      priority: 0.3,
     },
   ];
 
-  // 2. Busca dinâmica das rotas de arquivos públicos no banco de dados e do blog
   let dynamicRoutes: MetadataRoute.Sitemap = [];
-  
-  try {
-    // Buscamos apenas os documentos que são públicos para expor ao Google
-    const publicDocuments = await prisma.document.findMany({
-      where: { isPublic: true },
-      select: { id: true, createdAt: true }, // Trazemos apenas o necessário para performance
-    });
 
-    const publishedPosts = await prisma.blogPost.findMany({
-      where: { status: "PUBLISHED" },
-      select: { slug: true, updatedAt: true },
-    });
+  try {
+    const [publicDocuments, publishedPosts] = await Promise.all([
+      prisma.document.findMany({
+        where: { isPublic: true },
+        select: { id: true, updatedAt: true },
+      }),
+      prisma.blogPost.findMany({
+        where: { status: 'PUBLISHED' },
+        select: { slug: true, updatedAt: true },
+      }),
+    ]);
 
     const documentRoutes = publicDocuments.map((doc): MetadataRoute.Sitemap[number] => ({
       url: `${baseUrl}/portal-da-transparencia/arquivo/${doc.id}`,
-      lastModified: doc.createdAt,
+      lastModified: doc.updatedAt,
       changeFrequency: 'monthly',
       priority: 0.6,
     }));
@@ -70,10 +72,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     dynamicRoutes = [...documentRoutes, ...blogRoutes];
   } catch (error) {
-    console.error("Erro ao buscar rotas dinâmicas para o sitemap:", error);
-    // Em caso de falha no banco (build time), ele segue apenas com as rotas estáticas
+    console.error('Erro ao buscar rotas dinâmicas para o sitemap:', error);
   }
 
-  // 3. Retorna a fusão das rotas estáticas com as rotas dinâmicas geradas
   return [...staticRoutes, ...dynamicRoutes];
 }
