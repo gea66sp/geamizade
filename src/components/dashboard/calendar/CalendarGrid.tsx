@@ -36,11 +36,11 @@ function scopeStyles(event: CalendarEvent) {
     };
   }
   return {
-    chip: "bg-emerald-100 text-emerald-700",
-    card: "bg-emerald-50 border-emerald-500 hover:bg-emerald-100",
-    cardSoft: "bg-emerald-50/50 border-emerald-500 hover:bg-emerald-50",
-    title: "text-emerald-900",
-    meta: "text-emerald-600",
+    chip: "bg-scout-green/10 text-scout-dark",
+    card: "bg-scout-green/5 border-scout-green hover:bg-scout-green/10",
+    cardSoft: "bg-scout-green/5 border-scout-green hover:bg-scout-green/5",
+    title: "text-scout-dark",
+    meta: "text-scout-green",
   };
 }
 

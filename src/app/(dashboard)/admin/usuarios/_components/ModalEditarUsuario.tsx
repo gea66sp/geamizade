@@ -155,7 +155,7 @@ export default function ModalEditarUsuario({ isOpen, onClose, userId, currentUse
             </div>
 
             {message && (
-              <div className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-bold animate-fade-in-up ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
+              <div className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-bold animate-fade-in-up ${message.type === "success" ? "bg-scout-green/5 text-scout-dark border border-scout-green/10" : "bg-red-50 text-red-700 border border-red-100"}`}>
                 <i className={`fa-solid text-lg ${message.type === "success" ? "fa-circle-check" : "fa-triangle-exclamation"}`}></i>
                 {message.text}
               </div>

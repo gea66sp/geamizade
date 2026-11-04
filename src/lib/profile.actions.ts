@@ -137,8 +137,7 @@ export async function uploadPersonalDocument(formData: FormData) {
 
     // Aqui entram fichas médicas, autorizações e carteirinhas. O download
     // passa por /api/documentos/[id], que confere dono, responsável legal ou
-    // gestão. BLOB_ACCESS vira "private" assim que o store privado existir —
-    // ver src/lib/blobAccess.ts.
+    // gestão. O acesso direto ao Blob depende da configuração do store.
     const blob = await put(filename, file, { access: BLOB_ACCESS });
 
     try {
@@ -195,7 +194,7 @@ export async function renamePersonalDocument(documentId: string, newTitle: strin
   }
 }
 
-export async function deletePersonalDocument(documentId: string, fileUrl: string) {
+export async function deletePersonalDocument(documentId: string) {
   try {
     const currentUser = await getSecureUser();
 
@@ -206,8 +205,8 @@ export async function deletePersonalDocument(documentId: string, fileUrl: string
       return { success: false, error: "Acesso negado: Você não pode excluir um documento que não é seu." };
     }
 
-    if (fileUrl) {
-      try { await del(fileUrl); } catch (e) { console.warn("Arquivo já não existia no Vercel Blob.", e); }
+    if (document.fileUrl) {
+      try { await del(document.fileUrl); } catch (e) { console.warn("Arquivo já não existia no Vercel Blob.", e); }
     }
 
     await prisma.document.delete({

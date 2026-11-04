@@ -51,7 +51,7 @@ export default function ModalEditarArquivo({ isOpen, onClose, document, adminUse
     // O folderId atualizado vai via input type="hidden"
     
     try {
-      await updateDocument(document!.id, document!.fileUrl, formData);
+      await updateDocument(document!.id, formData);
       onClose();
     } catch (err) {
       if (isNextRedirectError(err)) {
@@ -274,7 +274,7 @@ export default function ModalEditarArquivo({ isOpen, onClose, document, adminUse
             <button 
               type="submit" 
               disabled={isSaving} 
-              className="w-full sm:w-auto px-6 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
+              className="w-full sm:w-auto px-6 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
             >
               {isSaving ? (
                 <><i className="fa-solid fa-circle-notch fa-spin"></i> Salvando...</>

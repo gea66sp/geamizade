@@ -159,7 +159,7 @@ export default function PartnerManager({
       </header>
 
       {(error || message) && (
-        <div className={`rounded-xl border px-4 py-3 text-sm ${error ? "border-red-200 bg-red-50 text-red-700" : "border-emerald-200 bg-emerald-50 text-emerald-700"}`}>
+        <div className={`rounded-xl border px-4 py-3 text-sm ${error ? "border-red-200 bg-red-50 text-red-700" : "border-scout-green/20 bg-scout-green/5 text-scout-dark"}`}>
           {error || message}
         </div>
       )}
@@ -185,7 +185,7 @@ export default function PartnerManager({
               <input type="hidden" name="logoUrl" value={draft.logoUrl ?? ""} />
             </div>
           </div>
-          <button type="submit" disabled={isPending || categories.length === 0} className="mt-5 w-full rounded-xl bg-scout-green px-4 py-3 font-bold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50">{isPending ? "Salvando..." : editingId ? "Atualizar empresa" : "Cadastrar empresa"}</button>
+          <button type="submit" disabled={isPending || categories.length === 0} className="mt-5 w-full rounded-xl bg-scout-green px-4 py-3 font-bold text-white transition hover:bg-scout-dark disabled:cursor-not-allowed disabled:opacity-50">{isPending ? "Salvando..." : editingId ? "Atualizar empresa" : "Cadastrar empresa"}</button>
         </form>
 
         <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
@@ -197,7 +197,7 @@ export default function PartnerManager({
 
       <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
         <div className="mb-4 flex items-center justify-between"><h2 className="font-heading text-lg font-bold text-gray-800">Empresas cadastradas</h2><span className="text-sm text-gray-500">{companies.length} {companies.length === 1 ? "empresa" : "empresas"}</span></div>
-        {companies.length === 0 ? <p className="rounded-xl bg-gray-50 p-8 text-center text-sm text-gray-500">Nenhuma empresa cadastrada ainda.</p> : <div className="grid gap-3 md:grid-cols-2">{companies.map((company) => <article key={company.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-gray-100 p-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-scout-green font-bold text-white">{company.logoUrl ? <img src={company.logoUrl} alt="" className="h-full w-full object-contain" /> : initials(company.name)}</div><div className="min-w-0 flex-1"><h3 className="truncate font-bold text-gray-800">{company.name}</h3><p className="text-xs text-gray-500">{company.category.name}</p></div><button type="button" onClick={() => edit(company)} className="rounded-lg px-2 py-2 text-scout-green hover:bg-green-50" aria-label={`Editar ${company.name}`}><i className="fa-solid fa-pen" /></button><button type="button" onClick={() => removeCompany(company.id)} className="rounded-lg px-2 py-2 text-red-500 hover:bg-red-50" aria-label={`Excluir ${company.name}`}><i className="fa-solid fa-trash" /></button></article>)}</div>}
+        {companies.length === 0 ? <p className="rounded-xl bg-gray-50 p-8 text-center text-sm text-gray-500">Nenhuma empresa cadastrada ainda.</p> : <div className="grid gap-3 md:grid-cols-2">{companies.map((company) => <article key={company.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-gray-100 p-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-scout-green font-bold text-white">{company.logoUrl ? <img src={company.logoUrl} alt="" className="h-full w-full object-contain" /> : initials(company.name)}</div><div className="min-w-0 flex-1"><h3 className="truncate font-bold text-gray-800">{company.name}</h3><p className="text-xs text-gray-500">{company.category.name}</p></div><button type="button" onClick={() => edit(company)} className="rounded-lg px-2 py-2 text-scout-green hover:bg-scout-green/5" aria-label={`Editar ${company.name}`}><i className="fa-solid fa-pen" /></button><button type="button" onClick={() => removeCompany(company.id)} className="rounded-lg px-2 py-2 text-red-500 hover:bg-red-50" aria-label={`Excluir ${company.name}`}><i className="fa-solid fa-trash" /></button></article>)}</div>}
       </section>
     </div>
   );

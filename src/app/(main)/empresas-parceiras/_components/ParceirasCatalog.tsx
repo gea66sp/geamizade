@@ -48,7 +48,81 @@ export default function ParceirasCatalog({ partners }: { partners: Partner[] }) 
 
       <div className="mb-5 flex items-center justify-between gap-3 text-sm text-gray-500"><p><strong className="text-gray-800">{filteredPartners.length}</strong> {filteredPartners.length === 1 ? "empresa encontrada" : "empresas encontradas"}</p>{(search || category !== "todas") && <button type="button" onClick={() => { setSearch(""); setCategory("todas"); }} className="font-bold text-scout-green hover:underline">Limpar filtros</button>}</div>
 
-      {filteredPartners.length > 0 ? <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">{filteredPartners.map((partner) => <article key={partner.id} className="group flex flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-scout-green/20 hover:shadow-xl"><div className="flex items-start justify-between gap-4 border-b border-gray-100 p-6 sm:p-8"><div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-scout-green text-lg font-black tracking-tight text-white shadow-inner sm:h-32 sm:w-32 lg:h-36 lg:w-36">{partner.logoUrl ? <img src={partner.logoUrl} alt={`Logomarca ${partner.name}`} className="h-full w-full object-contain" /> : getInitials(partner.name)}</div><span className="rounded-full bg-gray-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">{partner.category.name}</span></div><div className="flex grow flex-col p-6"><div className="mb-3 flex items-center gap-2"><i className="fa-solid fa-handshake text-scout-yellow" aria-hidden="true" /><h3 className="font-heading text-xl font-bold text-gray-900">{partner.name}</h3></div><p className="grow text-sm leading-relaxed text-gray-500">{partner.description}</p>{(partner.websiteUrl || partner.instagramUrl) && <div className="mt-6 flex items-center gap-3 border-t border-gray-100 pt-5">{partner.websiteUrl && <a href={partner.websiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-scout-green px-3 text-xs font-bold text-white hover:bg-green-800"><i className="fa-solid fa-globe" aria-hidden="true" />Site</a>}{partner.instagramUrl && <a href={partner.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label={`Instagram da ${partner.name}`} className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:border-pink-200 hover:bg-pink-50 hover:text-pink-600"><i className="fa-brands fa-instagram text-lg" aria-hidden="true" /></a>}</div>}</div></article>)}</div> : <div className="rounded-3xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center"><i className="fa-solid fa-compass text-4xl text-gray-300" aria-hidden="true" /><h3 className="mt-4 font-heading text-xl font-bold text-gray-800">Nenhuma empresa encontrada</h3><p className="mt-2 text-sm text-gray-500">Tente buscar por outro termo ou limpar os filtros.</p></div>}
+      {filteredPartners.length > 0 ? (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredPartners.map((partner) => (
+            <article
+              key={partner.id}
+              className="group relative flex min-h-80 flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition-all hover:-translate-y-1 hover:border-scout-green/30 hover:shadow-xl"
+            >
+              <div className="relative flex h-52 items-center justify-center overflow-hidden bg-gray-50 p-8">
+                <div className="absolute inset-x-0 top-0 h-1 bg-scout-green opacity-80 transition-opacity group-hover:opacity-100" />
+                <div className="flex h-full w-full items-center justify-center">
+                  {partner.logoUrl ? (
+                    <img
+                      src={partner.logoUrl}
+                      alt={`Logomarca ${partner.name}`}
+                      className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <span className="font-heading text-4xl font-black tracking-tight text-scout-green">
+                      {getInitials(partner.name)}
+                    </span>
+                  )}
+                </div>
+                <span className="absolute right-4 top-4 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500 shadow-sm">
+                  {partner.category.name}
+                </span>
+              </div>
+
+              <div className="flex grow flex-col p-5 sm:p-6">
+                <div className="mb-2 flex items-center gap-2">
+                  <i className="fa-solid fa-handshake text-sm text-scout-yellow" aria-hidden="true" />
+                  <h3 className="font-heading text-xl font-bold leading-tight text-gray-900">
+                    {partner.name}
+                  </h3>
+                </div>
+                <p className="grow text-sm leading-relaxed text-gray-500">
+                  {partner.description}
+                </p>
+
+                {(partner.websiteUrl || partner.instagramUrl) && (
+                  <div className="mt-5 flex items-center gap-3 border-t border-gray-100 pt-4">
+                    {partner.websiteUrl && (
+                      <a
+                        href={partner.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-scout-green px-3 text-xs font-bold text-white transition-colors hover:bg-scout-dark"
+                      >
+                        <i className="fa-solid fa-globe" aria-hidden="true" />
+                        Visitar site
+                      </a>
+                    )}
+                    {partner.instagramUrl && (
+                      <a
+                        href={partner.instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Instagram da ${partner.name}`}
+                        className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-gray-500 transition hover:border-pink-200 hover:bg-pink-50 hover:text-pink-600"
+                      >
+                        <i className="fa-brands fa-instagram text-lg" aria-hidden="true" />
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-3xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
+          <i className="fa-solid fa-compass text-4xl text-gray-300" aria-hidden="true" />
+          <h3 className="mt-4 font-heading text-xl font-bold text-gray-800">Nenhuma empresa encontrada</h3>
+          <p className="mt-2 text-sm text-gray-500">Tente buscar por outro termo ou limpar os filtros.</p>
+        </div>
+      )}
 
       <div className="relative mt-16 overflow-hidden rounded-3xl bg-scout-yellow px-6 py-10 text-center shadow-lg sm:px-10 md:py-14"><div className="relative mx-auto max-w-2xl"><p className="mb-3 text-xs font-black uppercase tracking-[0.18em] text-scout-dark/70">Vamos construir juntos</p><h2 className="font-heading text-3xl font-black text-scout-dark sm:text-4xl">Quero ser uma empresa parceira</h2><p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-scout-dark/80 sm:text-base">Sua empresa também pode apoiar o desenvolvimento de crianças e jovens. Fale com a nossa equipe e descubra as possibilidades.</p><a href={`https://wa.me/551236227084?text=${encodeURIComponent("Olá! Quero ser uma empresa parceira do Grupo Escoteiro Amizade 66/SP.")}`} target="_blank" rel="noopener noreferrer" className="mt-7 inline-flex min-h-12 items-center justify-center gap-3 rounded-full bg-scout-dark px-7 py-3.5 text-sm font-bold text-white shadow-md hover:bg-gray-900"><i className="fa-brands fa-whatsapp text-xl" aria-hidden="true" />Falar pelo WhatsApp</a></div></div>
     </section>

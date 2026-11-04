@@ -38,7 +38,7 @@ export default function DependentCard({ dependent }: { dependent: DependentSumma
             className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
               hasDebt
                 ? "bg-amber-50 text-amber-700 border border-amber-200"
-                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-scout-green/5 text-scout-dark border border-scout-green/20"
             }`}
           >
             {hasDebt ? `${brl(dependent.openAmount)} em aberto` : "Sem pendência"}

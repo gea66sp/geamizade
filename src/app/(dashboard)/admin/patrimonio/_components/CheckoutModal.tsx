@@ -110,7 +110,7 @@ export default function CheckoutModal({ isOpen, onClose, item, users }: { isOpen
               <button 
                 onClick={handleReturn} 
                 disabled={isLoading} 
-                className="w-full py-3.5 bg-scout-green text-white rounded-xl font-bold hover:bg-green-700 shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 bg-scout-green text-white rounded-xl font-bold hover:bg-scout-dark shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isLoading ? (
                   <><i className="fa-solid fa-circle-notch fa-spin"></i> Processando...</>

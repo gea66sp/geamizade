@@ -36,8 +36,8 @@ export default function CookieBanner() {
       <div className="bg-white border border-gray-100 shadow-2xl rounded-3xl p-6 flex flex-col gap-5">
         
         <div className="flex items-start gap-4">
-          <div className="bg-emerald-50 p-3 rounded-full shrink-0">
-            <Cookie className="w-6 h-6 text-emerald-600" />
+          <div className="bg-scout-green/5 p-3 rounded-full shrink-0">
+            <Cookie className="w-6 h-6 text-scout-green" />
           </div>
           <div>
             <h3 className="font-bold text-gray-900 text-base">Sua privacidade é importante</h3>
@@ -50,7 +50,7 @@ export default function CookieBanner() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-gray-50">
           <Link 
             href="/privacidade" 
-            className="text-xs font-medium text-gray-500 hover:text-emerald-700 hover:underline w-full sm:w-auto text-center"
+            className="text-xs font-medium text-gray-500 hover:text-scout-dark hover:underline w-full sm:w-auto text-center"
           >
             Política de Privacidade
           </Link>
@@ -65,7 +65,7 @@ export default function CookieBanner() {
             </button>
             <button
               onClick={handleAcceptAll}
-              className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 bg-scout-green hover:bg-scout-dark text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors"
             >
               <Check className="w-4 h-4" />
               Aceitar Todos

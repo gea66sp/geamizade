@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 import NotificationBell from "@/src/components/dashboard/NotificationBell";
+import BrandMark from "@/src/components/BrandMark";
 
 interface SidebarProps {
   userName?: string | null;
@@ -69,7 +70,7 @@ export default function Sidebar({
         {/* Header / Logo */}
         <div className={`p-6 pb-8 border-b border-white/10 flex items-center ${isCollapsed ? "md:justify-center justify-between" : "justify-between"}`}>
           <Link href="/admin" title="GE Amizade" className={`flex items-center gap-3 cursor-pointer group ${isCollapsed ? "md:gap-0" : ""}`}>
-            <i className="fa-solid fa-fire text-scout-yellow text-2xl group-hover:scale-110 transition-transform duration-300 shrink-0"></i>
+            <BrandMark size={36} className="w-9 h-9 group-hover:scale-110 transition-transform duration-300 shrink-0" />
             <span className={`font-heading font-bold text-xl text-white tracking-wide transition-opacity duration-200 ${isCollapsed ? "hidden" : "block"}`}>
               GE Amizade
             </span>

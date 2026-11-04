@@ -56,7 +56,7 @@ export default function PasswordFields({
       ? "bg-red-400"
       : check.metCount <= 4
       ? "bg-amber-400"
-      : "bg-emerald-500";
+      : "bg-scout-green";
 
   return (
     <div className="space-y-3">
@@ -115,7 +115,7 @@ export default function PasswordFields({
             <li
               key={r.id}
               className={`flex items-center gap-2 text-xs font-medium transition-colors ${
-                r.met ? "text-emerald-600" : "text-gray-400"
+                r.met ? "text-scout-green" : "text-gray-400"
               }`}
             >
               <i
@@ -166,7 +166,7 @@ export default function PasswordFields({
         {touchedConfirm && confirm.length > 0 && (
           <p
             className={`text-xs font-bold flex items-center gap-1.5 ${
-              matches ? "text-emerald-600" : "text-red-600"
+              matches ? "text-scout-green" : "text-red-600"
             }`}
           >
             <i className={`fa-solid ${matches ? "fa-circle-check" : "fa-circle-xmark"}`}></i>

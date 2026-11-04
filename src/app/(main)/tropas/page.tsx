@@ -11,7 +11,7 @@ const branchStyles: Record<string, { label: string; badge: string; borderHover: 
   LOBINHO: { label: "Ramo Lobinho", badge: "bg-amber-100 text-amber-800 border-amber-200", borderHover: "group-hover:bg-amber-400", icon: "fa-paw", colorText: "text-amber-600" },
   ESCOTEIRO: { label: "Ramo Escoteiro", badge: "bg-scout-green/10 text-scout-green border-scout-green/20", borderHover: "group-hover:bg-scout-green", icon: "fa-compass", colorText: "text-scout-green" },
   SENIOR: { label: "Ramo Sênior", badge: "bg-rose-100 text-rose-800 border-rose-200", borderHover: "group-hover:bg-rose-500", icon: "fa-mountain", colorText: "text-rose-600" },
-  PIONEIRO: { label: "Ramo Pioneiro", badge: "bg-red-100 text-red-800 border-red-200", borderHover: "group-hover:bg-red-600", icon: "fa-fire", colorText: "text-red-600" },
+  PIONEIRO: { label: "Ramo Pioneiro", badge: "bg-red-100 text-red-800 border-red-200", borderHover: "group-hover:bg-red-600", icon: "fa-campground", colorText: "text-red-600" },
   DIRETORIA: { label: "Diretoria", badge: "bg-gray-100 text-gray-800 border-gray-200", borderHover: "group-hover:bg-gray-800", icon: "fa-users-gear", colorText: "text-gray-600" },
 };
 

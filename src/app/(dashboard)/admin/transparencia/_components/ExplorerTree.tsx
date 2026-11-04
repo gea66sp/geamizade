@@ -140,11 +140,11 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
     });
   };
 
-  const handleDeleteDocument = (docId: string, name: string, fileUrl: string) => {
+  const handleDeleteDocument = (docId: string, name: string) => {
     setConfirmDialog({
       isOpen: true, title: "Excluir Arquivo", message: `Tem certeza que deseja excluir o arquivo "${name}"?`,
       onConfirm: async () => {
-        try { await deleteDocument(docId, fileUrl); showToast("Arquivo excluído com sucesso!", "success"); } catch (e) { showToast("Erro ao excluir arquivo.", "error"); }
+        try { await deleteDocument(docId); showToast("Arquivo excluído com sucesso!", "success"); } catch (e) { showToast("Erro ao excluir arquivo.", "error"); }
         setConfirmDialog(null);
       }
     });
@@ -339,7 +339,7 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
                   <button onClick={() => setEditingDocument(doc)} className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-md transition-colors" title="Editar">
                     <i className="fa-solid fa-pen text-sm"></i>
                   </button>
-                  <button onClick={() => handleDeleteDocument(doc.id, doc.title, doc.fileUrl)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Excluir">
+                  <button onClick={() => handleDeleteDocument(doc.id, doc.title)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors" title="Excluir">
                     <i className="fa-solid fa-trash text-sm"></i>
                   </button>
                 </div>
@@ -368,7 +368,7 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
                           <i className="fa-solid fa-pen w-5 text-center text-purple-500"></i> Editar
                         </button>
                         <div className="h-px bg-gray-100 my-1 mx-2"></div>
-                        <button onClick={(e) => handleMobileAction(e, () => handleDeleteDocument(doc.id, doc.title, doc.fileUrl))} className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 text-left font-bold">
+                        <button onClick={(e) => handleMobileAction(e, () => handleDeleteDocument(doc.id, doc.title))} className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 text-left font-bold">
                           <i className="fa-solid fa-trash w-5 text-center"></i> Excluir
                         </button>
                       </div>
@@ -504,7 +504,7 @@ export default function ExplorerTree({ folders: initialFolders, documents: initi
                   }
                   setMovingItem(null);
                 }}
-                className="px-5 py-2.5 text-sm font-bold bg-scout-green text-white hover:bg-green-700 rounded-xl cursor-pointer transition-colors shadow-sm"
+                className="px-5 py-2.5 text-sm font-bold bg-scout-green text-white hover:bg-scout-dark rounded-xl cursor-pointer transition-colors shadow-sm"
               >
                 Mover Aqui
               </button>

@@ -9,7 +9,7 @@ import type { InventoryRow, UserOption } from "@/src/types/dashboard";
 
 const CONDITION_META: Record<string, { label: string; className: string }> = {
   NEW: { label: "Novo", className: "bg-blue-50 text-blue-600 border-blue-100" },
-  GOOD: { label: "Bom", className: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+  GOOD: { label: "Bom", className: "bg-scout-green/5 text-scout-dark border-scout-green/10" },
   FAIR: { label: "Regular", className: "bg-amber-50 text-amber-600 border-amber-100" },
   DAMAGED: { label: "Danificado", className: "bg-red-50 text-red-600 border-red-100" },
 };
@@ -134,7 +134,7 @@ export default function ChefeAssetsClient({
                     <button
                       onClick={() => handleReturn(item)}
                       disabled={busyId === item.id}
-                      className="cursor-pointer px-4 py-2 rounded-xl text-sm font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 disabled:opacity-60"
+                      className="cursor-pointer px-4 py-2 rounded-xl text-sm font-bold bg-scout-green/5 text-scout-dark border border-scout-green/20 hover:bg-scout-green/10 disabled:opacity-60"
                     >
                       <i className="fa-solid fa-rotate-left mr-1.5"></i>
                       Registrar devolução

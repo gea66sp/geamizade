@@ -298,7 +298,7 @@ export default function TroopDetailClient({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm text-center">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Entradas (Pagas)</p>
-              <p className="text-2xl font-black text-green-600">{formatCurrency(receitas)}</p>
+              <p className="text-2xl font-black text-scout-green">{formatCurrency(receitas)}</p>
             </div>
             <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm text-center">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Saídas (Pagas)</p>
@@ -339,11 +339,11 @@ export default function TroopDetailClient({
                           <span className="bg-scout-green/10 text-scout-green px-2 py-1 rounded text-xs font-bold border border-scout-green/20"><i className="fa-solid fa-tent mr-1"></i> Tropa</span>
                         )}
                       </td>
-                      <td className={`p-4 font-black ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>
+                      <td className={`p-4 font-black ${t.type === 'INCOME' ? 'text-scout-green' : 'text-red-600'}`}>
                         {t.type === 'INCOME' ? '+' : '-'}{formatCurrency(t.amount)}
                       </td>
                       <td className="p-4">
-                        {t.status === 'PAID' ? <span className="text-green-600 font-bold text-xs"><i className="fa-solid fa-check"></i> Pago</span> : <span className="text-amber-500 font-bold text-xs"><i className="fa-solid fa-clock"></i> Pendente</span>}
+                        {t.status === 'PAID' ? <span className="text-scout-green font-bold text-xs"><i className="fa-solid fa-check"></i> Pago</span> : <span className="text-amber-500 font-bold text-xs"><i className="fa-solid fa-clock"></i> Pendente</span>}
                       </td>
                     </tr>
                   ))
@@ -418,7 +418,7 @@ export default function TroopDetailClient({
                       <td className="p-4 font-black text-gray-700">{item.quantity}</td>
                       <td className="p-4">
                         {item.condition === 'NEW' && <span className="text-blue-500 font-bold text-xs bg-blue-50 px-2 py-1 rounded border border-blue-100">Novo</span>}
-                        {item.condition === 'GOOD' && <span className="text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded border border-green-100">Bom</span>}
+                        {item.condition === 'GOOD' && <span className="text-scout-green font-bold text-xs bg-scout-green/5 px-2 py-1 rounded border border-scout-green/10">Bom</span>}
                         {item.condition === 'FAIR' && <span className="text-amber-500 font-bold text-xs bg-amber-50 px-2 py-1 rounded border border-amber-100">Regular</span>}
                         {item.condition === 'DAMAGED' && <span className="text-red-600 font-bold text-xs bg-red-50 px-2 py-1 rounded border border-red-100">Danificado</span>}
                       </td>

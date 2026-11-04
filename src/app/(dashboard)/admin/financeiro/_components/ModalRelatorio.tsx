@@ -57,7 +57,7 @@ export default function ModalRelatorio({ isOpen, onClose }: { isOpen: boolean; o
             <button type="button" onClick={onClose} className="flex-1 py-3 text-gray-600 font-bold bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
               Cancelar
             </button>
-            <button type="submit" className="flex-1 py-3 bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 transition-colors shadow-md flex items-center justify-center gap-2">
+            <button type="submit" className="flex-1 py-3 bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark transition-colors shadow-md flex items-center justify-center gap-2">
               <i className="fa-solid fa-print"></i> Gerar PDF
             </button>
           </div>

@@ -225,7 +225,7 @@ export default function PersonalizarForm({
 
           {/* Botões de Ação fixos na base da Sidebar */}
           <div className="p-4 border-t border-gray-200 bg-white">
-            <button type="submit" disabled={isSaving} className="w-full mb-3 px-4 py-3 bg-scout-green hover:bg-green-700 text-white font-bold text-sm rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer">
+            <button type="submit" disabled={isSaving} className="w-full mb-3 px-4 py-3 bg-scout-green hover:bg-scout-dark text-white font-bold text-sm rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-70 cursor-pointer">
               {isSaving ? (
                 <><i className="fa-solid fa-circle-notch fa-spin"></i> Salvando...</>
               ) : (
@@ -293,7 +293,7 @@ export default function PersonalizarForm({
 
             {/* BOTÕES DE AÇÃO MOBILE */}
             <div className="lg:hidden mt-10 pt-6 border-t border-gray-200 flex flex-col gap-3">
-              <button type="submit" disabled={isSaving} className="w-full px-6 py-4 bg-scout-green hover:bg-green-700 text-white font-bold text-base rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-70">
+              <button type="submit" disabled={isSaving} className="w-full px-6 py-4 bg-scout-green hover:bg-scout-dark text-white font-bold text-base rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-70">
                 {isSaving ? (
                   <><i className="fa-solid fa-circle-notch fa-spin"></i> Salvando...</>
                 ) : (
@@ -330,7 +330,7 @@ export default function PersonalizarForm({
       {/* TOAST NOTIFICATION */}
       {toast && (
         <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 animate-fade-in-up">
-          <div className={`flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border ${toast.type === "success" ? "bg-scout-green text-white border-green-800" : "bg-red-600 text-white border-red-800"}`}>
+          <div className={`flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border ${toast.type === "success" ? "bg-scout-green text-white border-scout-dark" : "bg-red-600 text-white border-red-800"}`}>
              <i className={`fa-solid text-lg ${toast.type === "success" ? "fa-circle-check" : "fa-triangle-exclamation"}`}></i>
             <p className="font-bold text-sm flex-1">{toast.message}</p>
             <button onClick={() => setToast(null)} className="opacity-70 hover:opacity-100 pl-2 border-l border-white/20 transition-opacity"><i className="fa-solid fa-xmark"></i></button>

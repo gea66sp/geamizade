@@ -144,7 +144,7 @@ export default function ApprovalQueue({ initialItems }: { initialItems: PendingR
               <button
                 onClick={() => handleApprove(item.id)}
                 disabled={busyId === item.id}
-                className="cursor-pointer px-5 py-2.5 rounded-xl bg-scout-green text-white font-bold text-sm hover:bg-green-700 disabled:opacity-60 flex items-center gap-2"
+                className="cursor-pointer px-5 py-2.5 rounded-xl bg-scout-green text-white font-bold text-sm hover:bg-scout-dark disabled:opacity-60 flex items-center gap-2"
               >
                 {busyId === item.id ? (
                   <>

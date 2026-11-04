@@ -17,6 +17,7 @@
     "@vercel/blob": "^2.3.1",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.26.2",
+    "isomorphic-dompurify": "^3.19.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.562.0",

@@ -1,16 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import BrandMark from "@/src/components/BrandMark";
 
 export default function Footer() {
-  const handleAgendarVisita = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const email = (e.currentTarget.elements.namedItem("email-visita") as HTMLInputElement).value;
-    const mensagem = `Olá! Gostaria de agendar uma visita para conhecer o Grupo Escoteiro Amizade 66/SP.\n\nMeu e-mail: ${email}`;
-    window.open(`https://wa.me/551236227084?text=${encodeURIComponent(mensagem)}`, "_blank", "noopener,noreferrer");
-    e.currentTarget.reset();
-  };
-
   return (
     <footer id="contato" className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,7 +12,7 @@ export default function Footer() {
           {/* Info Grupo */}
           <div className="flex flex-col">
             <div className="flex items-center gap-3 mb-6">
-              <i className="fa-solid fa-fire text-scout-yellow text-3xl"></i>
+              <BrandMark size={42} className="w-10 h-10" />
               <span className="font-heading font-bold text-xl md:text-2xl tracking-tight">GE Amizade 66/SP</span>
             </div>
             <p className="text-gray-400 text-sm mb-6 leading-relaxed grow">
@@ -98,25 +91,15 @@ export default function Footer() {
             <p className="text-gray-400 text-sm mb-5 leading-relaxed">
               Venha conhecer nossa sede em um sábado de atividade. Mande uma mensagem para agendar!
             </p>
-            {/* O focus-within faz o formulário inteiro acender quando o input é focado */}
-            <form onSubmit={handleAgendarVisita} className="flex shadow-sm rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-scout-yellow focus-within:ring-offset-2 focus-within:ring-offset-gray-900 transition-all">
-              <label htmlFor="email-visita" className="sr-only">Seu melhor e-mail</label>
-              <input
-                id="email-visita"
-                name="email-visita"
-                type="email"
-                placeholder="Seu melhor e-mail"
-                className="bg-gray-800 text-white px-4 py-3 w-full focus:outline-none border-none text-sm placeholder-gray-500"
-                required
-              />
-              <button 
-                type="submit" 
-                aria-label="Enviar mensagem de agendamento"
-                className="bg-scout-yellow text-scout-dark px-5 py-3 font-bold hover:bg-yellow-400 transition-colors flex items-center justify-center active:bg-yellow-500"
-              >
-                <i className="fa-solid fa-paper-plane"></i>
-              </button>
-            </form>
+            <a
+              href={`https://wa.me/551236227084?text=${encodeURIComponent("Olá! Gostaria de agendar uma visita para conhecer o Grupo Escoteiro Amizade 66/SP.")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center gap-3 rounded-lg bg-scout-yellow px-5 py-3 text-center font-bold text-scout-dark shadow-sm transition-colors hover:bg-yellow-400 active:bg-yellow-500"
+            >
+              <i className="fa-brands fa-whatsapp text-xl" aria-hidden="true"></i>
+              Agendar pelo WhatsApp
+            </a>
           </div>
         </div>
 

@@ -390,7 +390,7 @@ export default function EventFormModal({
               type="submit"
               form="event-form"
               disabled={isPending || isDeleting}
-              className="w-full sm:w-auto px-8 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 active:scale-95"
+              className="w-full sm:w-auto px-8 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 active:scale-95"
             >
               {isPending ? (
                 <>

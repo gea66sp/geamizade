@@ -268,10 +268,10 @@ export default function InstitucionalTab({
         </div>
 
         {/* Valores */}
-        <div className="p-5 border border-green-100 rounded-2xl bg-green-50/30 mt-6">
+        <div className="p-5 border border-scout-green/10 rounded-2xl bg-scout-green/5 mt-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
             <label className="block text-xs font-bold text-scout-green uppercase tracking-wider items-center gap-2"><i className="fa-solid fa-gem"></i> Nossos Valores</label>
-            <button type="button" onClick={() => handleArrayStringAdd("valuesList")} className="w-full sm:w-auto px-4 py-2.5 bg-white border border-green-200 text-scout-green font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-green-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
+            <button type="button" onClick={() => handleArrayStringAdd("valuesList")} className="w-full sm:w-auto px-4 py-2.5 bg-white border border-scout-green/20 text-scout-green font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-scout-green/5 transition-colors flex items-center justify-center gap-2 shadow-sm">
               <i className="fa-solid fa-plus"></i> Adicionar Valor
             </button>
           </div>
@@ -280,7 +280,7 @@ export default function InstitucionalTab({
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {valuesList.map((val: string, index: number) => (
-              <div key={index} className="flex gap-2 items-center bg-white p-2 rounded-xl border border-green-100 shadow-sm focus-within:ring-2 focus-within:ring-scout-green/20 focus-within:border-scout-green transition-all">
+              <div key={index} className="flex gap-2 items-center bg-white p-2 rounded-xl border border-scout-green/10 shadow-sm focus-within:ring-2 focus-within:ring-scout-green/20 focus-within:border-scout-green transition-all">
                 <i className="fa-solid fa-check text-scout-green ml-3 opacity-50"></i>
                 <input type="text" placeholder="Ex: Lealdade" value={val} onChange={e => handleArrayStringUpdate("valuesList", index, e.target.value)} className="flex-1 px-2 py-2 bg-transparent text-sm font-semibold text-gray-800 focus:outline-none" />
                 <button type="button" onClick={() => handleArrayStringRemove("valuesList", index)} className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors mr-1">

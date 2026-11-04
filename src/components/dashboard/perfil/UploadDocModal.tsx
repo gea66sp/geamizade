@@ -135,7 +135,7 @@ export default function UploadDocModal({ isOpen, onClose, userId }: UploadDocMod
             <button 
               type="submit" 
               disabled={isUploading}
-              className="flex-1 px-4 py-3 bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+              className="flex-1 px-4 py-3 bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
             >
               {isUploading ? (
                 <><i className="fa-solid fa-circle-notch fa-spin"></i> Enviando...</>

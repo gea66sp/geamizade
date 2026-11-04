@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image"; // Importação do componente Image do Next.js
+import BrandMark from "@/src/components/BrandMark";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -15,18 +16,8 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo / Nome */}
           <Link href="/" className="shrink-0 flex items-center gap-3 cursor-pointer group">
-          {/* Logo da UEB com fundo branco circular para máximo contraste */}
-            <div className="ml-2 bg-white w-15 h-15 rounded-xs flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
-              <Image 
-                src="/ueb.png" 
-                alt="Logo dos Escoteiros do Brasil" 
-                width={40} 
-                height={40} 
-                className="object-contain"
-              />
-            </div>
             {/* Logo do Grupo (Fogo) */}
-            <i className="fa-solid fa-fire text-scout-yellow text-3xl group-hover:scale-110 transition-transform duration-300"></i>
+            <BrandMark size={42} className="w-10 h-10 group-hover:scale-110 transition-transform duration-300" />
             
             {/* Texto */}
             <div className="flex flex-col">
@@ -48,6 +39,15 @@ export default function Navbar() {
             <Link href="#contato" className="bg-scout-yellow text-scout-dark px-6 py-2.5 rounded-full font-bold hover:bg-yellow-400 transition-all transform hover:scale-105 shadow-md active:scale-95">
               Junte-se a nós
             </Link>
+            <div className="ml-2 bg-white w-10 h-12 rounded-md flex items-center justify-center shadow-sm" title="União dos Escoteiros do Brasil">
+              <Image
+                src="/ueb.png"
+                alt="Logo dos Escoteiros do Brasil"
+                width={30}
+                height={40}
+                className="h-10 w-auto object-contain"
+              />
+            </div>
           </div>
 
           {/* Botão Menu Mobile */}
@@ -94,6 +94,17 @@ export default function Navbar() {
           <Link href="#contato" onClick={closeMenu} className="block mt-6 text-center bg-scout-yellow text-scout-dark px-5 py-4 rounded-xl font-bold shadow-lg hover:bg-yellow-400 active:bg-yellow-500 transition-colors">
             Junte-se a nós
           </Link>
+          <div className="flex justify-center pt-4">
+            <div className="bg-white w-10 h-12 rounded-md flex items-center justify-center shadow-sm" title="União dos Escoteiros do Brasil">
+              <Image
+                src="/ueb.png"
+                alt="Logo dos Escoteiros do Brasil"
+                width={30}
+                height={40}
+                className="h-10 w-auto object-contain"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </nav>

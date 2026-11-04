@@ -71,7 +71,7 @@ const INITIAL_CONTENT = "<p><br/></p>";
 const STATUS_META: Record<PostStatusValue, { label: string; className: string }> = {
   DRAFT: { label: "Rascunho", className: "bg-amber-50 text-amber-700 border border-amber-200" },
   PENDING_REVIEW: { label: "Aguardando Aprovação", className: "bg-blue-50 text-blue-700 border border-blue-200" },
-  PUBLISHED: { label: "Publicado", className: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+  PUBLISHED: { label: "Publicado", className: "bg-scout-green/5 text-scout-dark border border-scout-green/20" },
   REJECTED: { label: "Rejeitado", className: "bg-red-50 text-red-700 border border-red-200" },
 };
 
@@ -404,7 +404,7 @@ export default function BlogManager({
         <div
           className={`fixed bottom-6 right-6 z-60 px-4 py-3 rounded-xl shadow-xl border flex items-center gap-3 ${
             toast.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              ? "bg-scout-green/5 border-scout-green/20 text-scout-dark"
               : toast.type === "error"
               ? "bg-red-50 border-red-200 text-red-800"
               : "bg-blue-50 border-blue-200 text-blue-800"
@@ -441,7 +441,7 @@ export default function BlogManager({
 
         <button
           onClick={openNewPost}
-          className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-green-700 text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+          className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-scout-dark text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
         >
           <i className="fa-solid fa-plus"></i>
           Nova Publicação
@@ -544,7 +544,7 @@ export default function BlogManager({
                     <>
                       <button
                         onClick={() => approvePost(post)}
-                        className="cursor-pointer py-2 rounded-xl text-sm font-bold bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                        className="cursor-pointer py-2 rounded-xl text-sm font-bold bg-scout-green/5 border border-scout-green/20 text-scout-dark hover:bg-scout-green/10"
                       >
                         <i className="fa-solid fa-check mr-1.5"></i>Aprovar
                       </button>
@@ -561,7 +561,7 @@ export default function BlogManager({
                       className={`cursor-pointer py-2 rounded-xl text-sm font-bold border ${
                         post.status === "PUBLISHED"
                           ? "bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-                          : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100"
+                          : "bg-scout-green/5 border-scout-green/20 text-scout-dark hover:bg-scout-green/10"
                       }`}
                     >
                       <i className={`fa-solid ${post.status === "PUBLISHED" ? "fa-box-archive" : "fa-paper-plane"} mr-1.5`}></i>
@@ -637,7 +637,7 @@ export default function BlogManager({
                       <>
                         <button
                           onClick={() => approvePost(post)}
-                          className="cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                          className="cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border border-scout-green/20 bg-scout-green/5 text-scout-dark hover:bg-scout-green/10"
                         >
                           <i className="fa-solid fa-check mr-1"></i>Aprovar
                         </button>
@@ -654,7 +654,7 @@ export default function BlogManager({
                         className={`cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border ${
                           post.status === "PUBLISHED"
                             ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
-                            : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                            : "border-scout-green/20 bg-scout-green/5 text-scout-dark hover:bg-scout-green/10"
                         }`}
                       >
                         <i className={`fa-solid ${post.status === "PUBLISHED" ? "fa-box-archive" : "fa-paper-plane"} mr-1`}></i>
@@ -704,7 +704,7 @@ export default function BlogManager({
                 <button
                   onClick={saveDraft}
                   disabled={isSaving || isUploadingCover}
-                  className="cursor-pointer px-5 py-2.5 rounded-xl bg-scout-green text-white font-bold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="cursor-pointer px-5 py-2.5 rounded-xl bg-scout-green text-white font-bold hover:bg-scout-dark disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isSaving ? (
                     <>

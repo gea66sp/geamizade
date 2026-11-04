@@ -190,7 +190,7 @@ export default function ItemModal({ isOpen, onClose, item, troops, users = [] }:
           <button type="button" onClick={onClose} disabled={isLoading} className="w-full sm:w-auto px-6 py-3.5 text-sm text-gray-600 font-bold bg-white border border-gray-200 hover:bg-gray-100 rounded-xl cursor-pointer transition-colors disabled:opacity-50">
             Cancelar
           </button>
-          <button type="submit" form="item-form" disabled={isLoading} className="w-full sm:w-auto px-8 py-3.5 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 active:scale-95">
+          <button type="submit" form="item-form" disabled={isLoading} className="w-full sm:w-auto px-8 py-3.5 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 active:scale-95">
             {isLoading ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Processando...</> : <><i className="fa-solid fa-floppy-disk"></i> Salvar Material</>}
           </button>
         </div>

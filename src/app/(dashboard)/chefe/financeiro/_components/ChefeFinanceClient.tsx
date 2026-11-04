@@ -12,7 +12,7 @@ const shortDate = (d: Date | string) =>
 
 const STATUS_META = {
   PENDING: { label: "Pendente", className: "bg-amber-50 text-amber-700 border-amber-200" },
-  PAID: { label: "Pago", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  PAID: { label: "Pago", className: "bg-scout-green/5 text-scout-dark border-scout-green/20" },
   CANCELLED: { label: "Cancelado", className: "bg-gray-100 text-gray-500 border-gray-200" },
 };
 
@@ -36,7 +36,7 @@ export default function ChefeFinanceClient({
         </p>
         <button
           onClick={() => setIsNewOpen(true)}
-          className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+          className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-scout-dark text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
         >
           <i className="fa-solid fa-plus"></i>
           Novo Lançamento
@@ -77,7 +77,7 @@ export default function ChefeFinanceClient({
                 </div>
 
                 <div className="text-right shrink-0">
-                  <p className={`font-black ${t.type === "INCOME" ? "text-green-600" : "text-red-600"}`}>
+                  <p className={`font-black ${t.type === "INCOME" ? "text-scout-green" : "text-red-600"}`}>
                     {t.type === "INCOME" ? "+" : "-"}
                     {brl(t.amount)}
                   </p>

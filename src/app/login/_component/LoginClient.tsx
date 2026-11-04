@@ -14,9 +14,9 @@ import { getHomeRouteForRole } from "@/src/lib/roleRouting";
 const CampsiteIllustration = () => (
   <svg viewBox="0 0 400 300" className="w-full max-w-lg drop-shadow-2xl" fill="none" xmlns="http://www.w3.org/2000/svg">
     {/* Céu noturno / estrelas */}
-    <circle cx="80" cy="60" r="2" fill="#D1FAE5" className="animate-pulse" />
-    <circle cx="250" cy="40" r="1.5" fill="#D1FAE5" className="animate-pulse" style={{ animationDelay: '1s' }} />
-    <circle cx="320" cy="90" r="2" fill="#D1FAE5" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
+    <circle cx="80" cy="60" r="2" fill="#E0E7FF" className="animate-pulse" />
+    <circle cx="250" cy="40" r="1.5" fill="#E0E7FF" className="animate-pulse" style={{ animationDelay: '1s' }} />
+    <circle cx="320" cy="90" r="2" fill="#E0E7FF" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
     
     {/* Lua */}
     <circle cx="360" cy="50" r="30" fill="#FEF3C7" />
@@ -35,17 +35,17 @@ const CampsiteIllustration = () => (
     </g>
 
     {/* Árvore de Fundo (Pinheiro) */}
-    <path d="M100 220 L140 100 L180 220 Z" fill="#064E3B" />
-    <path d="M110 220 L140 130 L170 220 Z" fill="#047857" opacity="0.6" />
+    <path d="M100 220 L140 100 L180 220 Z" fill="#1f2255" />
+    <path d="M110 220 L140 130 L170 220 Z" fill="#34398a" opacity="0.6" />
     <rect x="135" y="220" width="10" height="20" fill="#451A03" />
 
     {/* Barraca */}
-    <path d="M180 240 L250 120 L320 240 Z" fill="#059669" />
-    <path d="M250 120 L320 240 L380 210 L310 90 Z" fill="#10B981" />
-    <path d="M250 120 L250 240 L285 240 L250 170 Z" fill="#047857" />
+    <path d="M180 240 L250 120 L320 240 Z" fill="#34398a" />
+    <path d="M250 120 L320 240 L380 210 L310 90 Z" fill="#4B55B5" />
+    <path d="M250 120 L250 240 L285 240 L250 170 Z" fill="#34398a" />
 
     {/* Chão */}
-    <ellipse cx="200" cy="255" rx="180" ry="15" fill="#064E3B" opacity="0.2" />
+    <ellipse cx="200" cy="255" rx="180" ry="15" fill="#1f2255" opacity="0.2" />
 
     {/* Fogueira */}
     <rect x="192" y="244" width="36" height="6" rx="3" fill="#451A03" />
@@ -109,9 +109,9 @@ export default function LoginClient() {
     <div className="min-h-screen w-full flex bg-[#f8f9fa]">
       
       {/* ==================== LADO ESQUERDO: ILUSTRAÇÃO ==================== */}
-      <div className="hidden lg:flex lg:w-1/2 bg-emerald-400 relative flex-col items-center justify-center p-12 overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-scout-light relative flex-col items-center justify-center p-12 overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-emerald-950/40 backdrop-blur-3xl -z-10" />
+        <div className="absolute inset-0 bg-scout-dark/40 backdrop-blur-3xl -z-10" />
 
         <div className="z-10 w-full max-w-md flex flex-col items-center text-center">
           <CampsiteIllustration />
@@ -147,11 +147,11 @@ export default function LoginClient() {
               <div className="space-y-5">
                 {/* Campo E-mail */}
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-[11px] font-black uppercase tracking-widest text-emerald-600 ml-1">
+                  <label htmlFor="email" className="text-[11px] font-black uppercase tracking-widest text-scout-green ml-1">
                     E-mail de acesso
                   </label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-emerald-600 transition-colors">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-scout-green transition-colors">
                       <Mail className="w-5 h-5" />
                     </div>
                     <input
@@ -160,7 +160,7 @@ export default function LoginClient() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 text-gray-900 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 focus:bg-white outline-none transition-all font-medium placeholder:text-gray-400"
+                      className="w-full pl-12 pr-4 py-4 text-gray-900 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-scout-green/10 focus:border-scout-green focus:bg-white outline-none transition-all font-medium placeholder:text-gray-400"
                       placeholder="seu.email@exemplo.com"
                     />
                   </div>
@@ -168,11 +168,11 @@ export default function LoginClient() {
 
                 {/* Campo Senha */}
                 <div className="space-y-2">
-                  <label htmlFor="password" className="text-[11px] font-black uppercase tracking-widest text-emerald-600 ml-1">
+                  <label htmlFor="password" className="text-[11px] font-black uppercase tracking-widest text-scout-green ml-1">
                     Senha
                   </label>
                   <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-emerald-600 transition-colors">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-scout-green transition-colors">
                       <LockKeyhole className="w-5 h-5" />
                     </div>
                     <input
@@ -181,7 +181,7 @@ export default function LoginClient() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 text-gray-900 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-600 focus:bg-white outline-none transition-all font-medium placeholder:text-gray-400"
+                      className="w-full pl-12 pr-4 py-4 text-gray-900 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-scout-green/10 focus:border-scout-green focus:bg-white outline-none transition-all font-medium placeholder:text-gray-400"
                       placeholder="••••••••"
                     />
                   </div>
@@ -194,7 +194,7 @@ export default function LoginClient() {
                       type="checkbox" 
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                      className="w-4 h-4 rounded border-gray-300 text-scout-green focus:ring-scout-green cursor-pointer"
                     />
                     <span className="text-gray-600 group-hover:text-gray-900 transition-colors font-medium">
                       Lembrar de mim
@@ -202,7 +202,7 @@ export default function LoginClient() {
                   </label>
                   
                   {/* Link com visual mais limpo que a instrução gigante anterior */}
-                  <div className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 cursor-help" title="Entre em contato com o seu Chefe para redefinir.">
+                  <div className="text-[11px] font-bold text-scout-green hover:text-scout-dark cursor-help" title="Entre em contato com o seu Chefe para redefinir.">
                     Esqueceu a senha?
                   </div>
                 </div>
@@ -225,7 +225,7 @@ export default function LoginClient() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="cursor-pointer w-full flex justify-center items-center py-4 px-6 rounded-2xl text-base font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] shadow-lg shadow-emerald-700/30 disabled:opacity-70 disabled:cursor-not-allowed transition-all group"
+                className="cursor-pointer w-full flex justify-center items-center py-4 px-6 rounded-2xl text-base font-bold text-white bg-scout-dark hover:bg-scout-green active:scale-[0.98] shadow-lg shadow-scout-green/30 disabled:opacity-70 disabled:cursor-not-allowed transition-all group"
               >
                 {isLoading ? (
                   <Loader2 className="animate-spin h-6 w-6 text-white" />
@@ -240,7 +240,7 @@ export default function LoginClient() {
 
           {/* Rodapé */}
           <div className="mt-8 text-center">
-            <Link href="/" className="text-sm text-gray-400 hover:text-emerald-700 transition-colors font-medium flex items-center justify-center gap-2">
+            <Link href="/" className="text-sm text-gray-400 hover:text-scout-dark transition-colors font-medium flex items-center justify-center gap-2">
               &larr; Voltar para o portal público
             </Link>
           </div>

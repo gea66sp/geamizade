@@ -55,7 +55,7 @@ export default function ModalExcluirUsuario({ isOpen, onClose, userId, userName 
         </p>
 
         {message && (
-          <div className={`mb-6 p-3 rounded-xl text-sm font-bold ${message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+          <div className={`mb-6 p-3 rounded-xl text-sm font-bold ${message.type === "success" ? "bg-scout-green/5 text-scout-dark" : "bg-red-50 text-red-700"}`}>
             {message.text}
           </div>
         )}

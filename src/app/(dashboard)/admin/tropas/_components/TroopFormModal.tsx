@@ -160,7 +160,7 @@ export default function TroopFormModal({
           <button type="button" onClick={onClose} disabled={isLoading} className="px-6 py-3 text-sm text-gray-600 font-bold hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50">
             Cancelar
           </button>
-          <button type="submit" form="troopForm" disabled={isLoading} className="flex items-center gap-2 px-8 py-3 bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 transition-all shadow-md active:scale-95 disabled:opacity-70">
+          <button type="submit" form="troopForm" disabled={isLoading} className="flex items-center gap-2 px-8 py-3 bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark transition-all shadow-md active:scale-95 disabled:opacity-70">
             {isLoading ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Salvando...</> : <><i className="fa-solid fa-check"></i> Salvar</>}
           </button>
         </div>

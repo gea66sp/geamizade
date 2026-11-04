@@ -113,7 +113,7 @@ export default async function ChefeHomePage() {
           href="/chefe/financeiro"
           className="flex items-center gap-4 p-5 rounded-2xl bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all group"
         >
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-scout-green/5 text-scout-green group-hover:bg-scout-green group-hover:text-white transition-colors">
             <i className="fa-solid fa-coins"></i>
           </div>
           <div>

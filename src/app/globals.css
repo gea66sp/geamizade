@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  /* Cores Escoteiras */
-  --color-scout-green: #1b4d3e;
-  --color-scout-light: #2d7a62;
+  /* Cores do GE Amizade */
+  --color-scout-green: #1f2255;
+  --color-scout-light: #34398a;
   --color-scout-yellow: #f4b41a;
-  --color-scout-dark: #113027;
+  --color-scout-dark: #15183d;
 
   /* Fontes (Linkadas com as variáveis do Next.js Fonts) */
   --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
@@ -92,7 +92,7 @@
 
 /* Utilitário personalizado para a imagem de fundo */
 @utility hero-bg {
-  background-image: linear-gradient(rgba(17, 48, 39, 0.7), rgba(17, 48, 39, 0.8)), url('/hero-image.jpg');
+  background-image: linear-gradient(rgba(21, 24, 61, 0.7), rgba(21, 24, 61, 0.8)), url('/hero-image.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

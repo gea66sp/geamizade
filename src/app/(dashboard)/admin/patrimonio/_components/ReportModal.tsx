@@ -241,7 +241,7 @@ export default function ReportModal({ isOpen, onClose }: { isOpen: boolean, onCl
               onClick={generatePDF}
               disabled={isLoading || (reportType === "LOANS" && ((!!startDate && !endDate) || (!startDate && !!endDate)))}
               className={`w-full sm:w-auto px-6 py-3.5 text-sm text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer active:scale-95 ${
-                reportType === "INVENTORY" ? "bg-scout-green hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
+                reportType === "INVENTORY" ? "bg-scout-green hover:bg-scout-dark" : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
               {isLoading ? (

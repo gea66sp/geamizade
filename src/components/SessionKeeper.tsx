@@ -11,7 +11,7 @@ export default function SessionKeeper() {
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#f8f9fa]">
-      <p className="text-emerald-700 font-bold animate-pulse text-lg tracking-widest uppercase">
+      <p className="text-scout-dark font-bold animate-pulse text-lg tracking-widest uppercase">
         Encerrando sessão segura...
       </p>
     </div>

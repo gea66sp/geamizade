@@ -33,7 +33,7 @@ const shortDate = (d: Date | string) =>
 
 const STATUS_META = {
   PENDING: { label: "Em aberto", className: "bg-amber-50 text-amber-700 border-amber-200" },
-  PAID: { label: "Pago", className: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  PAID: { label: "Pago", className: "bg-scout-green/5 text-scout-dark border-scout-green/20" },
   CANCELLED: { label: "Cancelado", className: "bg-gray-100 text-gray-500 border-gray-200" },
 };
 
@@ -134,11 +134,11 @@ export default function DependentTabs({
             className={`p-5 rounded-2xl border ${
               openAmount > 0
                 ? "bg-amber-50 border-amber-200"
-                : "bg-emerald-50 border-emerald-200"
+                : "bg-scout-green/5 border-scout-green/20"
             }`}
           >
             <p className="text-[11px] font-bold uppercase tracking-widest text-gray-500">Total em aberto</p>
-            <p className={`font-heading text-3xl font-black ${openAmount > 0 ? "text-amber-700" : "text-emerald-700"}`}>
+            <p className={`font-heading text-3xl font-black ${openAmount > 0 ? "text-amber-700" : "text-scout-dark"}`}>
               {brl(openAmount)}
             </p>
             <p className="text-xs text-gray-600 mt-1">
@@ -207,7 +207,7 @@ export default function DependentTabs({
             <button
               type="submit"
               disabled={isUploading}
-              className="cursor-pointer px-6 py-2.5 rounded-xl bg-scout-green text-white font-bold text-sm hover:bg-green-700 disabled:opacity-60"
+              className="cursor-pointer px-6 py-2.5 rounded-xl bg-scout-green text-white font-bold text-sm hover:bg-scout-dark disabled:opacity-60"
             >
               {isUploading ? (
                 <>
@@ -241,7 +241,7 @@ export default function DependentTabs({
                       target="_blank"
                       rel="noreferrer"
                       title="Baixar"
-                      className="p-2.5 rounded-lg text-scout-green hover:bg-green-50 transition-colors"
+                      className="p-2.5 rounded-lg text-scout-green hover:bg-scout-green/5 transition-colors"
                     >
                       <i className="fa-solid fa-download"></i>
                     </a>

@@ -243,7 +243,7 @@ export default function NotificationBell({ basePath, tone = "dark", onNavigate }
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAll}
-            className="cursor-pointer text-[11px] font-bold text-scout-green hover:text-green-700 transition-colors shrink-0"
+            className="cursor-pointer text-[11px] font-bold text-scout-green hover:text-scout-dark transition-colors shrink-0"
           >
             Marcar todas como lidas
           </button>

@@ -182,7 +182,7 @@ export default function MembroFormModal({
             <button
               type="submit"
               disabled={isSaving || (!isEdit && !senhaValida)}
-              className="cursor-pointer px-8 py-3 text-sm bg-scout-green disabled:cursor-not-allowed text-white font-bold rounded-xl hover:bg-green-700 shadow-md transition-all disabled:opacity-70 active:scale-95"
+              className="cursor-pointer px-8 py-3 text-sm bg-scout-green disabled:cursor-not-allowed text-white font-bold rounded-xl hover:bg-scout-dark shadow-md transition-all disabled:opacity-70 active:scale-95"
             >
               {isSaving ? (
                 <>

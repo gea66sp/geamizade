@@ -80,7 +80,7 @@ export default function NotificationList({ initialItems }: { initialItems: Inbox
         {unreadCount > 0 && (
           <button
             onClick={handleMarkAll}
-            className="cursor-pointer text-sm font-bold text-scout-green hover:text-green-700 transition-colors"
+            className="cursor-pointer text-sm font-bold text-scout-green hover:text-scout-dark transition-colors"
           >
             <i className="fa-solid fa-check-double mr-1.5"></i>
             Marcar todas como lidas

@@ -235,7 +235,7 @@ export default function TutorialCenter({ role }: { role: TutorialRole }) {
           </div>
           <nav className="mt-3 hidden space-y-1 lg:block" aria-label="Categorias de tutoriais">
             {visibleCategories.map((category) => (
-              <button key={category.name} type="button" onClick={() => { setSelectedCategory(category.name); setSearch(""); }} className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition-colors ${selectedCategory === category.name ? "bg-scout-green text-white" : "text-gray-600 hover:bg-green-50 hover:text-scout-green"}`}>
+              <button key={category.name} type="button" onClick={() => { setSelectedCategory(category.name); setSearch(""); }} className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition-colors ${selectedCategory === category.name ? "bg-scout-green text-white" : "text-gray-600 hover:bg-scout-green/5 hover:text-scout-green"}`}>
                 <i className={`fa-solid ${category.icon} w-4 text-center`} aria-hidden="true" />
                 <span>{category.name}</span>
               </button>

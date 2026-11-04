@@ -128,7 +128,7 @@ export default function EventDetailModal({
             className={`cursor-pointer py-2.5 rounded-xl text-sm font-bold border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               subject.status === true
                 ? "bg-scout-green text-white border-scout-green"
-                : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                : "bg-scout-green/5 text-scout-dark border-scout-green/20 hover:bg-scout-green/10"
             }`}
           >
             <i className="fa-solid fa-check mr-1.5"></i>
@@ -262,7 +262,7 @@ export default function EventDetailModal({
             {data.canEdit && onEdit && (
               <button
                 onClick={onEdit}
-                className="cursor-pointer px-5 py-2.5 rounded-xl bg-scout-green text-white font-bold text-sm hover:bg-green-700"
+                className="cursor-pointer px-5 py-2.5 rounded-xl bg-scout-green text-white font-bold text-sm hover:bg-scout-dark"
               >
                 <i className="fa-solid fa-pen mr-1.5"></i> Editar atividade
               </button>

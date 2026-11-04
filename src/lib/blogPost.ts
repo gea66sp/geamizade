@@ -3,6 +3,7 @@
 // esses arquivos só podem exportar Server Actions (funções async), e
 // toSlug/stripHtml/sanitizeRichHtml são funções síncronas.
 import prisma from "@/src/lib/prisma";
+import DOMPurify from "isomorphic-dompurify";
 
 export function toSlug(value: string): string {
   return value
@@ -21,13 +22,13 @@ export function stripHtml(value: string): string {
 }
 
 export function sanitizeRichHtml(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-    .replace(/<iframe[\s\S]*?>[\s\S]*?<\/iframe>/gi, "")
-    .replace(/\son\w+="[^"]*"/gi, "")
-    .replace(/\son\w+='[^']*'/gi, "")
-    .replace(/javascript:/gi, "");
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ["a", "blockquote", "br", "code", "em", "h2", "h3", "h4", "li", "ol", "p", "pre", "strong", "ul"],
+    ALLOWED_ATTR: ["href", "target", "rel"],
+    ALLOW_DATA_ATTR: false,
+    FORBID_TAGS: ["style", "svg", "math"],
+    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+  });
 }
 
 export function normalizeImageUrl(urlValue: string | null | undefined) {

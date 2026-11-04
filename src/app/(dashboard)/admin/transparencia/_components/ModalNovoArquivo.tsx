@@ -59,8 +59,7 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
       // 2. FAZ O UPLOAD DIRETO DO NAVEGADOR PARA O VERCEL BLOB
       const blob = await upload(`transparencia/arquivos/${file.name}`, file, {
         // Quem decide o acesso são as rotas: a pública serve só `isPublic`,
-        // e /api/documentos/[id] confere a lista do documento. BLOB_ACCESS
-        // vira "private" quando o store privado existir (src/lib/blobAccess).
+        // e /api/documentos/[id] confere a lista do documento.
         access: BLOB_ACCESS,
         handleUploadUrl: '/api/upload', // O endpoint que autoriza o upload
       });
@@ -297,7 +296,7 @@ export default function ModalNovoArquivo({ isOpen, onClose, file, targetFolderId
             <button 
               type="submit" 
               disabled={isUploading} 
-              className="w-full sm:w-auto px-6 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
+              className="w-full sm:w-auto px-6 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed shadow-md hover:shadow-lg active:scale-95"
             >
               {isUploading ? (
                 <><i className="fa-solid fa-circle-notch fa-spin"></i> Enviando...</>

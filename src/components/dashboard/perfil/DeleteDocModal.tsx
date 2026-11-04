@@ -27,7 +27,7 @@ export default function DeleteDocModal({ document, onClose }: DeleteDocModalProp
     setError("");
 
     try {
-      const result = await deletePersonalDocument(document.id, document.fileUrl);
+      const result = await deletePersonalDocument(document.id);
       if (result.success) {
         onClose();
       } else {

@@ -86,7 +86,7 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
     const styles: Record<Role, string> = {
       ADMIN: "bg-red-50 text-red-700 border-red-200",
       DEVELOPER: "bg-purple-50 text-purple-700 border-purple-200",
-      FINANCEIRO: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      FINANCEIRO: "bg-scout-green/5 text-scout-dark border-scout-green/20",
       CHEFE: "bg-blue-50 text-blue-700 border-blue-200",
       RESPONSAVEL: "bg-amber-50 text-amber-700 border-amber-200",
       MEMBER: "bg-gray-50 text-gray-700 border-gray-200",
@@ -139,7 +139,7 @@ export default function UserTable({ users, currentUserRole }: UserTableProps) {
             </div>
           </div>
 
-          <button onClick={() => setIsNewUserModalOpen(true)} className="cursor-pointer w-full md:w-auto flex items-center justify-center gap-2 bg-scout-green text-white px-6 py-2.5 rounded-xl hover:bg-green-700 transition-all font-bold shadow-sm active:scale-95 text-sm shrink-0">
+          <button onClick={() => setIsNewUserModalOpen(true)} className="cursor-pointer w-full md:w-auto flex items-center justify-center gap-2 bg-scout-green text-white px-6 py-2.5 rounded-xl hover:bg-scout-dark transition-all font-bold shadow-sm active:scale-95 text-sm shrink-0">
             <i className="fa-solid fa-user-plus"></i> Novo Usuário
           </button>
         </div>

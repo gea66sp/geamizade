@@ -48,7 +48,7 @@ export default function TransactionTable({ transactions, users, troops }: { tran
   // Componente auxiliar para padronizar as etiquetas de status
   const StatusBadge = ({ status }: { status: string }) => {
     if (status === 'PAID') {
-      return <span className="inline-flex items-center px-2 py-1 rounded-md bg-green-50 text-green-700 text-[10px] font-black uppercase tracking-widest border border-green-200/50"><i className="fa-solid fa-check mr-1 text-[8px]"></i> Pago</span>;
+      return <span className="inline-flex items-center px-2 py-1 rounded-md bg-scout-green/5 text-scout-dark text-[10px] font-black uppercase tracking-widest border border-"><i className="fa-solid fa-check mr-1 text-[8px]"></i> Pago</span>;
     }
     if (status === 'PENDING') {
       return <span className="inline-flex items-center px-2 py-1 rounded-md bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-widest border border-amber-200/50"><i className="fa-solid fa-clock mr-1 text-[8px]"></i> Pendente</span>;

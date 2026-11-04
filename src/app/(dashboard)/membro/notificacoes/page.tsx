@@ -134,7 +134,7 @@ export default async function MembroNotificacoesPage() {
                         <div className="text-[11px] text-gray-500 mt-3 pt-3 border-t border-gray-100 space-y-1">
                           <p>Criado em {formatDateTime(item.createdAt)}</p>
                           {item.status === "APPROVED" && (
-                            <p className="text-emerald-700 font-bold">
+                            <p className="text-scout-dark font-bold">
                               Entregue a {item._count.notifications} destinatário(s)
                               {item.approver?.name ? ` · aprovado por ${item.approver.name}` : ""}
                             </p>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ChefeSidebar from "./ChefeSidebar";
 import NotificationBell from "@/src/components/dashboard/NotificationBell";
+import BrandMark from "@/src/components/BrandMark";
 
 interface ChefeShellProps {
   children: React.ReactNode;
@@ -27,7 +28,7 @@ export default function ChefeShell({ children, userName, userRole, userImage }: 
       <div className="flex-1 flex flex-col overflow-hidden relative w-full">
         <header className="md:hidden flex items-center justify-between p-4 bg-scout-dark text-white shadow-md z-10 border-b border-scout-yellow/20">
           <div className="font-heading font-bold text-xl tracking-wide flex items-center gap-3">
-            <i className="fa-solid fa-fire text-scout-yellow text-2xl"></i>
+            <BrandMark size={36} className="w-9 h-9" />
             GE Amizade
           </div>
 

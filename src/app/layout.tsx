@@ -4,7 +4,7 @@ import "./globals.css";
 import { Providers } from "@/src/components/Providers";
 
 export const viewport: Viewport = {
-  themeColor: "#1b4d3e", 
+  themeColor: "#1f2255",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1, 
@@ -103,7 +103,7 @@ const schema = [
     "@id": `${BASE_URL}/institucional`,
     "name": "GE AMIZADE - Grupo Escoteiro Amizade 66/SP",
     "url": BASE_URL,
-    "logo": `${BASE_URL}/flor-de-lis.jpg`,
+    "logo": `${BASE_URL}/simbolo.jpg`,
     "image": `${BASE_URL}/hero-image.jpg`,
     "description": "Grupo Escoteiro em Taubaté focado no desenvolvimento de jovens através do Método Escoteiro.",
     "telephone": "+55 12 3622-7084", 

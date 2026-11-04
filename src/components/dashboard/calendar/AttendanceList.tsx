@@ -86,7 +86,7 @@ export default function AttendanceList({
               quebrava em duas linhas. O número é o conteúdo principal. */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {[
-              { label: "Vão", value: counts.going, cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+              { label: "Vão", value: counts.going, cls: "bg-scout-green/5 text-scout-dark border-scout-green/20" },
               { label: "Não vão", value: counts.notGoing, cls: "bg-red-50 text-red-700 border-red-200" },
               { label: "Pendentes", value: counts.pending, cls: "bg-gray-50 text-gray-600 border-gray-200" },
             ].map((c) => (

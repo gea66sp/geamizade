@@ -3,6 +3,7 @@
 import { del } from "@vercel/blob";
 import prisma from "@/src/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { isAllowedBlobUrl } from "@/src/lib/blobAccess";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/src/lib/auth";
 
@@ -297,6 +298,9 @@ export async function createDocument(formData: FormData) {
   if (!title || !title.trim() || !fileUrl) {
     throw new Error("Informações incompletas: É obrigatório preencher o título e efetuar o upload do documento.");
   }
+  if (!isAllowedBlobUrl(fileUrl)) {
+    throw new Error("A URL do documento não pertence ao armazenamento autorizado.");
+  }
 
   if (folderId) {
     const parentFolder = await prisma.folder.findUnique({
@@ -328,7 +332,7 @@ export async function createDocument(formData: FormData) {
   revalidatePath("/admin/transparencia");
 }
 
-export async function updateDocument(id: string, oldFileUrl: string, formData: FormData) {
+export async function updateDocument(id: string, formData: FormData) {
   const user = await getAuthUser();
 
   const document = await prisma.document.findUnique({
@@ -353,13 +357,17 @@ export async function updateDocument(id: string, oldFileUrl: string, formData: F
 
   if (!title || !title.trim()) throw new Error("O título do documento não pode ficar em branco.");
 
-  let finalFileUrl = oldFileUrl;
+  let finalFileUrl = document.fileUrl;
   let finalSize = document.size;
 
   // Substituição física do arquivo se um novo upload foi realizado no cliente
-  if (newFileUrl && newFileUrl !== oldFileUrl) {
+  if (newFileUrl && newFileUrl !== document.fileUrl) {
+    if (!isAllowedBlobUrl(newFileUrl)) {
+      throw new Error("A URL do novo documento não pertence ao armazenamento autorizado.");
+    }
+
     try {
-      await del(oldFileUrl);
+      await del(document.fileUrl);
     } catch (e) {
       console.warn("Arquivo antigo não localizado no servidor de armazenamento, aplicando o novo link...", e);
     }
@@ -393,7 +401,7 @@ export async function updateDocument(id: string, oldFileUrl: string, formData: F
   revalidatePath("/admin/transparencia");
 }
 
-export async function deleteDocument(id: string, fileUrl: string) {
+export async function deleteDocument(id: string) {
   const user = await getAuthUser();
 
   const document = await prisma.document.findUnique({
@@ -406,7 +414,7 @@ export async function deleteDocument(id: string, fileUrl: string) {
   await verifyEditPermission(user, document.isRestrictedEdit, document.allowedEditors.map(e => e.id));
 
   try {
-    await del(fileUrl);
+    await del(document.fileUrl);
   } catch (e) {
     console.error("Erro ao remover o arquivo físico do Vercel Blob:", e);
   }

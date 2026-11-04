@@ -120,7 +120,7 @@ export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, all
       } else {
         setMessage({ text: response.error || "Erro ao criar usuário.", type: "error" });
       }
-    } catch (error) {
+    } catch {
       setMessage({ text: "Ocorreu um erro inesperado ao conectar com o servidor.", type: "error" });
     } finally {
       setIsLoading(false);
@@ -129,7 +129,7 @@ export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, all
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 w-full max-w-2xl shadow-2xl max-h-[95vh] overflow-y-auto custom-scrollbar relative">
+      <div className="bg-white rounded-2xl md:rounded-3xl p-5 sm:p-6 md:p-8 w-full max-w-3xl shadow-2xl max-h-[92vh] overflow-y-auto custom-scrollbar relative">
         
         {/* Header do Modal */}
         <div className="flex justify-between items-start mb-6 md:mb-8 border-b border-gray-100 pb-5">
@@ -157,33 +157,54 @@ export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, all
 
           {/* Feedback de Mensagem */}
           {message && (
-            <div className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-bold animate-fade-in-up ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
+            <div className={`flex items-center gap-3 px-5 py-4 rounded-xl text-sm font-bold animate-fade-in-up ${message.type === "success" ? "bg-scout-green/5 text-scout-dark border border-scout-green/10" : "bg-red-50 text-red-700 border border-red-100"}`}>
               <i className={`fa-solid text-lg ${message.type === "success" ? "fa-circle-check" : "fa-triangle-exclamation"}`}></i>
               {message.text}
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-            
-            {/* Nome */}
-            <div className="space-y-1.5 md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700">Nome Completo <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <i className="fa-solid fa-address-card text-gray-400"></i>
-                </div>
-                <input type="text" name="name" required autoComplete="off" className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 transition-all font-semibold" placeholder="Ex: Robert Baden-Powell" />
+          <section className="rounded-2xl border border-gray-200 bg-gray-50/40 p-4 sm:p-5 space-y-4">
+            <div className="flex items-center gap-3 border-b border-gray-200 pb-3">
+              <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-scout-green flex items-center justify-center shrink-0 shadow-sm">
+                <i className="fa-solid fa-id-card text-sm"></i>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-gray-800">Dados pessoais</h4>
+                <p className="text-xs text-gray-500 mt-0.5">Informe os dados básicos do novo membro.</p>
               </div>
             </div>
 
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-bold text-gray-700">E-mail <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <i className="fa-solid fa-envelope text-gray-400"></i>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="block text-sm font-bold text-gray-700">Nome Completo <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i className="fa-solid fa-address-card text-gray-400"></i>
+                  </div>
+                  <input type="text" name="name" required autoComplete="off" className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 transition-all font-semibold" placeholder="Ex: Robert Baden-Powell" />
                 </div>
-                <input type="email" name="email" required autoComplete="new-email" data-1p-ignore className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 transition-all font-medium" placeholder="usuario@escoteiros.org" />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="block text-sm font-bold text-gray-700">E-mail <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i className="fa-solid fa-envelope text-gray-400"></i>
+                  </div>
+                  <input type="email" name="email" required autoComplete="new-email" data-1p-ignore className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 transition-all font-medium" placeholder="usuario@escoteiros.org" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-gray-200 bg-gray-50/40 p-4 sm:p-5 space-y-5">
+            <div className="flex items-center gap-3 border-b border-gray-200 pb-3">
+              <div className="w-8 h-8 rounded-lg bg-white border border-gray-200 text-scout-green flex items-center justify-center shrink-0 shadow-sm">
+                <i className="fa-solid fa-shield-halved text-sm"></i>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-gray-800">Acesso e segurança</h4>
+                <p className="text-xs text-gray-500 mt-0.5">Defina a senha temporária e o nível de acesso.</p>
               </div>
             </div>
 
@@ -194,46 +215,47 @@ export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, all
               onValidityChange={setSenhaValida}
             />
 
-            {/* Cargo (Role) */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-bold text-gray-700">Cargo / Acesso <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <i className="fa-solid fa-shield-halved text-gray-400"></i>
-                </div>
-                <select name="role" required value={selectedRole} onChange={handleRoleChange} className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 cursor-pointer appearance-none transition-all font-semibold">
-                  {availableRoles.map((role) => (
-                    <option key={role} value={role}>{roleLabels[role] || role}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <i className="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-bold text-gray-700">Cargo / Acesso <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i className="fa-solid fa-shield-halved text-gray-400"></i>
+                  </div>
+                  <select name="role" required value={selectedRole} onChange={handleRoleChange} className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 cursor-pointer appearance-none transition-all font-semibold">
+                    {availableRoles.map((role) => (
+                      <option key={role} value={role}>{roleLabels[role] || role}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                    <i className="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Ramo (Branch) */}
-            <div className="space-y-1.5">
-              <label className="block text-sm font-bold text-gray-700">Ramo (Opcional)</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <i className="fa-solid fa-tent text-gray-400"></i>
-                </div>
-                <select name="branch" className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 cursor-pointer appearance-none transition-all font-medium">
-                  <option value="">Nenhum ramo...</option>
-                  {allBranches.map((branch) => (
-                    <option key={branch} value={branch} className="capitalize">{branch.toLowerCase()}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                  <i className="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-bold text-gray-700">Ramo (Opcional)</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i className="fa-solid fa-tent text-gray-400"></i>
+                  </div>
+                  <select name="branch" className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-scout-green/20 focus:border-scout-green text-gray-800 cursor-pointer appearance-none transition-all font-medium">
+                    <option value="">Nenhum ramo...</option>
+                    {allBranches.map((branch) => (
+                      <option key={branch} value={branch} className="capitalize">{branch.toLowerCase()}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                    <i className="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
+                  </div>
                 </div>
               </div>
             </div>
+          </section>
 
             {/* ÁREA DE SELEÇÃO DE VÍNCULOS (Renderiza só se for Membro ou Responsável) */}
             {(selectedRole === "MEMBER" || selectedRole === "RESPONSAVEL") && (
-              <div className="md:col-span-2 space-y-4 p-5 md:p-6 bg-gray-50/50 border border-gray-200 rounded-2xl mt-2 relative">
+              <div className="space-y-4 p-4 sm:p-5 md:p-6 bg-gray-50/40 border border-gray-200 rounded-2xl relative">
                 
                 {/* Título do Bloco */}
                 <div className="flex items-center gap-3 border-b border-gray-200 pb-3">
@@ -303,7 +325,6 @@ export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, all
 
               </div>
             )}
-          </div>
 
           {/* Botões de Ação */}
           <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t border-gray-100">
@@ -319,7 +340,7 @@ export default function ModalNovoUsuario({ isOpen, onClose, currentUserRole, all
               type="submit" 
               disabled={isLoading || !senhaValida}
               title={!senhaValida ? "Preencha todos os requisitos da senha" : undefined}
-              className="w-full sm:w-auto px-8 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
+              className="w-full sm:w-auto px-8 py-3 text-sm bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed active:scale-95"
             >
               {isLoading ? (
                 <><i className="fa-solid fa-circle-notch fa-spin"></i> Cadastrando...</>

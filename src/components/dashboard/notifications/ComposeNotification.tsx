@@ -143,7 +143,7 @@ export default function ComposeNotification({
         <div
           className={`px-4 py-3 rounded-xl text-sm font-bold flex items-start gap-2 border ${
             feedback.type === "success"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              ? "bg-scout-green/5 text-scout-dark border-scout-green/20"
               : "bg-red-50 text-red-700 border-red-200"
           }`}
         >
@@ -295,7 +295,7 @@ export default function ComposeNotification({
       <button
         type="submit"
         disabled={isSending}
-        className="cursor-pointer w-full sm:w-auto px-8 py-3.5 bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 active:scale-95"
+        className="cursor-pointer w-full sm:w-auto px-8 py-3.5 bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-70 active:scale-95"
       >
         {isSending ? (
           <>

@@ -63,7 +63,7 @@ export const REQUEST_STATUS_META: Record<
   },
   APPROVED: {
     label: "Aprovada e Enviada",
-    className: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    className: "bg-scout-green/5 text-scout-dark border border-scout-green/20",
     icon: "fa-circle-check",
   },
   REJECTED: {

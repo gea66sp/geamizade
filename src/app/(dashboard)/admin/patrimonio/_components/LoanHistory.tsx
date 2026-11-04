@@ -30,7 +30,7 @@ export default function LoanHistory({ allLoans }: { allLoans: LoanRow[] }) {
   const getStatusBadge = (loan: LoanRow) => {
     if (loan.returnedAt) {
       return (
-        <span className="flex w-fit items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm">
+        <span className="flex w-fit items-center gap-1.5 px-3 py-1 bg-scout-green/5 text-scout-dark border border-scout-green/20 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm">
           <i className="fa-solid fa-check-double"></i> Devolvido
         </span>
       );
@@ -141,7 +141,7 @@ export default function LoanHistory({ allLoans }: { allLoans: LoanRow[] }) {
                 <div>
                   <p className="font-bold text-gray-400 uppercase tracking-widest text-[9px] mb-0.5">Devolução / Prev.</p>
                   {loan.returnedAt ? (
-                    <p className="font-bold text-emerald-600 flex items-center gap-1.5"><i className="fa-solid fa-check"></i> {new Date(loan.returnedAt).toLocaleDateString('pt-BR')}</p>
+                    <p className="font-bold text-scout-green flex items-center gap-1.5"><i className="fa-solid fa-check"></i> {new Date(loan.returnedAt).toLocaleDateString('pt-BR')}</p>
                   ) : loan.expectedReturn ? (
                     <p className={`font-medium flex items-center gap-1.5 ${new Date(loan.expectedReturn) < new Date() ? 'text-red-500 font-bold' : 'text-gray-700'}`}><i className="fa-regular fa-calendar"></i> {new Date(loan.expectedReturn).toLocaleDateString('pt-BR')}</p>
                   ) : (

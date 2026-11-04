@@ -10,7 +10,7 @@ import { FileText } from "lucide-react";
 import type { InventoryRow, LoanRow, TroopOption, UserOption } from "@/src/types/dashboard";
 
 const CONDITION_MAP = {
-  NEW: { label: "Novo", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  NEW: { label: "Novo", color: "bg-scout-green/5 text-scout-dark border-scout-green/20" },
   GOOD: { label: "Bom", color: "bg-blue-50 text-blue-700 border-blue-200" },
   FAIR: { label: "Regular", color: "bg-amber-50 text-amber-700 border-amber-200" },
   DAMAGED: { label: "Danificado", color: "bg-red-50 text-red-700 border-red-200" },
@@ -137,7 +137,7 @@ export default function InventoryManager({
               <button onClick={() => setReportModalOpen(true)} className="cursor-pointer bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 whitespace-nowrap">
                 <FileText className="w-5 h-5 text-blue-600" /> Relatórios
               </button>
-              <button onClick={handleOpenNew} className="cursor-pointer w-full md:w-auto bg-scout-green hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 shrink-0">
+              <button onClick={handleOpenNew} className="cursor-pointer w-full md:w-auto bg-scout-green hover:bg-scout-dark text-white px-6 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 shrink-0">
                 <i className="fa-solid fa-plus"></i> Novo Material
               </button>
             </div>
@@ -191,7 +191,7 @@ export default function InventoryManager({
                           <p className="text-sm font-bold text-amber-900 truncate">{activeLoan.user?.name}</p>
                         </div>
                       ) : (
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-widest">
+                        <div className="bg-scout-green/5 border border-scout-green/20 rounded-lg p-3 flex items-center gap-2 text-scout-dark font-bold text-xs uppercase tracking-widest">
                           <i className="fa-solid fa-circle-check text-base"></i> Disponível no Galpão
                         </div>
                       )}
@@ -273,7 +273,7 @@ export default function InventoryManager({
                             <p className="text-xs font-bold text-amber-900 truncate" title={activeLoan.user?.name ?? undefined}>{activeLoan.user?.name}</p>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200 w-fit text-[10px] uppercase tracking-widest">
+                          <div className="flex items-center gap-2 text-scout-dark font-bold bg-scout-green/5 px-3 py-1.5 rounded-lg border border-scout-green/20 w-fit text-[10px] uppercase tracking-widest">
                             <i className="fa-solid fa-circle-check text-sm"></i> Disponível
                           </div>
                         )}

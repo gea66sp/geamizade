@@ -76,7 +76,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           onClick={() => setActiveTab("pessoais")}
           className={`cursor-pointer flex items-center justify-center gap-2 px-5 py-4 font-bold text-sm transition-colors whitespace-nowrap min-w-35 flex-1 ${
             activeTab === "pessoais"
-              ? "bg-white border-b-2 border-scout-green text-scout-green shadow-[0_-2px_0_0_inset_#22c55e]"
+              ? "bg-white border-b-2 border-scout-green text-scout-green shadow-[0_-2px_0_0_inset_#1f2255]"
               : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
           }`}
         >
@@ -88,7 +88,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           onClick={() => setActiveTab("documentos")}
           className={`cursor-pointer flex items-center justify-center gap-2 px-5 py-4 font-bold text-sm transition-colors whitespace-nowrap min-w-35 flex-1 ${
             activeTab === "documentos"
-              ? "bg-white border-b-2 border-scout-green text-scout-green shadow-[0_-2px_0_0_inset_#22c55e]"
+              ? "bg-white border-b-2 border-scout-green text-scout-green shadow-[0_-2px_0_0_inset_#1f2255]"
               : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
           }`}
         >
@@ -100,7 +100,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           onClick={() => setActiveTab("conta")}
           className={`cursor-pointer flex items-center justify-center gap-2 px-5 py-4 font-bold text-sm transition-colors whitespace-nowrap min-w-35 flex-1 ${
             activeTab === "conta"
-              ? "bg-white border-b-2 border-scout-green text-scout-green shadow-[0_-2px_0_0_inset_#22c55e]"
+              ? "bg-white border-b-2 border-scout-green text-scout-green shadow-[0_-2px_0_0_inset_#1f2255]"
               : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
           }`}
         >
@@ -248,7 +248,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
                       <button type="button" onClick={() => setDocToDelete(doc)} className="text-red-500 hover:bg-red-100 p-2 sm:p-2.5 rounded-lg transition-colors" title="Eliminar">
                         <i className="fa-solid fa-trash"></i>
                       </button>
-                      <a href={`/api/documentos/${doc.id}`} target="_blank" rel="noreferrer" className="text-scout-green hover:bg-green-100 p-2 sm:p-2.5 rounded-lg transition-colors" title="Baixar Documento">
+                      <a href={`/api/documentos/${doc.id}`} target="_blank" rel="noreferrer" className="text-scout-green hover:bg-scout-green/10 p-2 sm:p-2.5 rounded-lg transition-colors" title="Baixar Documento">
                         <i className="fa-solid fa-download"></i>
                       </a>
                     </div>
@@ -271,7 +271,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
               <button 
                    type="button" 
                     onClick={() => setIsModalOpen(true)} 
-                    className="w-full py-4 border-2 border-dashed border-scout-green text-scout-green rounded-xl font-bold hover:bg-green-50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-4 border-2 border-dashed border-scout-green text-scout-green rounded-xl font-bold hover:bg-scout-green/5 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
               <i className="fa-solid fa-cloud-arrow-up"></i>
               Fazer Upload de Novo Documento
@@ -308,7 +308,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           
           <div className="w-full sm:w-auto flex-1">
             {message.text && (
-              <div className={`flex items-center gap-2 text-sm font-bold px-4 py-3 rounded-xl animate-fade-in ${message.type === "success" ? "bg-green-100/70 text-green-700 border border-green-200" : "bg-red-100/70 text-red-600 border border-red-200"}`}>
+              <div className={`flex items-center gap-2 text-sm font-bold px-4 py-3 rounded-xl animate-fade-in ${message.type === "success" ? "bg-scout-green/10 text-scout-dark border border-scout-green/20" : "bg-red-100/70 text-red-600 border border-red-200"}`}>
                 <i className={`fa-solid ${message.type === "success" ? "fa-circle-check" : "fa-triangle-exclamation"}`}></i>
                 {message.text}
               </div>
@@ -318,7 +318,7 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
           <button
             type="submit"
             disabled={isSaving || imageError.length > 0}
-            className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-green-700 text-white px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-scout-dark text-white px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isSaving ? (
               <><i className="fa-solid fa-circle-notch fa-spin"></i> Salvando...</>

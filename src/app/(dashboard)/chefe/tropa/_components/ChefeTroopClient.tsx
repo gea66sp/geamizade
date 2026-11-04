@@ -190,7 +190,7 @@ export default function ChefeTroopClient({
           <div className="mt-4 pt-4 border-t border-gray-200 shrink-0 space-y-3">
             <button
               onClick={abrirNovoMembro}
-              className="cursor-pointer w-full flex items-center justify-center gap-2 bg-scout-green hover:bg-green-700 text-white px-4 py-3 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95"
+              className="cursor-pointer w-full flex items-center justify-center gap-2 bg-scout-green hover:bg-scout-dark text-white px-4 py-3 rounded-xl font-bold text-sm transition-all shadow-sm active:scale-95"
             >
               <i className="fa-solid fa-user-plus"></i>
               Cadastrar novo jovem

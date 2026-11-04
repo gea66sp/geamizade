@@ -69,7 +69,7 @@ export default async function ResponsavelHomePage() {
             {
               href: "/responsavel/calendario",
               icon: "fa-calendar-days",
-              cls: "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600",
+              cls: "bg-scout-green/5 text-scout-green group-hover:bg-scout-green",
               title: "Calendário",
               sub: "Autorize a participação nas atividades",
             },

@@ -31,7 +31,7 @@ export default function TroopClient({ initialTroops, managers }: { initialTroops
 
   const branchStyles: Record<string, string> = {
     LOBINHO: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    ESCOTEIRO: "bg-green-100 text-green-800 border-green-200",
+    ESCOTEIRO: "bg-scout-green/10 text-scout-dark border-scout-green/20",
     SENIOR: "bg-rose-100 text-rose-800 border-rose-200",
     PIONEIRO: "bg-red-100 text-red-800 border-red-200",
     DIRETORIA: "bg-blue-100 text-blue-800 border-blue-200",
@@ -43,7 +43,7 @@ export default function TroopClient({ initialTroops, managers }: { initialTroops
       <div className="flex justify-end">
         <button
           onClick={handleOpenNew}
-          className="cursor-pointer w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-scout-green text-white rounded-xl font-bold hover:bg-green-700 transition-all shadow-md hover:shadow-lg active:scale-95"
+          className="cursor-pointer w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-scout-green text-white rounded-xl font-bold hover:bg-scout-dark transition-all shadow-md hover:shadow-lg active:scale-95"
         >
           <i className="fa-solid fa-plus"></i> Nova Seção
         </button>

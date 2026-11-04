@@ -82,7 +82,7 @@ export default function ModalRedefinirSenha({
 
         {done ? (
           <div className="p-8 text-center space-y-4">
-            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-3xl">
+            <div className="w-16 h-16 mx-auto rounded-full bg-scout-green/5 text-scout-green flex items-center justify-center text-3xl">
               <i className="fa-solid fa-circle-check"></i>
             </div>
             <div>
@@ -98,7 +98,7 @@ export default function ModalRedefinirSenha({
             </div>
             <button
               onClick={fecharTudo}
-              className="cursor-pointer w-full py-3 bg-scout-green text-white font-bold rounded-xl hover:bg-green-700 transition-colors"
+              className="cursor-pointer w-full py-3 bg-scout-green text-white font-bold rounded-xl hover:bg-scout-dark transition-colors"
             >
               Concluir
             </button>

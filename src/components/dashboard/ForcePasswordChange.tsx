@@ -77,7 +77,7 @@ export default function ForcePasswordChange({ userName }: { userName?: string | 
           <button
             type="submit"
             disabled={isSaving || !isValid}
-            className="cursor-pointer w-full py-3.5 bg-scout-green disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl hover:bg-green-700 shadow-md transition-all disabled:opacity-70 active:scale-95"
+            className="cursor-pointer w-full py-3.5 bg-scout-green disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl hover:bg-scout-dark shadow-md transition-all disabled:opacity-70 active:scale-95"
           >
             {isSaving ? (
               <>

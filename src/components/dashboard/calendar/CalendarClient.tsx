@@ -51,7 +51,7 @@ export default function CalendarClient({
                 setFormEvent(null);
                 setIsFormOpen(true);
               }}
-              className="cursor-pointer w-full sm:w-auto flex items-center justify-center gap-2 bg-scout-green hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm active:scale-95 shrink-0"
+              className="cursor-pointer w-full sm:w-auto flex items-center justify-center gap-2 bg-scout-green hover:bg-scout-dark text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-sm active:scale-95 shrink-0"
             >
               <i className="fa-solid fa-calendar-plus"></i>
               Nova Atividade

@@ -17,7 +17,7 @@ export function StatCards({ totalUsers, totalDocs, pendingTransactions }: StatCa
           <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
             <Users size={20} />
           </div>
-          <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+          <span className="flex items-center text-xs font-medium text-scout-green bg-scout-green/5 px-2 py-1 rounded-full">
             <TrendingUp size={12} className="mr-1" /> +12%
           </span>
         </div>

@@ -222,14 +222,14 @@ export default async function Home() {
             </div>
 
             {/* Ramo Escoteiro */}
-            <div className="card-branch group border-t-4 border-green-600">
-              <div className="w-20 h-20 mx-auto bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
-                <i className="fa-solid fa-compass text-3xl text-green-700"></i>
+            <div className="card-branch group border-t-4 border-scout-green">
+              <div className="w-20 h-20 mx-auto bg-scout-green/5 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">
+                <i className="fa-solid fa-compass text-3xl text-scout-dark"></i>
               </div>
               <h3 className="font-heading font-bold text-2xl text-gray-800 mb-2">Ramo Escoteiro</h3>
-              <span className="inline-block bg-green-100/50 text-green-800 text-sm font-bold px-4 py-1.5 rounded-full mb-4 mx-auto">11 a 14 anos</span>
+              <span className="inline-block bg-scout-green/10 text-scout-dark text-sm font-bold px-4 py-1.5 rounded-full mb-4 mx-auto">11 a 14 anos</span>
               <p className="text-gray-600 mb-6 text-sm grow">Aventura, sistema de patrulhas e acampamentos. A fase da descoberta e amizade.</p>
-              <p className="font-bold text-green-700 italic mt-auto tracking-wide">&quot;Sempre Alerta&quot;</p>
+              <p className="font-bold text-scout-dark italic mt-auto tracking-wide">&quot;Sempre Alerta&quot;</p>
             </div>
 
             {/* Ramo Sênior */}

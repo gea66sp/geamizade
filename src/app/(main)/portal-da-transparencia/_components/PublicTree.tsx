@@ -66,7 +66,7 @@ export default function PublicTree({ folders, documents }: { folders: Folder[], 
         {childDocs.map(doc => (
           <div 
             key={doc.id} 
-            className="flex items-center justify-between py-2.5 sm:py-3 pr-2 sm:pr-4 hover:bg-emerald-50/50 transition-colors group text-stone-600 border-b border-stone-50/50 rounded-lg" 
+            className="flex items-center justify-between py-2.5 sm:py-3 pr-2 sm:pr-4 hover:bg-scout-green/5 transition-colors group text-stone-600 border-b border-stone-50/50 rounded-lg"
             style={{ paddingLeft: `${(depth * 1.5) + 2.5}rem` }}
           >
             <div className="flex items-center gap-2.5 overflow-hidden">
@@ -76,7 +76,7 @@ export default function PublicTree({ folders, documents }: { folders: Folder[], 
                 </svg>
               </div>
               <div className="flex flex-col">
-                <span className="truncate font-medium text-stone-700 group-hover:text-emerald-800 transition-colors">{doc.title}</span>
+                <span className="truncate font-medium text-stone-700 group-hover:text-scout-dark transition-colors">{doc.title}</span>
                 <span className="text-[10px] sm:text-xs text-stone-400">{formatDate(doc.createdAt)}</span>
               </div>
             </div>
@@ -86,7 +86,7 @@ export default function PublicTree({ folders, documents }: { folders: Folder[], 
               href={`/portal-da-transparencia/arquivo/${doc.id}`} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="ml-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-stone-100 hover:bg-emerald-600 text-stone-600 hover:text-white rounded-lg text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-1.5"
+              className="ml-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-stone-100 hover:bg-scout-green text-stone-600 hover:text-white rounded-lg text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-1.5"
             >
               <span className="hidden sm:inline">Visualizar</span>
               <span className="sm:hidden">Abrir</span>
@@ -112,7 +112,7 @@ export default function PublicTree({ folders, documents }: { folders: Folder[], 
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </button>
-            <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-lg shadow-sm">
+            <div className="p-1.5 bg-scout-green/10 text-scout-green rounded-lg shadow-sm">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg>
             </div>
             <span>Documentos do Grupo</span>

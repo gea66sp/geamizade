@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 import NotificationBell from "@/src/components/dashboard/NotificationBell";
+import BrandMark from "@/src/components/BrandMark";
 
 type NavItem = {
   href: string;
@@ -47,7 +48,7 @@ export default function SimpleShell({
       <header className="bg-scout-dark text-white shadow-md sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <Link href={homeHref} className="flex items-center gap-3 font-heading font-bold text-lg tracking-wide">
-            <i className="fa-solid fa-fire text-scout-yellow text-xl"></i>
+            <BrandMark size={32} className="w-8 h-8" />
             {title}
           </Link>
 

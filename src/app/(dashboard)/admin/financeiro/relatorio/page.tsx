@@ -42,11 +42,11 @@ function TabelaLancamentos({ titulo, itens, icone }: { titulo: string; itens: Re
               <td className="p-3 border border-gray-200 text-gray-600">{formatDate(t.dueDate)}</td>
               <td className="p-3 border border-gray-200 font-semibold text-gray-800">
                 {t.title} 
-                {t.troop && <span className="text-[10px] bg-green-50 text-scout-green px-1.5 py-0.5 rounded ml-1.5 font-bold">{t.troop.name}</span>}
+                {t.troop && <span className="text-[10px] bg-scout-green/5 text-scout-green px-1.5 py-0.5 rounded ml-1.5 font-bold">{t.troop.name}</span>}
                 {t.patrol && <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded ml-1.5 font-bold">{t.patrol.name}</span>}
               </td>
               <td className="p-3 border border-gray-200 text-gray-500">{t.user?.name || "-"}</td>
-              <td className={`p-3 border border-gray-200 text-right font-black ${t.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>
+              <td className={`p-3 border border-gray-200 text-right font-black ${t.type === 'INCOME' ? 'text-scout-green' : 'text-red-600'}`}>
                 {t.type === 'INCOME' ? '+' : '-'}{formatCurrency(t.amount)}
               </td>
             </tr>
@@ -166,7 +166,7 @@ export default async function RelatorioFinanceiroPage({ searchParams }: Relatori
         <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-4 mb-10">
           <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-center">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Receitas Liquidadas</p>
-            <p className="text-lg font-black text-green-600 mt-1">{formatCurrency(receitasPagas)}</p>
+            <p className="text-lg font-black text-scout-green mt-1">{formatCurrency(receitasPagas)}</p>
           </div>
           <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl text-center">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Despesas Liquidadas</p>

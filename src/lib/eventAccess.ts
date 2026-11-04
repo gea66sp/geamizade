@@ -52,7 +52,7 @@ export function canViewAttendance(
 export const RSVP_META: Record<RsvpAnswer, { label: string; className: string; icon: string }> = {
   GOING: {
     label: "Vai participar",
-    className: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    className: "bg-scout-green/5 text-scout-dark border border-scout-green/20",
     icon: "fa-circle-check",
   },
   NOT_GOING: {
