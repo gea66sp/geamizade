@@ -3,7 +3,7 @@
 // esses arquivos só podem exportar Server Actions (funções async), e
 // toSlug/stripHtml/sanitizeRichHtml são funções síncronas.
 import prisma from "@/src/lib/prisma";
-import DOMPurify from "isomorphic-dompurify";
+import sanitizeHtml from "sanitize-html";
 
 export function toSlug(value: string): string {
   return value
@@ -22,12 +22,17 @@ export function stripHtml(value: string): string {
 }
 
 export function sanitizeRichHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ["a", "blockquote", "br", "code", "em", "h2", "h3", "h4", "li", "ol", "p", "pre", "strong", "ul"],
-    ALLOWED_ATTR: ["href", "target", "rel"],
-    ALLOW_DATA_ATTR: false,
-    FORBID_TAGS: ["style", "svg", "math"],
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+  return sanitizeHtml(html, {
+    allowedTags: ["a", "blockquote", "br", "code", "em", "h2", "h3", "h4", "li", "ol", "p", "pre", "strong", "ul"],
+    allowedAttributes: {
+      a: ["href", "target", "rel"],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
+    allowedSchemesByTag: {
+      a: ["http", "https", "mailto"],
+    },
+    allowProtocolRelative: false,
+    disallowedTagsMode: "discard",
   });
 }
 

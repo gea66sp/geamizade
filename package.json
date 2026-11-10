@@ -16,7 +16,6 @@
     "@vercel/blob": "^2.3.1",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.26.2",
-    "isomorphic-dompurify": "^3.19.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.562.0",
@@ -26,7 +25,8 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-google-recaptcha": "^3.1.0",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "sanitize-html": "^2.18.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -36,6 +36,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-google-recaptcha": "^2.1.9",
+    "@types/sanitize-html": "^2.16.2",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "prisma": "^5.22.0",
