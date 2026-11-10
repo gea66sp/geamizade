@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 
 import {
@@ -128,7 +127,6 @@ export default function BlogManager({
   troops: TroopOption[];
   currentUser: CurrentUser;
 }) {
-  const router = useRouter();
   const editorRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -306,6 +304,28 @@ export default function BlogManager({
         type: "success",
         message: draft.id ? "Publicação atualizada com sucesso." : "Publicação criada com sucesso.",
       });
+      const savedAt = new Date();
+      if (draft.id) {
+        setPosts((current) =>
+          current.map((post) =>
+            post.id === draft.id
+              ? {
+                  ...post,
+                  title: draft.title.trim(),
+                  slug: draft.slug || toSlug(draft.title),
+                  content: htmlContent,
+                  imageUrl: draft.imageUrl || null,
+                  status: draft.status,
+                  troopId: draft.troopId || null,
+                  troop: troops.find((troop) => troop.id === draft.troopId) || null,
+                  updatedAt: savedAt,
+                }
+              : post
+          )
+        );
+      } else {
+        setPosts((current) => [{ ...previewFromDraft(), updatedAt: savedAt }, ...current]);
+      }
       closeForm(true);
     } catch (error) {
       console.error("Erro inesperado ao salvar publicação:", error);
@@ -320,30 +340,49 @@ export default function BlogManager({
 
   const togglePublication = async (post: BlogPostItem) => {
     const nextStatus = post.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
-    const result = await setBlogPostStatus(post.id, nextStatus);
-    if (!result.success) {
+    try {
+      const result = await setBlogPostStatus(post.id, nextStatus);
+      if (!result.success) {
+        setToast({
+          type: "error",
+          message: result.error || "Não foi possível alterar o status da publicação.",
+        });
+        return;
+      }
+      setPosts((current) =>
+        current.map((item) => (item.id === post.id ? { ...item, status: nextStatus, updatedAt: new Date() } : item))
+      );
+      setToast({
+        type: "success",
+        message: nextStatus === "PUBLISHED" ? "Publicação liberada no site." : "Publicação retornou para rascunho.",
+      });
+    } catch (error) {
+      console.error("Erro inesperado ao alterar status:", error);
       setToast({
         type: "error",
-        message: result.error || "Não foi possível alterar o status da publicação.",
+        message: error instanceof Error ? error.message : "Não foi possível alterar o status da publicação.",
       });
-      return;
     }
-
-    setToast({
-      type: "success",
-      message: nextStatus === "PUBLISHED" ? "Publicação liberada no site." : "Publicação retornou para rascunho.",
-    });
-    router.refresh();
   };
 
   const approvePost = async (post: BlogPostItem) => {
-    const result = await approveBlogPost(post.id);
-    if (!result.success) {
-      setToast({ type: "error", message: result.error || "Não foi possível aprovar a publicação." });
-      return;
+    try {
+      const result = await approveBlogPost(post.id);
+      if (!result.success) {
+        setToast({ type: "error", message: result.error || "Não foi possível aprovar a publicação." });
+        return;
+      }
+      setPosts((current) =>
+        current.map((item) => (item.id === post.id ? { ...item, status: "PUBLISHED", updatedAt: new Date() } : item))
+      );
+      setToast({ type: "success", message: "Publicação aprovada e liberada no site." });
+    } catch (error) {
+      console.error("Erro inesperado ao aprovar publicação:", error);
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Não foi possível aprovar a publicação.",
+      });
     }
-    setToast({ type: "success", message: "Publicação aprovada e liberada no site." });
-    router.refresh();
   };
 
   const rejectPost = async (post: BlogPostItem) => {
@@ -354,13 +393,27 @@ export default function BlogManager({
       return;
     }
 
-    const result = await rejectBlogPost(post.id, reason);
-    if (!result.success) {
-      setToast({ type: "error", message: result.error || "Não foi possível rejeitar a publicação." });
-      return;
+    try {
+      const result = await rejectBlogPost(post.id, reason);
+      if (!result.success) {
+        setToast({ type: "error", message: result.error || "Não foi possível rejeitar a publicação." });
+        return;
+      }
+      setPosts((current) =>
+        current.map((item) =>
+          item.id === post.id
+            ? { ...item, status: "REJECTED", rejectionReason: reason.trim(), updatedAt: new Date() }
+            : item
+        )
+      );
+      setToast({ type: "success", message: "Publicação rejeitada." });
+    } catch (error) {
+      console.error("Erro inesperado ao rejeitar publicação:", error);
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Não foi possível rejeitar a publicação.",
+      });
     }
-    setToast({ type: "success", message: "Publicação rejeitada." });
-    router.refresh();
   };
 
   const removePost = async (post: BlogPostItem) => {
@@ -369,17 +422,24 @@ export default function BlogManager({
     );
     if (!confirmed) return;
 
-    const result = await deleteBlogPost(post.id);
-    if (!result.success) {
+    try {
+      const result = await deleteBlogPost(post.id);
+      if (!result.success) {
+        setToast({
+          type: "error",
+          message: result.error || "Falha ao excluir a publicação.",
+        });
+        return;
+      }
+      setPosts((current) => current.filter((item) => item.id !== post.id));
+      setToast({ type: "success", message: "Publicação excluída com sucesso." });
+    } catch (error) {
+      console.error("Erro inesperado ao excluir publicação:", error);
       setToast({
         type: "error",
-        message: result.error || "Falha ao excluir a publicação.",
+        message: error instanceof Error ? error.message : "Falha ao excluir a publicação.",
       });
-      return;
     }
-
-    setToast({ type: "success", message: "Publicação excluída com sucesso." });
-    router.refresh();
   };
 
   const previewFromDraft = (): BlogPostItem => {
@@ -506,14 +566,15 @@ export default function BlogManager({
           filteredPosts.map((post) => (
             <div key={post.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-4 space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-heading text-lg font-bold text-gray-800 leading-tight">{post.title}</h3>
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-heading text-lg font-bold text-gray-800 leading-tight break-words">{post.title}</h3>
+                    <p className="text-xs font-medium text-gray-500 mt-1 break-all">/{post.slug}</p>
+                  </div>
                   <StatusBadge status={post.status} />
                 </div>
 
-                <p className="text-xs font-medium text-gray-500">
-                  /{post.slug} • Atualizado em {formatDate(post.updatedAt)}
-                </p>
+                <p className="text-xs font-medium text-gray-500">Atualizado em {formatDate(post.updatedAt)}</p>
 
                 <p className="text-sm text-gray-600 line-clamp-3">{extractTextFromHtml(post.content)}</p>
 
@@ -533,7 +594,7 @@ export default function BlogManager({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-gray-100">
                   <button
                     onClick={() => openEditPost(post)}
                     className="cursor-pointer py-2 rounded-xl text-sm font-bold bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100"
@@ -588,14 +649,14 @@ export default function BlogManager({
       </div>
 
       <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-200 overflow-x-auto custom-scrollbar">
-        <table className="w-full min-w-230 text-left border-collapse">
+        <table className="w-full min-w-[980px] text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-widest border-b border-gray-200">
-              <th className="p-4">Publicação</th>
+              <th className="p-4 min-w-[360px]">Publicação</th>
               <th className="p-4 w-45">Escopo</th>
-              <th className="p-4 w-35">Status</th>
+              <th className="p-4 w-40">Status</th>
               <th className="p-4 w-45">Atualização</th>
-              <th className="p-4 text-right w-65">Ações</th>
+              <th className="p-4 w-[320px]">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -603,8 +664,8 @@ export default function BlogManager({
               <tr key={post.id} className="hover:bg-gray-50/80">
                 <td className="p-4 align-top">
                   <div className="space-y-1">
-                    <p className="font-bold text-gray-900 leading-tight">{post.title}</p>
-                    <p className="text-xs font-medium text-gray-500">/{post.slug}</p>
+                    <p className="font-bold text-gray-900 leading-tight break-words">{post.title}</p>
+                    <p className="text-xs font-medium text-gray-500 break-all">/{post.slug}</p>
                     <p className="text-xs text-gray-500 line-clamp-2">{extractTextFromHtml(post.content)}</p>
                   </div>
                 </td>
@@ -626,7 +687,7 @@ export default function BlogManager({
                 </td>
                 <td className="p-4 align-top text-xs text-gray-500 font-medium">{formatDate(post.updatedAt)}</td>
                 <td className="p-4 align-top">
-                  <div className="flex items-center justify-end gap-2 flex-wrap">
+                  <div className="flex items-center justify-start gap-2 flex-wrap">
                     <button
                       onClick={() => setPreviewPost(post)}
                       className="cursor-pointer px-3 py-2 text-xs font-bold rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100"

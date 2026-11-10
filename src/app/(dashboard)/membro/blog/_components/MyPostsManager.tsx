@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 
 import { deleteMemberPost, submitMemberPost, updateMemberPost } from "../actions";
@@ -50,7 +49,6 @@ function createEmptyDraft(): PostDraft {
 }
 
 export default function MyPostsManager({ initialPosts }: { initialPosts: MyPost[] }) {
-  const router = useRouter();
   const editorRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -157,6 +155,23 @@ export default function MyPostsManager({ initialPosts }: { initialPosts: MyPost[
       }
 
       setToast({ type: "success", message: "Enviado! Aguarde a aprovação do seu chefe." });
+      if (draft.id) {
+        setPosts((current) =>
+          current.map((post) =>
+            post.id === draft.id
+              ? {
+                  ...post,
+                  title: draft.title.trim(),
+                  content: htmlContent,
+                  imageUrl: draft.imageUrl || null,
+                  status: "PENDING_REVIEW",
+                  rejectionReason: null,
+                  updatedAt: new Date(),
+                }
+              : post
+          )
+        );
+      }
       closeForm(true);
     } catch (error) {
       console.error("Erro inesperado ao enviar publicação:", error);
@@ -172,13 +187,21 @@ export default function MyPostsManager({ initialPosts }: { initialPosts: MyPost[
   const removePost = async (post: MyPost) => {
     if (!window.confirm(`Deseja realmente excluir "${post.title}"?`)) return;
 
-    const result = await deleteMemberPost(post.id);
-    if (!result.success) {
-      setToast({ type: "error", message: result.error || "Falha ao excluir a publicação." });
-      return;
+    try {
+      const result = await deleteMemberPost(post.id);
+      if (!result.success) {
+        setToast({ type: "error", message: result.error || "Falha ao excluir a publicação." });
+        return;
+      }
+      setPosts((current) => current.filter((item) => item.id !== post.id));
+      setToast({ type: "success", message: "Publicação excluída." });
+    } catch (error) {
+      console.error("Erro inesperado ao excluir publicação:", error);
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Falha ao excluir a publicação.",
+      });
     }
-    setToast({ type: "success", message: "Publicação excluída." });
-    router.refresh();
   };
 
   return (

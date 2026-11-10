@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { upload } from "@vercel/blob/client";
 
 import {
@@ -91,7 +90,6 @@ export default function ChefeBlogManager({
   troops: TroopOption[];
   currentUser: CurrentUser;
 }) {
-  const router = useRouter();
   const editorRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -239,6 +237,25 @@ export default function ChefeBlogManager({
       }
 
       setToast({ type: "success", message: draft.id ? "Publicação atualizada." : "Publicação criada." });
+      if (draft.id) {
+        setPosts((current) =>
+          current.map((post) =>
+            post.id === draft.id
+              ? {
+                  ...post,
+                  title: draft.title.trim(),
+                  slug: draft.slug,
+                  content: htmlContent,
+                  imageUrl: draft.imageUrl || null,
+                  status: draft.status,
+                  troopId: draft.troopId,
+                  troop: troops.find((troop) => troop.id === draft.troopId) || null,
+                  updatedAt: new Date(),
+                }
+              : post
+          )
+        );
+      }
       closeForm(true);
     } catch (error) {
       console.error("Erro inesperado ao salvar publicação:", error);
@@ -253,35 +270,54 @@ export default function ChefeBlogManager({
 
   const togglePublication = async (post: BlogPostItem) => {
     const nextStatus = post.status === "PUBLISHED" ? "DRAFT" : "PUBLISHED";
-    const result = await setBlogPostStatus(post.id, nextStatus);
-    if (!result.success) {
-      setToast({ type: "error", message: result.error || "Não foi possível alterar o status." });
-      return;
+    try {
+      const result = await setBlogPostStatus(post.id, nextStatus);
+      if (!result.success) {
+        setToast({ type: "error", message: result.error || "Não foi possível alterar o status." });
+        return;
+      }
+      setPosts((current) =>
+        current.map((item) => (item.id === post.id ? { ...item, status: nextStatus, updatedAt: new Date() } : item))
+      );
+      setToast({ type: "success", message: nextStatus === "PUBLISHED" ? "Publicação liberada no site." : "Publicação voltou para rascunho." });
+    } catch (error) {
+      console.error("Erro inesperado ao alterar status:", error);
+      setToast({ type: "error", message: error instanceof Error ? error.message : "Não foi possível alterar o status." });
     }
-    setToast({ type: "success", message: nextStatus === "PUBLISHED" ? "Publicação liberada no site." : "Publicação voltou para rascunho." });
-    router.refresh();
   };
 
   const removePost = async (post: BlogPostItem) => {
     if (!window.confirm(`Deseja realmente excluir "${post.title}"? Essa ação não pode ser desfeita.`)) return;
 
-    const result = await deleteBlogPost(post.id);
-    if (!result.success) {
-      setToast({ type: "error", message: result.error || "Falha ao excluir a publicação." });
-      return;
+    try {
+      const result = await deleteBlogPost(post.id);
+      if (!result.success) {
+        setToast({ type: "error", message: result.error || "Falha ao excluir a publicação." });
+        return;
+      }
+      setPosts((current) => current.filter((item) => item.id !== post.id));
+      setToast({ type: "success", message: "Publicação excluída." });
+    } catch (error) {
+      console.error("Erro inesperado ao excluir publicação:", error);
+      setToast({ type: "error", message: error instanceof Error ? error.message : "Falha ao excluir a publicação." });
     }
-    setToast({ type: "success", message: "Publicação excluída." });
-    router.refresh();
   };
 
   const approvePost = async (post: BlogPostItem) => {
-    const result = await approveBlogPost(post.id);
-    if (!result.success) {
-      setToast({ type: "error", message: result.error || "Não foi possível aprovar a publicação." });
-      return;
+    try {
+      const result = await approveBlogPost(post.id);
+      if (!result.success) {
+        setToast({ type: "error", message: result.error || "Não foi possível aprovar a publicação." });
+        return;
+      }
+      setPosts((current) =>
+        current.map((item) => (item.id === post.id ? { ...item, status: "PUBLISHED", updatedAt: new Date() } : item))
+      );
+      setToast({ type: "success", message: "Publicação aprovada e liberada no site." });
+    } catch (error) {
+      console.error("Erro inesperado ao aprovar publicação:", error);
+      setToast({ type: "error", message: error instanceof Error ? error.message : "Não foi possível aprovar a publicação." });
     }
-    setToast({ type: "success", message: "Publicação aprovada e liberada no site." });
-    router.refresh();
   };
 
   const rejectPost = async (post: BlogPostItem) => {
@@ -292,13 +328,24 @@ export default function ChefeBlogManager({
       return;
     }
 
-    const result = await rejectBlogPost(post.id, reason);
-    if (!result.success) {
-      setToast({ type: "error", message: result.error || "Não foi possível rejeitar a publicação." });
-      return;
+    try {
+      const result = await rejectBlogPost(post.id, reason);
+      if (!result.success) {
+        setToast({ type: "error", message: result.error || "Não foi possível rejeitar a publicação." });
+        return;
+      }
+      setPosts((current) =>
+        current.map((item) =>
+          item.id === post.id
+            ? { ...item, status: "REJECTED", rejectionReason: reason.trim(), updatedAt: new Date() }
+            : item
+        )
+      );
+      setToast({ type: "success", message: "Publicação rejeitada." });
+    } catch (error) {
+      console.error("Erro inesperado ao rejeitar publicação:", error);
+      setToast({ type: "error", message: error instanceof Error ? error.message : "Não foi possível rejeitar a publicação." });
     }
-    setToast({ type: "success", message: "Publicação rejeitada." });
-    router.refresh();
   };
 
   return (
