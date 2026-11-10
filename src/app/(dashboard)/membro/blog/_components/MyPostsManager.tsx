@@ -89,8 +89,8 @@ export default function MyPostsManager({ initialPosts }: { initialPosts: MyPost[
     setIsFormOpen(true);
   };
 
-  const closeForm = () => {
-    if (isSaving || isUploadingCover) return;
+  const closeForm = (force = false) => {
+    if (!force && (isSaving || isUploadingCover)) return;
     setIsFormOpen(false);
     setDraft(createEmptyDraft());
   };
@@ -157,8 +157,14 @@ export default function MyPostsManager({ initialPosts }: { initialPosts: MyPost[
       }
 
       setToast({ type: "success", message: "Enviado! Aguarde a aprovação do seu chefe." });
-      closeForm();
+      closeForm(true);
       router.refresh();
+    } catch (error) {
+      console.error("Erro inesperado ao enviar publicação:", error);
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Não foi possível enviar a publicação.",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -265,7 +271,7 @@ export default function MyPostsManager({ initialPosts }: { initialPosts: MyPost[
               <h2 className="font-heading text-xl font-bold text-gray-900">{draft.id ? "Editar Publicação" : "Nova Publicação"}</h2>
               <div className="flex gap-2">
                 <button
-                  onClick={closeForm}
+                  onClick={() => closeForm()}
                   disabled={isSaving || isUploadingCover}
                   className="cursor-pointer px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-700 font-bold hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed"
                 >

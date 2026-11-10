@@ -202,8 +202,8 @@ export default function BlogManager({
     setIsFormOpen(true);
   };
 
-  const closeForm = () => {
-    if (isSaving || isUploadingCover) return;
+  const closeForm = (force = false) => {
+    if (!force && (isSaving || isUploadingCover)) return;
     setIsFormOpen(false);
     setDraft(createEmptyDraft());
     setSlugTouched(false);
@@ -306,8 +306,14 @@ export default function BlogManager({
         type: "success",
         message: draft.id ? "Publicação atualizada com sucesso." : "Publicação criada com sucesso.",
       });
-      closeForm();
+      closeForm(true);
       router.refresh();
+    } catch (error) {
+      console.error("Erro inesperado ao salvar publicação:", error);
+      setToast({
+        type: "error",
+        message: error instanceof Error ? error.message : "Não foi possível salvar a publicação.",
+      });
     } finally {
       setIsSaving(false);
     }
@@ -696,7 +702,7 @@ export default function BlogManager({
                   <i className="fa-solid fa-eye mr-2"></i>Pré-visualizar
                 </button>
                 <button
-                  onClick={closeForm}
+                  onClick={() => closeForm()}
                   disabled={isSaving || isUploadingCover}
                   className="cursor-pointer px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-700 font-bold hover:bg-gray-100 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
