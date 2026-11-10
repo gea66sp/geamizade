@@ -158,7 +158,6 @@ export default function MyPostsManager({ initialPosts }: { initialPosts: MyPost[
 
       setToast({ type: "success", message: "Enviado! Aguarde a aprovação do seu chefe." });
       closeForm(true);
-      router.refresh();
     } catch (error) {
       console.error("Erro inesperado ao enviar publicação:", error);
       setToast({
@@ -187,7 +186,7 @@ export default function MyPostsManager({ initialPosts }: { initialPosts: MyPost[
       {toast && (
         <div
           className={`fixed bottom-6 right-6 z-60 px-4 py-3 rounded-xl shadow-xl border flex items-center gap-3 ${
-            toast.type === "success" ? "bg-scout-green/5 border-scout-green/20 text-scout-dark" : "bg-red-50 border-red-200 text-red-800"
+            toast.type === "success" ? "bg-white border-scout-green text-scout-dark" : "bg-red-50 border-red-200 text-red-800"
           }`}
         >
           <p className="text-sm font-bold">{toast.message}</p>

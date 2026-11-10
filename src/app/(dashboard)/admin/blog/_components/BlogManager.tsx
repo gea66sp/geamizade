@@ -307,7 +307,6 @@ export default function BlogManager({
         message: draft.id ? "Publicação atualizada com sucesso." : "Publicação criada com sucesso.",
       });
       closeForm(true);
-      router.refresh();
     } catch (error) {
       console.error("Erro inesperado ao salvar publicação:", error);
       setToast({
@@ -411,7 +410,7 @@ export default function BlogManager({
         <div
           className={`fixed bottom-6 right-6 z-60 px-4 py-3 rounded-xl shadow-xl border flex items-center gap-3 ${
             toast.type === "success"
-              ? "bg-scout-green/5 border-scout-green/20 text-scout-dark"
+              ? "bg-white border-scout-green text-scout-dark"
               : toast.type === "error"
               ? "bg-red-50 border-red-200 text-red-800"
               : "bg-blue-50 border-blue-200 text-blue-800"
