@@ -31,7 +31,7 @@ export default async function ChefeBlogPage() {
     include: {
       author: { select: { id: true, name: true, role: true } },
     },
-    orderBy: [{ updatedAt: "desc" }],
+    orderBy: [{ displayOrder: "asc" }, { updatedAt: "desc" }],
   });
 
   return (

@@ -41,7 +41,7 @@ export default async function AdminBlogPage() {
           },
         },
       },
-      orderBy: [{ updatedAt: "desc" }],
+      orderBy: [{ displayOrder: "asc" }, { updatedAt: "desc" }],
     }),
     prisma.troop.findMany({
       select: {
@@ -67,4 +67,3 @@ export default async function AdminBlogPage() {
     </div>
   );
 }
-

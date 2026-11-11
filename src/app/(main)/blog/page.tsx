@@ -21,7 +21,7 @@ export default async function BlogPublicPage() {
         select: { id: true, name: true, branch: true },
       },
     },
-    orderBy: [{ updatedAt: "desc" }],
+    orderBy: [{ displayOrder: "asc" }, { updatedAt: "desc" }],
   });
 
   const troops = await prisma.troop.findMany({
@@ -49,4 +49,3 @@ export default async function BlogPublicPage() {
     </main>
   );
 }
-

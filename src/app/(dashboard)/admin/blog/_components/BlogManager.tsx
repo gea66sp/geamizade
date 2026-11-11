@@ -9,6 +9,7 @@ import {
   deleteBlogPost,
   rejectBlogPost,
   setBlogPostStatus,
+  updateBlogPostOrder,
   updateBlogPost,
 } from "../actions";
 
@@ -26,6 +27,7 @@ type BlogPostItem = {
   slug: string;
   content: string;
   imageUrl: string | null;
+  displayOrder: number;
   status: PostStatusValue;
   rejectionReason: string | null;
   troopId: string | null;
@@ -134,6 +136,8 @@ export default function BlogManager({
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"ALL" | PostStatusValue>("ALL");
   const [troopFilter, setTroopFilter] = useState("ALL");
+  const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
+  const [dragOverPostId, setDragOverPostId] = useState<string | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [draft, setDraft] = useState<PostDraft>(createEmptyDraft());
@@ -365,6 +369,48 @@ export default function BlogManager({
     }
   };
 
+  const changePostOrder = async (post: BlogPostItem, value: string) => {
+    const requestedOrder = Number(value);
+    if (!Number.isInteger(requestedOrder) || requestedOrder < 1) return;
+    const result = await updateBlogPostOrder(post.id, requestedOrder);
+    if (!result.success) {
+      setToast({ type: "error", message: result.error || "Não foi possível alterar a ordem." });
+      return;
+    }
+    setPosts((current) =>
+      [...current]
+        .map((item) => ({
+          ...item,
+          displayOrder: result.orders?.[item.id] ?? item.displayOrder,
+        }))
+        .sort((a, b) => a.displayOrder - b.displayOrder),
+    );
+    setToast({ type: "success", message: "Ordem da publicação atualizada." });
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    const edgeSize = 100;
+    const scrollSpeed = 18;
+    if (event.clientY < edgeSize) {
+      window.scrollBy({ top: -scrollSpeed, behavior: "auto" });
+    } else if (event.clientY > window.innerHeight - edgeSize) {
+      window.scrollBy({ top: scrollSpeed, behavior: "auto" });
+    }
+  };
+
+  const handleDrop = async (targetPost: BlogPostItem) => {
+    const draggedId = draggedPostId;
+    setDraggedPostId(null);
+    setDragOverPostId(null);
+    if (!draggedId || draggedId === targetPost.id) return;
+
+    const draggedPost = posts.find((post) => post.id === draggedId);
+    if (!draggedPost) return;
+
+    await changePostOrder(draggedPost, String(targetPost.displayOrder));
+  };
+
   const approvePost = async (post: BlogPostItem) => {
     try {
       const result = await approveBlogPost(post.id);
@@ -449,6 +495,7 @@ export default function BlogManager({
       slug: draft.slug || toSlug(draft.title || "publicacao"),
       content: editorRef.current?.innerHTML || draft.content || INITIAL_CONTENT,
       imageUrl: draft.imageUrl || null,
+      displayOrder: 1,
       status: draft.status,
       rejectionReason: null,
       troopId: draft.troopId || null,
@@ -492,29 +539,7 @@ export default function BlogManager({
         </div>
       )}
 
-      <div className="flex flex-col xl:flex-row gap-4 justify-between bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-gray-200">
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-            <span className="w-12 h-12 rounded-xl bg-scout-green/10 text-scout-green flex items-center justify-center text-2xl">
-              <i className="fa-solid fa-newspaper"></i>
-            </span>
-            Gestão de Notícias e Blog
-          </h1>
-          <p className="text-gray-500 font-medium mt-2">
-            Gerencie rascunhos, publicações e pré-visualização completa antes de liberar no site.
-          </p>
-        </div>
-
-        <button
-          onClick={openNewPost}
-          className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-scout-dark text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
-        >
-          <i className="fa-solid fa-plus"></i>
-          Nova Publicação
-        </button>
-      </div>
-
-      <div className="flex flex-col xl:flex-row gap-4 justify-between bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-gray-200">
+      <div className="sticky top-0 z-30 flex flex-col xl:flex-row gap-4 justify-between bg-white p-4 md:p-5 rounded-2xl shadow-sm border border-gray-200">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <i className="fa-solid fa-magnifying-glass text-gray-400"></i>
@@ -553,6 +578,14 @@ export default function BlogManager({
               </option>
             ))}
           </select>
+
+          <button
+            onClick={openNewPost}
+            className="cursor-pointer w-full sm:w-auto bg-scout-green hover:bg-scout-dark text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+          >
+            <i className="fa-solid fa-plus"></i>
+            Nova Publicação
+          </button>
         </div>
       </div>
 
@@ -564,7 +597,23 @@ export default function BlogManager({
           </div>
         ) : (
           filteredPosts.map((post) => (
-            <div key={post.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div
+            key={post.id}
+            draggable
+            onDragStart={() => setDraggedPostId(post.id)}
+            onDragOver={(event) => {
+              handleDragOver(event);
+              setDragOverPostId(post.id);
+            }}
+            onDrop={() => void handleDrop(post)}
+            onDragEnd={() => {
+              setDraggedPostId(null);
+              setDragOverPostId(null);
+            }}
+            className={`bg-white rounded-2xl border shadow-sm overflow-hidden ${
+              dragOverPostId === post.id ? "border-scout-green ring-2 ring-scout-green/20" : "border-gray-200"
+            }`}
+          >
               <div className="p-4 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
@@ -655,18 +704,38 @@ export default function BlogManager({
               <th className="p-4 min-w-[360px]">Publicação</th>
               <th className="p-4 w-45">Escopo</th>
               <th className="p-4 w-40">Status</th>
+              <th className="p-4 w-28">Ordem</th>
               <th className="p-4 w-45">Atualização</th>
               <th className="p-4 w-[320px]">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filteredPosts.map((post) => (
-              <tr key={post.id} className="hover:bg-gray-50/80">
+              <tr
+                key={post.id}
+                draggable
+                onDragStart={() => setDraggedPostId(post.id)}
+                onDragOver={(event) => {
+                  handleDragOver(event);
+                  setDragOverPostId(post.id);
+                }}
+                onDrop={() => void handleDrop(post)}
+                onDragEnd={() => {
+                  setDraggedPostId(null);
+                  setDragOverPostId(null);
+                }}
+                className={`hover:bg-gray-50/80 ${
+                  dragOverPostId === post.id ? "bg-scout-green/5 ring-2 ring-inset ring-scout-green/30" : ""
+                }`}
+              >
                 <td className="p-4 align-top">
-                  <div className="space-y-1">
+                  <div className="space-y-1 flex items-start gap-3">
+                    <i className="fa-solid fa-grip-vertical text-gray-300 mt-1.5 cursor-grab active:cursor-grabbing" aria-label="Arraste para reordenar"></i>
+                    <div className="space-y-1">
                     <p className="font-bold text-gray-900 leading-tight break-words">{post.title}</p>
                     <p className="text-xs font-medium text-gray-500 break-all">/{post.slug}</p>
                     <p className="text-xs text-gray-500 line-clamp-2">{extractTextFromHtml(post.content)}</p>
+                    </div>
                   </div>
                 </td>
                 <td className="p-4 align-top">
@@ -684,6 +753,17 @@ export default function BlogManager({
                       {post.rejectionReason}
                     </p>
                   )}
+                </td>
+                <td className="p-4 align-top">
+                  <input
+                    type="number"
+                    min={1}
+                    key={`${post.id}-${post.displayOrder}`}
+                    defaultValue={post.displayOrder}
+                    onBlur={(event) => void changePostOrder(post, event.target.value)}
+                    aria-label={`Ordem de ${post.title}`}
+                    className="w-20 px-2 py-1.5 rounded-lg border border-gray-200 text-sm font-bold text-center focus:border-scout-green focus:ring-2 focus:ring-scout-green/20 outline-none"
+                  />
                 </td>
                 <td className="p-4 align-top text-xs text-gray-500 font-medium">{formatDate(post.updatedAt)}</td>
                 <td className="p-4 align-top">

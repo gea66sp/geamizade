@@ -2,6 +2,7 @@
 
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 
 import { authOptions } from "@/src/lib/auth";
 import prisma from "@/src/lib/prisma";
@@ -28,7 +29,36 @@ type BlogPayload = {
 type BlogActionResult = {
   success: boolean;
   error?: string;
+  orders?: Record<string, number>;
 };
+
+async function normalizeBlogPostOrder(
+  tx: Prisma.TransactionClient,
+  movedPostId: string,
+  requestedOrder: number,
+) {
+  const posts = await tx.blogPost.findMany({
+    select: { id: true },
+    orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+  });
+  const currentIndex = posts.findIndex((post) => post.id === movedPostId);
+  if (currentIndex === -1) throw new Error("A publicação selecionada não foi encontrada.");
+
+  const remaining = posts.filter((post) => post.id !== movedPostId);
+  const targetIndex = Math.max(0, Math.min(requestedOrder - 1, remaining.length));
+  remaining.splice(targetIndex, 0, { id: movedPostId });
+
+  await Promise.all(
+    remaining.map((post, index) =>
+      tx.blogPost.update({ where: { id: post.id }, data: { displayOrder: -(index + 1) } }),
+    ),
+  );
+  await Promise.all(
+    remaining.map((post, index) =>
+      tx.blogPost.update({ where: { id: post.id }, data: { displayOrder: index + 1 } }),
+    ),
+  );
+}
 
 async function getAuthorizedUser() {
   const session = await getServerSession(authOptions);
@@ -137,16 +167,21 @@ export async function createBlogPost(payload: BlogPayload): Promise<BlogActionRe
 
     const slug = await getUniqueSlug(payload.slug?.trim() || parsed.title);
 
-    await prisma.blogPost.create({
-      data: {
-        title: parsed.title,
-        slug,
-        content: parsed.sanitizedHtml,
-        imageUrl: parsed.imageUrl,
-        status: parsed.status,
-        troopId: parsed.troopId,
-        authorId: user.id,
-      },
+    const createdPost = await prisma.$transaction(async (tx) => {
+      const post = await tx.blogPost.create({
+        data: {
+          title: parsed.title,
+          slug,
+          content: parsed.sanitizedHtml,
+          imageUrl: parsed.imageUrl,
+          status: parsed.status,
+          troopId: parsed.troopId,
+          authorId: user.id,
+        },
+        select: { id: true },
+      });
+      await normalizeBlogPostOrder(tx, post.id, 1);
+      return post;
     });
 
     revalidateBlogSurfaces([slug]);
@@ -159,6 +194,40 @@ export async function createBlogPost(payload: BlogPayload): Promise<BlogActionRe
         error instanceof Error
           ? error.message
           : "Falha inesperada ao criar a publicação no banco de dados.",
+    };
+  }
+
+}
+
+export async function updateBlogPostOrder(postId: string, requestedOrder: number): Promise<BlogActionResult> {
+  try {
+    const user = await getAuthorizedUser();
+    if (!Number.isInteger(requestedOrder) || requestedOrder < 1) {
+      throw new Error("A ordem deve ser um número inteiro maior ou igual a 1.");
+    }
+
+    const existingPost = await prisma.blogPost.findUnique({
+      where: { id: postId },
+      select: { slug: true, troopId: true },
+    });
+    if (!existingPost) throw new Error("A publicação selecionada não foi encontrada.");
+    assertCanActOnPost(user, existingPost);
+
+    await prisma.$transaction((tx) => normalizeBlogPostOrder(tx, postId, requestedOrder));
+    const orderedPosts = await prisma.blogPost.findMany({
+      select: { id: true, displayOrder: true },
+    });
+    const orders = orderedPosts.reduce<Record<string, number>>((result, post) => {
+      result[post.id] = post.displayOrder;
+      return result;
+    }, {});
+    revalidateBlogSurfaces([existingPost.slug]);
+    return { success: true, orders };
+  } catch (error) {
+    console.error("Erro ao alterar a ordem da publicação:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Falha inesperada ao alterar a ordem da publicação.",
     };
   }
 }

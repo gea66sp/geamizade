@@ -9,6 +9,7 @@ import {
   deleteBlogPost,
   rejectBlogPost,
   setBlogPostStatus,
+  updateBlogPostOrder,
   updateBlogPost,
 } from "@/src/app/(dashboard)/admin/blog/actions";
 
@@ -22,6 +23,7 @@ type BlogPostItem = {
   slug: string;
   content: string;
   imageUrl: string | null;
+  displayOrder: number;
   status: PostStatusValue;
   rejectionReason: string | null;
   troopId: string | null;
@@ -103,6 +105,8 @@ export default function ChefeBlogManager({
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
+  const [draggedPostId, setDraggedPostId] = useState<string | null>(null);
+  const [dragOverPostId, setDragOverPostId] = useState<string | null>(null);
 
   function createEmptyDraft(troopId: string): PostDraft {
     return { id: null, title: "", slug: "", content: INITIAL_CONTENT, imageUrl: "", troopId, status: "DRAFT" };
@@ -286,6 +290,48 @@ export default function ChefeBlogManager({
     }
   };
 
+  const changePostOrder = async (post: BlogPostItem, value: string) => {
+    const requestedOrder = Number(value);
+    if (!Number.isInteger(requestedOrder) || requestedOrder < 1) return;
+    const result = await updateBlogPostOrder(post.id, requestedOrder);
+    if (!result.success) {
+      setToast({ type: "error", message: result.error || "Não foi possível alterar a ordem." });
+      return;
+    }
+    setPosts((current) =>
+      [...current]
+        .map((item) => ({
+          ...item,
+          displayOrder: result.orders?.[item.id] ?? item.displayOrder,
+        }))
+        .sort((a, b) => a.displayOrder - b.displayOrder),
+    );
+    setToast({ type: "success", message: "Ordem da publicação atualizada." });
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    const edgeSize = 100;
+    const scrollSpeed = 18;
+    if (event.clientY < edgeSize) {
+      window.scrollBy({ top: -scrollSpeed, behavior: "auto" });
+    } else if (event.clientY > window.innerHeight - edgeSize) {
+      window.scrollBy({ top: scrollSpeed, behavior: "auto" });
+    }
+  };
+
+  const handleDrop = async (targetPost: BlogPostItem) => {
+    const draggedId = draggedPostId;
+    setDraggedPostId(null);
+    setDragOverPostId(null);
+    if (!draggedId || draggedId === targetPost.id) return;
+
+    const draggedPost = posts.find((post) => post.id === draggedId);
+    if (!draggedPost) return;
+
+    await changePostOrder(draggedPost, String(targetPost.displayOrder));
+  };
+
   const removePost = async (post: BlogPostItem) => {
     if (!window.confirm(`Deseja realmente excluir "${post.title}"? Essa ação não pode ser desfeita.`)) return;
 
@@ -415,10 +461,29 @@ export default function ChefeBlogManager({
           </div>
         ) : (
           visiblePosts.map((post) => (
-            <div key={post.id} className="p-4 md:p-5 space-y-3">
+            <div
+              key={post.id}
+              draggable
+              onDragStart={() => setDraggedPostId(post.id)}
+              onDragOver={(event) => {
+                handleDragOver(event);
+                setDragOverPostId(post.id);
+              }}
+              onDrop={() => void handleDrop(post)}
+              onDragEnd={() => {
+                setDraggedPostId(null);
+                setDragOverPostId(null);
+              }}
+              className={`p-4 md:p-5 space-y-3 ${
+                dragOverPostId === post.id ? "bg-scout-green/5 ring-2 ring-inset ring-scout-green/30" : ""
+              }`}
+            >
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div>
-                  <h3 className="font-heading text-lg font-bold text-gray-800 leading-tight">{post.title}</h3>
+                  <h3 className="font-heading text-lg font-bold text-gray-800 leading-tight flex items-center gap-2">
+                    <i className="fa-solid fa-grip-vertical text-gray-300 cursor-grab active:cursor-grabbing" aria-label="Arraste para reordenar"></i>
+                    {post.title}
+                  </h3>
                   <p className="text-xs font-medium text-gray-500 mt-1">
                     /{post.slug} • {post.author.name || "Membro"} • Atualizado em {formatDate(post.updatedAt)}
                   </p>
@@ -427,6 +492,18 @@ export default function ChefeBlogManager({
               </div>
 
               <p className="text-sm text-gray-600 line-clamp-2">{extractTextFromHtml(post.content)}</p>
+              <label className="flex items-center gap-2 text-xs font-bold text-gray-500">
+                Ordem no site
+                <input
+                  type="number"
+                  min={1}
+                  key={`${post.id}-${post.displayOrder}`}
+                  defaultValue={post.displayOrder}
+                  onBlur={(event) => void changePostOrder(post, event.target.value)}
+                  aria-label={`Ordem de ${post.title}`}
+                  className="w-20 px-2 py-1.5 rounded-lg border border-gray-200 text-sm text-center focus:border-scout-green focus:ring-2 focus:ring-scout-green/20 outline-none"
+                />
+              </label>
 
               {post.status === "REJECTED" && post.rejectionReason && (
                 <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg p-2">

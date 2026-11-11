@@ -488,6 +488,7 @@ model BlogPost {
   slug      String   @unique
   content   String   @db.Text
   imageUrl  String?
+  displayOrder Int   @default(1)
 
   status          PostStatus @default(PUBLISHED)
   reviewedById    String?
@@ -506,6 +507,7 @@ model BlogPost {
 
   @@index([troopId])
   @@index([status])
+  @@index([displayOrder])
 }
 
 // ==========================================

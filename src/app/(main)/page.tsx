@@ -49,7 +49,7 @@ export default async function Home() {
         select: { name: true },
       },
     },
-    orderBy: { updatedAt: "desc" },
+    orderBy: [{ displayOrder: "asc" }, { updatedAt: "desc" }],
     take: 3,
   });
 
